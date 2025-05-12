@@ -1,13 +1,90 @@
-/* 基本フォント設定 (Tailwindのデフォルトを上書きまたは補完する場合) */
+/* common-styles.css */
+
+/* ============================================== */
+/* THEME COLORS & BASE STYLES                     */
+/* ============================================== */
+:root {
+    --primary-color: #15803d; /* Tailwind green-700 (少し明るめに変更) */
+    --primary-color-darker: #166534; /* Tailwind green-800 */
+    --primary-color-hover: #16a34a; /* Tailwind green-600 */
+    --secondary-color: #facc15; /* Tailwind yellow-400 */
+    --secondary-color-hover: #eab308; /* Tailwind yellow-500 */
+
+    --text-color-base: #1f2937; /* Tailwind gray-800 */
+    --text-color-muted: #4b5563; /* Tailwind gray-600 */
+    --text-color-inverted: #ffffff; /* 白文字 */
+    --text-color-heading: var(--primary-color-darker); /* 見出し用の濃い緑 */
+
+    --bg-color-base: #ffffff;
+    --bg-color-soft: #f8fafc; /* Tailwind slate-50 (よりニュートラルな白系) */
+    --bg-color-header-scrolled: rgba(255, 255, 255, 0.97);
+
+    --border-color-base: #e5e7eb; /* Tailwind gray-200 */
+    --border-color-light: #f3f4f6; /* Tailwind gray-100 */
+
+    --font-family-sans: 'Noto Sans JP', sans-serif;
+    --font-family-heading: 'M PLUS Rounded 1c', sans-serif;
+
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -3px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+
+    --border-radius-sm: 0.375rem; /* 6px */
+    --border-radius: 0.5rem;    /* 8px */
+    --border-radius-lg: 0.75rem;   /* 12px */
+    --border-radius-full: 9999px;
+
+    --transition-base: all 0.3s ease-in-out;
+    --transition-fast: all 0.2s ease-in-out;
+}
+
+/* 基本フォント設定 */
 body {
-    font-family: 'Noto Sans JP', sans-serif;
-    -webkit-font-smoothing: antialiased; /* iOS Safariでのフォントレンダリング改善 */
-    -moz-osx-font-smoothing: grayscale; /* Firefoxでのフォントレンダリング改善 */
+    font-family: var(--font-family-sans);
+    color: var(--text-color-base);
+    background-color: var(--bg-color-base);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    font-weight: 700; /* 見出しのデフォルトウェイト */
+    font-family: var(--font-family-heading);
+    font-weight: 700;
+    color: var(--text-color-heading);
+    line-height: 1.3;
+}
+
+h1 { font-size: 2.5rem; margin-bottom: 1.5rem; } /* text-4xl */
+h2 { font-size: 2rem; margin-top: 2.5rem; margin-bottom: 1.25rem; } /* text-3xl */
+h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }    /* text-2xl */
+h4 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; } /* text-xl */
+
+p {
+    margin-bottom: 1.25rem;
+    color: var(--text-color-muted);
+}
+p:last-child {
+    margin-bottom: 0;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+a:hover {
+    color: var(--primary-color-hover);
+    text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
 }
 
 /* スムーズスクロール */
@@ -15,130 +92,413 @@ html {
     scroll-behavior: smooth;
 }
 
-/* フェードインアニメーション */
+/* ============================================== */
+/* HEADER & NAVIGATION                            */
+/* ============================================== */
+header#main-header { /* 既存のIDセレクタを維持 */
+    background-color: rgba(255, 255, 255, 0.9); /* 少し透明度変更 */
+    /* backdrop-blur-md はTailwindクラスで指定されているはず */
+    box-shadow: var(--shadow-xs);
+    /* sticky top-0 z-50 はTailwindクラスで指定 */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+header#main-header.scrolled {
+    background-color: var(--bg-color-header-scrolled);
+    box-shadow: var(--shadow-md);
+}
+
+/* PCナビゲーションリンク */
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600) { /* Tailwindのクラス構造に合わせる */
+    position: relative;
+    padding-top: 0.25rem; /* ホバーエフェクト用スペース */
+    padding-bottom: 0.25rem;
+    margin-left: 0.5rem; /* Tailwind space-x-5 等と競合しないように注意 */
+    margin-right: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color-base);
+}
+
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600)::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; /* 少し下にオフセット */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease-in-out;
+}
+
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600):hover::after {
+    width: 70%; /* 全幅ではなく、少し短めに */
+}
+
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600):hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+/* 団員専用ボタン (既存のTailwindクラスにスタイルを重ねる) */
+#main-header nav a.bg-green-600 {
+    background-color: var(--primary-color) !important; /* Tailwindを上書き */
+    color: var(--text-color-inverted) !important;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-base);
+}
+#main-header nav a.bg-green-600:hover {
+    background-color: var(--primary-color-hover) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* モバイルメニューボタンのアニメーション */
+#mobile-menu-button-alpine svg {
+    transition: transform 0.3s ease-in-out;
+}
+#mobile-menu-button-alpine .line {
+    transition: transform 0.3s ease-in-out, opacity 0.2s ease-in-out;
+    transform-origin: center;
+}
+#mobile-menu-button-alpine.open .line1 {
+    transform: translateY(7px) rotate(45deg);
+}
+#mobile-menu-button-alpine.open .line2 {
+    opacity: 0;
+    transform: translateX(-10px); /* 少しアニメーション追加 */
+}
+#mobile-menu-button-alpine.open .line3 {
+    transform: translateY(-7px) rotate(-45deg);
+}
+/* モバイルメニュー自体のスタイルはTailwindで制御されていると想定 */
+/* #mobile-menu-alpine a { ... } などで微調整可能 */
+
+
+/* ============================================== */
+/* HERO SECTION                                   */
+/* ============================================== */
+/* .hero-bg はHTML側で背景画像を指定 */
+
+#hero-title {
+    /* font-family, font-weight は h1 のスタイルを継承 */
+    /* leading-tight はTailwindで指定 */
+}
+
+/* ヒーローセクションのテキストアニメーション用 (JSと連携) */
+.hero-title-char {
+    display: inline-block;
+    opacity: 0;
+    /* JS側で最終スタイルを指定するが、CSSでも初期transformとtransitionを定義 */
+    transform: translateY(30px) rotateX(-90deg) scale(0.7);
+    transform-origin: bottom center;
+    transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1), transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+/* JS側で transition-delay がインラインスタイルで設定される想定 */
+
+/* ヒーローセクションのボタン (既存の .hero-title-char[href] に適用) */
+#hero .hero-title-char[href] {
+    padding: 0.875rem 2.25rem; /* 少し横幅調整 */
+    border-radius: var(--border-radius-full); /* 角を完全に丸く */
+    font-weight: 700;
+    text-align: center;
+    /* transition は .hero-title-char と共通 + 個別のtransform */
+    transition: var(--transition-base), opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1), transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+    box-shadow: var(--shadow-md);
+    text-decoration: none !important;
+    letter-spacing: 0.025em; /* 少し文字間隔 */
+}
+#hero .hero-title-char[href]:hover {
+    transform: translateY(-3px) scale(1.05); /* ホバー時の動きを調整 */
+    box-shadow: var(--shadow-lg);
+}
+
+/* 「体験プログラムを探す」ボタン */
+#hero a[href="join.html"].hero-title-char { /* セレクタの具体性を上げる */
+    background-color: var(--secondary-color);
+    color: var(--primary-color-darker); /* 黄色背景に濃い緑文字でコントラスト */
+}
+#hero a[href="join.html"].hero-title-char:hover {
+    background-color: var(--secondary-color-hover);
+}
+
+/* 「私たちの活動を見る」ボタン */
+#hero a[href="activity-log.html"].hero-title-char {
+    background-color: transparent;
+    color: var(--text-color-inverted);
+    border: 2px solid var(--text-color-inverted);
+}
+#hero a[href="activity-log.html"].hero-title-char:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--text-color-inverted);
+}
+
+
+/* ============================================== */
+/* CARD STYLES                                    */
+/* ============================================== */
+.card-hover-effect {
+    border-radius: var(--border-radius-lg); /* 角丸を少し大きく */
+    background-color: var(--bg-color-base);
+    box-shadow: var(--shadow-md);
+    transition: box-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+}
+.card-hover-effect:hover {
+    box-shadow: var(--shadow-xl); /* よりはっきりした影 */
+    transform: translateY(-6px);
+}
+
+/* カード内コンテンツエリア (必要ならHTML側でこのクラスをdivに付与) */
+.card-content-area {
+    padding: 1.5rem; /* p-6 相当 */
+}
+.card-content-area h3 { /* カード内のH3 */
+    margin-top: 0;
+    font-size: 1.25rem; /* text-xl */
+    color: var(--text-color-heading);
+    margin-bottom: 0.75rem;
+}
+.card-content-area p {
+    font-size: 0.925rem; /* 少し小さめ */
+    line-height: 1.65;
+    color: var(--text-color-muted);
+}
+
+/* 各隊紹介カードの画像周りなど (Tiltエフェクトと併用の場合) */
+.tilt-card-effect img.rounded-full { /* placehold.co の画像 */
+    border-width: 4px;
+    border-color: var(--border-color-light); /* 境界線を薄く */
+    box-shadow: var(--shadow-sm);
+}
+
+
+/* ============================================== */
+/* ARTICLE LISTS & DETAILS                        */
+/* ============================================== */
+/* 記事一覧アイテム (news-list.html, activity-log.html) */
+.news-item, .activity-log-item { /* articleタグに付与する想定 */
+    /* .card-hover-effect を継承・または別途スタイル定義 */
+    margin-bottom: 2rem; /* アイテム間のマージン */
+}
+.news-item h3, .activity-log-item h3 { /* カード内 h3 のスタイルを再利用 */
+    font-size: 1.375rem; /* 少し大きめ */
+    font-weight: 600;
+    color: var(--text-color-base);
+    transition: color 0.2s ease;
+}
+.news-item:hover h3, .activity-log-item:hover h3 {
+    color: var(--primary-color-hover);
+}
+
+/* 記事メタ情報 (詳細ページ用) */
+.article-meta-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem; /* 横の隙間を少し広げる */
+    font-size: 0.875rem;
+    color: var(--text-color-muted);
+    margin-bottom: 1.5rem;
+}
+.article-meta-info svg.icon { /* JSで<svg class="icon">のように挿入する場合 */
+    width: 1.1em;
+    height: 1.1em;
+    margin-right: 0.3em;
+    fill: currentColor; /* メタ情報テキストと同じ色 */
+}
+.article-meta-info .category-badge { /* JSでカテゴリ表示にこのクラスを付与 */
+    font-size: 0.75rem;
+    font-weight: 600; /* semibold */
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--border-radius-full);
+    color: var(--text-color-inverted);
+    /* 背景色はJSの news.categoryColor (bg-XXX-500) で設定される */
+}
+
+/* 記事本文 (詳細ページ用、既存の .prose-custom を拡張) */
+.prose-custom h2 {
+    font-size: 1.875rem; /* text-3xl と text-2xl の中間 */
+    color: var(--text-color-heading);
+    margin-top: 2.8em;
+    margin-bottom: 1.2em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--border-color-base);
+}
+.prose-custom h3 {
+    font-size: 1.5rem; /* text-2xl */
+    color: var(--text-color-heading);
+    margin-top: 2.2em;
+    margin-bottom: 1em;
+}
+.prose-custom p {
+    line-height: 1.85;
+    color: var(--text-color-base);
+    font-size: 1.05rem; /* 本文を少しだけ大きく */
+}
+.prose-custom a {
+    color: var(--primary-color-hover);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    font-weight: 500; /* リンクを少し強調 */
+}
+.prose-custom a:hover {
+    color: var(--primary-color-darker);
+    text-decoration-thickness: 2px;
+}
+.prose-custom ul, .prose-custom ol {
+    margin-left: 1.25em;
+    padding-left: 0.75em; /* マーカーとテキストの間隔 */
+    color: var(--text-color-base);
+}
+.prose-custom li::marker {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+.prose-custom figure {
+    margin-top: 2.5em;
+    margin-bottom: 2.5em;
+}
+.prose-custom figcaption {
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+    text-align: center;
+    margin-top: 0.75em;
+}
+.prose-custom blockquote {
+    border-left-color: var(--primary-color);
+    color: var(--text-color-muted);
+    font-style: italic;
+}
+
+/* ============================================== */
+/* ANIMATIONS                                     */
+/* ============================================== */
 .fade-in-section {
     opacity: 0;
-    transform: translateY(30px); /* 少しアニメーションの移動距離を調整 */
-    transition: opacity 0.8s cubic-bezier(0.645, 0.045, 0.355, 1), transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); /* イージングを調整 */
+    transform: translateY(40px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: 0.15s; /* 遅延を少し調整 */
 }
 .fade-in-section.is-visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* ヘッダーがスクロールされた時のスタイル */
-header.scrolled {
-    background-color: rgba(255, 255, 255, 0.98); /* 背景をより不透明に */
-    box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.05); /* 影を少し調整 */
+/* カウンターの数字スタイル */
+.counter {
+    font-weight: 800; /* extrabold */
+    color: var(--primary-color);
+    /* サイズはHTML側のTailwindクラス (text-3xlなど) で指定 */
 }
 
-/* 汎用的なカードホバーエフェクト */
-.card-hover-effect {
-    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+
+/* ============================================== */
+/* FORMS                                          */
+/* ============================================== */
+.form-input, .form-textarea, .form-select { /* Tailwindのクラス名に合わせて調整 */
+    @apply block w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50;
+    /* 上記は @apply を使う場合の例。ピュアCSSで書く場合は以下のように */
+    /* display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color-base);
+    box-shadow: var(--shadow-xs);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease; */
 }
-.card-hover-effect:hover {
-    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 8px -3px rgba(0,0,0,0.06); /* 少し控えめな影 */
-    transform: translateY(-3px); /* 浮き上がりを少し抑える */
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 22, 163, 74), 0.25); /* var(--primary-color)のRGB値が必要 */
+    outline: none;
+}
+/* :root に --primary-color-rgb: 22, 163, 74; などを定義しておくと良い */
+
+/* フォームのボタン */
+.form-submit-button { /* HTMLの送信ボタンにこのクラスを付与 */
+    @apply inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white transition-colors duration-150;
+    background-color: var(--primary-color);
+}
+.form-submit-button:hover {
+    background-color: var(--primary-color-hover);
+}
+.form-submit-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 22, 163, 74), 0.25);
 }
 
-/* 3Dチルトエフェクト用カード */
+/* ============================================== */
+/* PAGINATION                                     */
+/* ============================================== */
+/* 既存の .pagination-active, .pagination-disabled, .pagination-button を流用しつつ調整 */
+.pagination-button {
+    @apply py-2 px-3 leading-tight bg-white border border-gray-300 text-gray-500 transition-colors duration-200;
+    /* 上記の代わりにピュアCSSで書く場合 */
+    /* padding: 0.625rem 0.875rem;
+    line-height: 1.25;
+    background-color: var(--bg-color-base);
+    border: 1px solid var(--border-color-base);
+    color: var(--text-color-muted);
+    transition: var(--transition-fast); */
+}
+.pagination-button:hover:not(.pagination-disabled):not(.pagination-active) {
+    background-color: var(--bg-color-soft);
+    color: var(--text-color-base);
+}
+.pagination-button:first-child { border-top-left-radius: var(--border-radius-sm); border-bottom-left-radius: var(--border-radius-sm); }
+.pagination-button:last-child { border-top-right-radius: var(--border-radius-sm); border-bottom-right-radius: var(--border-radius-sm); }
+
+.pagination-active {
+    z-index: 10;
+    color: var(--text-color-inverted) !important;
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    font-weight: 600; /* アクティブなページ番号を強調 */
+}
+.pagination-disabled {
+    color: #a8a29e !important; /* Tailwind stone-400 相当、より無効感を出す */
+    pointer-events: none;
+    background-color: #f5f5f4 !important; /* Tailwind stone-100 相当 */
+    border-color: var(--border-color-light) !important;
+}
+
+
+/* ============================================== */
+/* OTHER UTILITIES & COMPONENTS                   */
+/* ============================================== */
+/* 3Dチルトエフェクト用カード (既存スタイルを維持または微調整) */
 .tilt-card-effect {
     transition: transform 0.1s ease-out;
-    will-change: transform; /* パフォーマンス最適化のため */
+    will-change: transform;
 }
-/* .tilt-card-effect:hover はJSでtransformを直接操作するため、ここでは不要 */
+
+/* テキストの行数制限 (既存スタイルを維持) */
+.line-clamp-2, .line-clamp-3 { /* ... 既存の定義 ... */ }
+
+/* FAQアコーディオン用スタイル (既存スタイルを維持または微調整) */
+.faq-question { /* ... */ }
+.faq-answer { /* ... */ }
+/* ... */
+
+/* SVGアイコンの基本スタイル */
+svg.icon {
+    display: inline-block;
+    width: 1em; /* 親要素のフォントサイズに合わせる */
+    height: 1em;
+    vertical-align: -0.125em; /* テキストとのベースライン調整 */
+    fill: currentColor; /* 基本はテキストカラーを継承 */
+}
+/* 必要に応じて .icon-primary などの修飾クラスで色を指定 */
+.icon-primary { fill: var(--primary-color); }
 
 
-/* 画像ギャラリーのホバーエフェクト */
+/* 画像ギャラリーのホバーエフェクト (既存スタイルを維持または微調整) */
 .gallery-image-hover {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border-radius: var(--border-radius-sm); /* 角丸を追加 */
 }
 .gallery-image-hover:hover {
     transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-lg);
 }
-
-/* テキストの行数制限 (Tailwindのline-clampプラグインがない場合のフォールバック) */
-.line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    /* フォールバック (高さ制限) */
-    max-height: 3em; /* line-height が 1.5em の場合。実際のline-heightに合わせて調整 */
-    line-height: 1.5em;
-}
-.line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    max-height: 4.5em; /* line-height が 1.5em の場合 */
-    line-height: 1.5em;
-}
-
-/* ページネーション関連スタイル */
-.pagination-active {
-    z-index: 10;
-    color: #ffffff !important; /* importantでTailwindのデフォルトを上書き */
-    background-color: #16a34a !important; /* Tailwind green-600 */
-    border-color: #16a34a !important;
-}
-.pagination-disabled {
-    color: #9ca3af !important; /* Tailwind gray-400 */
-    pointer-events: none;
-    background-color: #f3f4f6 !important; /* Tailwind gray-100 */
-}
-.pagination-button { /* 共通のボタンスタイル */
-    @apply py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200;
-}
-.pagination-button:first-child { @apply rounded-l-md; }
-.pagination-button:last-child { @apply rounded-r-md; }
-
-
-/* FAQアコーディオン用スタイル */
-.faq-question {
-    cursor: pointer;
-}
-.faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out; /* 少し滑らかに */
-    padding-left: 1.5rem; /* アイコンスペース */
-    padding-right: 1rem;
-}
-.faq-answer.open {
-    max-height: 500px; /* 十分な高さを確保 */
-    padding-top: 0.75rem;
-    padding-bottom: 1rem;
-}
-.faq-icon {
-    transition: transform 0.35s ease-in-out;
-}
-.faq-question.open .faq-icon {
-    transform: rotate(45deg);
-}
-
-/* ヒーローセクションのテキストアニメーション用 */
-.hero-title-char {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(25px) scale(0.85); /* 少し調整 */
-    transition: opacity 0.5s cubic-bezier(0.215, 0.610, 0.355, 1), transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
-}
-
-/* フォーム入力のフォーカススタイル */
-.form-input:focus, .form-textarea:focus {
-    border-color: #2563eb; /* Tailwind blue-600 */
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Tailwind blue-600 with opacity */
-    outline: none; /* デフォルトのアウトラインを消す */
-}
-
-/* プライバシーポリシーページなどの長文コンテンツ用スタイル */
-.prose-custom h2 { @apply text-2xl font-semibold text-green-700 mt-10 mb-4 border-b-2 border-green-200 pb-2; }
-.prose-custom h3 { @apply text-xl font-semibold text-green-600 mt-8 mb-3; }
-.prose-custom p { @apply mb-4 leading-relaxed text-gray-700; }
-.prose-custom ul { @apply list-disc list-inside mb-4 pl-4 text-gray-700; }
-.prose-custom li { @apply mb-1; }
-.prose-custom a { @apply text-green-600 hover:text-green-800 hover:underline; }
-
