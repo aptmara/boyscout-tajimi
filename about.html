@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私たちについて - ボーイスカウト多治見第一団</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="common-styles.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased" x-data>
+
+    <header id="main-header" class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 transition-all duration-300">
+        <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div>
+                <a href="index.html" class="text-xl sm:text-2xl font-bold text-green-700 hover:text-green-600 transition-colors duration-300 flex items-center">
+                    <img src="https://placehold.co/40x40/38A169/FFFFFF?text=BS" alt="団章" class="h-8 w-8 mr-2 rounded-full">
+                    ボーイスカウト多治見第一団
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-5 lg:space-x-7">
+                <a href="about.html" class="text-green-600 font-bold transition-colors duration-300">団について</a> {/* 現在のページ */}
+                <a href="index.html#units" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">各隊の紹介</a>
+                <a href="activity-log.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">活動内容</a>
+                <a href="join.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">入団案内</a>
+                <a href="news-list.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お知らせ</a>
+                <a href="contact.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お問い合わせ</a>
+                <a href="#members" class="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md">団員専用</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="モバイルメニューを開閉" class="text-gray-700 hover:text-green-600 focus:outline-none p-2 rounded-md">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu-alpine" x-show="$store.mobileMenu.isOpen" @click.away="$store.mobileMenu.close()"
+             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-2"
+             class="md:hidden bg-white shadow-xl border-t border-gray-200 absolute w-full">
+            <a href="about.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-green-600 bg-green-50 transition-colors duration-200 font-bold">団について</a>
+            <a href="index.html#units" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">各隊の紹介</a>
+            <a href="activity-log.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">活動内容</a>
+            <a href="join.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">入団案内</a>
+            <a href="news-list.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お知らせ</a>
+            <a href="contact.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お問い合わせ</a>
+            <a href="#members" @click="$store.mobileMenu.close()" class="block px-6 py-4 bg-green-600 text-white text-center font-semibold hover:bg-green-700 transition-colors duration-200">団員専用</a>
+        </div>
+    </header>
+
+    <main class="pt-8 pb-16">
+        
+        <section class="bg-green-700 text-white py-12 md:py-20 fade-in-section">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">私たちについて</h1>
+                <p class="text-lg md:text-xl text-green-100 max-w-3xl mx-auto">
+                    ボーイスカウト多治見第一団は、多治見市を拠点に活動する歴史ある団です。子どもたちの健全な育成と地域社会への貢献を目指しています。
+                </p>
+            </div>
+        </section>
+
+        <section id="mission-vision" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.2s;">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-4">私たちの理念と使命</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                        「そなえよつねに」のモットーのもと、青少年が自らの能力を最大限に伸ばし、社会に貢献できる誠実な人材となることを目指し、野外活動を中心とした多彩なプログラムを提供しています。
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <img src="https://placehold.co/600x400/38A169/FFFFFF?text=団活動の様子+理念" alt="団活動の様子 イメージ" class="rounded-xl shadow-xl w-full">
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-2xl font-semibold text-green-600 mb-2">教育方針</h3>
+                            <p class="text-gray-700 leading-relaxed">
+                                私たちは、子どもたちが自然の中で仲間と協力し、様々な課題に挑戦することを通じて、自主性、協調性、リーダーシップ、そして問題解決能力を育むことを重視しています。年齢に応じた進級制度や技能章システムにより、一人ひとりの成長を具体的にサポートします。
+                            </p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold text-green-600 mb-2">地域との関わり</h3>
+                            <p class="text-gray-700 leading-relaxed">
+                                多治見第一団は、地域社会の一員として、清掃活動や地域イベントへの参加・協力など、様々な奉仕活動に積極的に取り組んでいます。これにより、スカウトたちは地域への愛着と貢献の精神を学びます。
+                            </p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold text-green-600 mb-2">目指すスカウト像</h3>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1 leading-relaxed">
+                                <li>自ら考え、判断し、行動できるスカウト</li>
+                                <li>仲間を思いやり、協力できるスカウト</li>
+                                <li>困難に立ち向かい、最後までやり遂げるスカウト</li>
+                                <li>地域や社会に貢献できるスカウト</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="units-about" class="py-16 md:py-24 bg-gray-50 fade-in-section" style="transition-delay: 0.4s;">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-green-700 mb-16">年齢に応じたプログラム：各隊の紹介</h2>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
+                        <img src="https://placehold.co/120x120/FFC107/FFFFFF?text=ビーバー" alt="ビーバースカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-yellow-300 object-cover self-center">
+                        <h3 class="text-2xl font-semibold text-yellow-600 mb-2 text-center">ビーバー隊</h3>
+                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(年長～小学2年生)</p>
+                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                            <strong>モットー：</strong>「みんなと仲良く遊ぶ」<br>
+                            自然の中での遊びや集団行動を通じて、社会性を育みます。歌やゲーム、簡単な工作など、楽しい活動が中心です。
+                        </p>
+                        <a href="unit-beaver.html" class="mt-auto text-center bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">ビーバー隊の詳細</a>
+                    </div>
+                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
+                        <img src="https://placehold.co/120x120/4CAF50/FFFFFF?text=カブ" alt="カブスカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-green-300 object-cover self-center">
+                        <h3 class="text-2xl font-semibold text-green-600 mb-2 text-center">カブ隊</h3>
+                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(小学3年生～小学5年生)</p>
+                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                            <strong>モットー：</strong>「いつも元気」<br>
+                            組（チーム）での活動を通じて、協調性やルールを守ることの大切さを学びます。野外活動の基礎や工作、ゲームなどを行います。
+                        </p>
+                        <a href="unit-cub.html" class="mt-auto text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">カブ隊の詳細</a>
+                    </div>
+                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
+                        <img src="https://placehold.co/120x120/2196F3/FFFFFF?text=ボーイ" alt="ボーイスカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-blue-300 object-cover self-center">
+                        <h3 class="text-2xl font-semibold text-blue-600 mb-2 text-center">ボーイ隊</h3>
+                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(小学6年生～中学3年生)</p>
+                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                            <strong>モットー：</strong>「そなえよつねに」<br>
+                            班（パトロール）活動を基本とし、計画性、リーダーシップ、野外技能（キャンプ、ハイキング、救急法など）を本格的に学びます。
+                        </p>
+                        <a href="unit-boy.html" class="mt-auto text-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">ボーイ隊の詳細</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="leaders" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.6s;">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-green-700 mb-16">私たちの指導者チーム</h2>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
+                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者A" alt="指導者 田中 太郎" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
+                        <h3 class="text-2xl font-semibold text-green-700 mb-1">田中 太郎</h3>
+                        <p class="text-green-600 font-medium mb-2">団委員長 / ボーイ隊隊長</p>
+                        <p class="text-gray-600 text-sm leading-relaxed italic">
+                            「子どもたちの無限の可能性を信じ、成長をサポートできることに喜びを感じています。一緒に多くの冒険をしましょう！」
+                        </p>
+                    </div>
+                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
+                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者B" alt="指導者 山田 花子" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
+                        <h3 class="text-2xl font-semibold text-green-700 mb-1">山田 花子</h3>
+                        <p class="text-green-600 font-medium mb-2">カブ隊副長</p>
+                        <p class="text-gray-600 text-sm leading-relaxed italic">
+                            「スカウト活動を通じて、子どもたちが笑顔で、元気に、そしてたくましく成長していく姿を見るのが私のやりがいです。」
+                        </p>
+                    </div>
+                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
+                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者C" alt="指導者 鈴木 次郎" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
+                        <h3 class="text-2xl font-semibold text-green-700 mb-1">鈴木 次郎</h3>
+                        <p class="text-green-600 font-medium mb-2">ビーバー隊リーダー</p>
+                        <p class="text-gray-600 text-sm leading-relaxed italic">
+                            「小さなスカウトたちの初めての体験に寄り添い、好奇心を育むお手伝いをしています。毎週の活動が楽しみです！」
+                        </p>
+                    </div>
+                </div>
+                 <div class="text-center mt-12">
+                    <a href="leaders-all.html" class="text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">
+                        全ての指導者を見る <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="safety" class="py-16 md:py-24 bg-green-50 fade-in-section" style="transition-delay: 0.8s;">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-4">安全への誓い</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                        私たちは、スカウトたちが安全な環境で活動できるよう、最大限の配慮と努力をしています。
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-10 items-start">
+                    <div class="space-y-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-green-600 text-white">
+                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-xl font-semibold text-gray-900">訓練された指導者</h4>
+                                <p class="mt-1 text-gray-700 leading-relaxed">全ての指導者は、ボーイスカウト日本連盟の定める指導者訓練を修了し、安全管理に関する知識と技術を習得しています。定期的な研修も受講しています。</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-green-600 text-white">
+                                     <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-xl font-semibold text-gray-900">活動前の安全確認</h4>
+                                <p class="mt-1 text-gray-700 leading-relaxed">活動場所の下見、天候の確認、スカウトの健康状態の把握など、活動前には必ず安全点検を実施し、リスク管理を徹底しています。</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                             <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-green-600 text-white">
+                                   <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-xl font-semibold text-gray-900">緊急時対応体制</h4>
+                                <p class="mt-1 text-gray-700 leading-relaxed">救急用品の常備、緊急連絡網の整備、最寄りの医療機関の把握など、万が一の事態に備えた対応体制を整えています。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-10 md:mt-0">
+                        <img src="https://placehold.co/600x450/A5D6A7/FFFFFF?text=安全な活動のイメージ" alt="安全な活動のイメージ" class="rounded-xl shadow-xl w-full">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-16">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+                <div class="lg:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/50x50/38A169/FFFFFF?text=BS" alt="団章" class="h-10 w-10 mr-3 rounded-full">
+                        <h4 class="text-xl font-semibold text-white">ボーイスカウト多治見第一団</h4>
+                    </div>
+                    <p class="mb-2 text-gray-400">〒XXX-XXXX 岐阜県多治見市XX町X-X-X</p>
+                    <p class="mb-2 text-gray-400">電話: <a href="tel:0572-XX-XXXX" class="hover:text-yellow-400 transition duration-300">0572-XX-XXXX</a></p>
+                    <p class="text-gray-400">Email: <a href="mailto:info@bs-tajimi1.example.jp" class="hover:text-yellow-400 transition duration-300">info@bs-tajimi1.example.jp</a></p>
+                </div>
+                <div>
+                    <h4 class="text-xl font-semibold text-white mb-4">サイトマップ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">団について</a></li>
+                        <li><a href="index.html#units" class="text-gray-400 hover:text-yellow-400 transition duration-300">各隊の紹介</a></li>
+                        <li><a href="activity-log.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">活動内容</a></li>
+                        <li><a href="join.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">入団案内</a></li>
+                        <li><a href="news-list.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お知らせ</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お問い合わせ</a></li>
+                        <li><a href="#members" class="text-gray-400 hover:text-yellow-400 transition duration-300">団員専用</a></li>
+                        <li><a href="sitemap.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">サイトマップ</a></li>
+                        <li><a href="privacy.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">プライバシーポリシー</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl font-semibold text-white mb-4">フォローする</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"></path></svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.059 1.689.073 4.948.073 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+                        </a>
+                        <a href="#" aria-label="X (formerly Twitter)" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                           <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-gray-700 my-8">
+            <div class="text-center">
+                <p class="text-gray-400">© <span id="current-year"></span> ボーイスカウト多治見第一団. All Rights Reserved.</p>
+                <p class="text-sm mt-2 text-gray-500"><a href="privacy.html" class="hover:text-yellow-400">プライバシーポリシー</a> | <a href="sitemap.html" class="hover:text-yellow-400">サイトマップ</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="common-scripts.js" defer></script>
+</body>
+</html>

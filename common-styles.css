@@ -1,0 +1,144 @@
+/* 基本フォント設定 (Tailwindのデフォルトを上書きまたは補完する場合) */
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    -webkit-font-smoothing: antialiased; /* iOS Safariでのフォントレンダリング改善 */
+    -moz-osx-font-smoothing: grayscale; /* Firefoxでのフォントレンダリング改善 */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 700; /* 見出しのデフォルトウェイト */
+}
+
+/* スムーズスクロール */
+html {
+    scroll-behavior: smooth;
+}
+
+/* フェードインアニメーション */
+.fade-in-section {
+    opacity: 0;
+    transform: translateY(30px); /* 少しアニメーションの移動距離を調整 */
+    transition: opacity 0.8s cubic-bezier(0.645, 0.045, 0.355, 1), transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); /* イージングを調整 */
+}
+.fade-in-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ヘッダーがスクロールされた時のスタイル */
+header.scrolled {
+    background-color: rgba(255, 255, 255, 0.98); /* 背景をより不透明に */
+    box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.05); /* 影を少し調整 */
+}
+
+/* 汎用的なカードホバーエフェクト */
+.card-hover-effect {
+    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.card-hover-effect:hover {
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 8px -3px rgba(0,0,0,0.06); /* 少し控えめな影 */
+    transform: translateY(-3px); /* 浮き上がりを少し抑える */
+}
+
+/* 3Dチルトエフェクト用カード */
+.tilt-card-effect {
+    transition: transform 0.1s ease-out;
+    will-change: transform; /* パフォーマンス最適化のため */
+}
+/* .tilt-card-effect:hover はJSでtransformを直接操作するため、ここでは不要 */
+
+
+/* 画像ギャラリーのホバーエフェクト */
+.gallery-image-hover {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+.gallery-image-hover:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+/* テキストの行数制限 (Tailwindのline-clampプラグインがない場合のフォールバック) */
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    /* フォールバック (高さ制限) */
+    max-height: 3em; /* line-height が 1.5em の場合。実際のline-heightに合わせて調整 */
+    line-height: 1.5em;
+}
+.line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    max-height: 4.5em; /* line-height が 1.5em の場合 */
+    line-height: 1.5em;
+}
+
+/* ページネーション関連スタイル */
+.pagination-active {
+    z-index: 10;
+    color: #ffffff !important; /* importantでTailwindのデフォルトを上書き */
+    background-color: #16a34a !important; /* Tailwind green-600 */
+    border-color: #16a34a !important;
+}
+.pagination-disabled {
+    color: #9ca3af !important; /* Tailwind gray-400 */
+    pointer-events: none;
+    background-color: #f3f4f6 !important; /* Tailwind gray-100 */
+}
+.pagination-button { /* 共通のボタンスタイル */
+    @apply py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200;
+}
+.pagination-button:first-child { @apply rounded-l-md; }
+.pagination-button:last-child { @apply rounded-r-md; }
+
+
+/* FAQアコーディオン用スタイル */
+.faq-question {
+    cursor: pointer;
+}
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out; /* 少し滑らかに */
+    padding-left: 1.5rem; /* アイコンスペース */
+    padding-right: 1rem;
+}
+.faq-answer.open {
+    max-height: 500px; /* 十分な高さを確保 */
+    padding-top: 0.75rem;
+    padding-bottom: 1rem;
+}
+.faq-icon {
+    transition: transform 0.35s ease-in-out;
+}
+.faq-question.open .faq-icon {
+    transform: rotate(45deg);
+}
+
+/* ヒーローセクションのテキストアニメーション用 */
+.hero-title-char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(25px) scale(0.85); /* 少し調整 */
+    transition: opacity 0.5s cubic-bezier(0.215, 0.610, 0.355, 1), transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+}
+
+/* フォーム入力のフォーカススタイル */
+.form-input:focus, .form-textarea:focus {
+    border-color: #2563eb; /* Tailwind blue-600 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Tailwind blue-600 with opacity */
+    outline: none; /* デフォルトのアウトラインを消す */
+}
+
+/* プライバシーポリシーページなどの長文コンテンツ用スタイル */
+.prose-custom h2 { @apply text-2xl font-semibold text-green-700 mt-10 mb-4 border-b-2 border-green-200 pb-2; }
+.prose-custom h3 { @apply text-xl font-semibold text-green-600 mt-8 mb-3; }
+.prose-custom p { @apply mb-4 leading-relaxed text-gray-700; }
+.prose-custom ul { @apply list-disc list-inside mb-4 pl-4 text-gray-700; }
+.prose-custom li { @apply mb-1; }
+.prose-custom a { @apply text-green-600 hover:text-green-800 hover:underline; }
+
