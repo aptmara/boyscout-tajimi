@@ -1,0 +1,125 @@
+/* 全体的なスタイル */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h2 {
+    color: #2c3e50;
+}
+
+/* コンテナ */
+.container, .login-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.login-container {
+    max-width: 400px;
+    margin-top: 50px;
+}
+
+/* フォーム */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    height: 200px;
+    resize: vertical;
+}
+
+/* ボタン */
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button.danger {
+    background-color: #e74c3c;
+}
+
+button.danger:hover {
+    background-color: #c0392b;
+}
+
+/* ヘッダー */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* お知らせ一覧 */
+.news-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.news-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.news-item-title {
+    font-weight: 600;
+}
+
+.news-item-actions a, .news-item-actions button {
+    text-decoration: none;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+/* メッセージ */
+.error-message {
+    color: #e74c3c;
+    margin-top: 10px;
+}
+
+.success-message {
+    color: #2ecc71;
+}
