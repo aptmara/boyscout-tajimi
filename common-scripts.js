@@ -12,6 +12,7 @@ const COMMON_SETTINGS = {
 };
 
 // --- サンプルデータ (本来はAPIやCMSから取得) ---
+/*
 const sampleActivities = [
     { id: 1, title: "【活動報告】夏の友情キャンプ開催！", date: "2025-05-15", category: "キャンプ", categoryColor: "bg-blue-500", imageUrl: "https://placehold.co/600x400/4A934A/FFFFFF?text=夏のキャンプ風景1", mainImage: "https://placehold.co/1200x600/4A934A/FFFFFF?text=夏のキャンプ風景メイン1", mainImageCaption: "メインの活動写真キャプション1", author: "カブ隊リーダー", views: 123, summary: "最高の天気の中、カブ隊とボーイ隊合同で夏の友情キャンプを実施しました。", bodyContent: `<p>最高の天気に恵まれた先週末、カブ隊とボーイ隊は合同で夏の友情キャンプを〇〇キャンプ場で開催しました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">テント設営と野外料理</h2><p>スカウトたちは協力してテントを設営し、野外料理にも挑戦。自分たちで作ったカレーは格別でした。</p><figure class="my-6"><img src="https://placehold.co/800x500/5A69C4/FFFFFF?text=テント設営の様子1" alt="テント設営" loading="lazy"><figcaption class="text-sm text-gray-500 mt-1 text-center">テント設営風景</figcaption></figure><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">キャンプファイヤー</h2><p>夜はキャンプファイヤーで盛り上がり、歌やスタンツで友情を深めました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/4CAF50/FFFFFF?text=キャンプ写真A1", full: "https://placehold.co/800x600/4CAF50/FFFFFF?text=キャンプ写真A1", title: "キャンプファイヤー" },{ thumb: "https://placehold.co/400x300/FF9800/FFFFFF?text=キャンプ写真A2", full: "https://placehold.co/800x600/FF9800/FFFFFF?text=キャンプ写真A2", title: "野外料理" }] },
     { id: 2, title: "【活動報告】秋の森探検とクラフト体験", date: "2025-10-05", category: "ビーバー隊", categoryColor: "bg-yellow-500", imageUrl: "https://placehold.co/600x400/FBBF24/FFFFFF?text=秋の森探検1", mainImage: "https://placehold.co/1200x600/FBBF24/4A5568?text=秋の森探検メイン", mainImageCaption: "落ち葉の絨毯の上で、秋の自然を満喫！", author: "ビーバー隊リーダー", views: 98, summary: "秋晴れの気持ち良い日曜日、ビーバー隊は近くの森へ探検に出かけました。", bodyContent: `<p>秋晴れの気持ち良い日曜日、ビーバー隊のスカウトたちは近くの〇〇の森へ探検に出かけました。色とりどりの落ち葉を踏みしめながら、ドングリや松ぼっくりなど、秋の宝物をたくさん見つけました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">自然の素材でアート作品！</h2><p>森で集めた材料を使って、午後はクラフト活動に挑戦。スカウトたちは思い思いのアイデアで、素敵な作品を完成させていました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/FBBF24/FFFFFF?text=秋の森B1", full: "https://placehold.co/800x600/FBBF24/FFFFFF?text=秋の森B1", title: "ドングリ拾い" }] },
@@ -35,6 +36,7 @@ const sampleNewsDataArray = [
     { id: 7, title: "クリスマス集会のご報告", date: "2024-12-22", category: "活動報告", categoryColor: "bg-green-500", summary: "各隊合同でクリスマス集会を開催し、ゲームやプレゼント交換で楽しいひとときを過ごしました。", detailUrl: "news-detail-placeholder.html?id=7", bodyContent: "<p>先日、団ホールにてクリスマス集会を開催しました。ビーバー隊からローバー隊まで、全隊のスカウトとリーダー、そして多くの保護者の皆様にご参加いただき、盛況のうちに幕を閉じました。</p><p>各隊のスタンツ発表や、全員参加のゲーム、そしてお待ちかねのプレゼント交換など、笑顔あふれる時間となりました。スカウトたちが準備した手作りの飾り付けも会場を彩り、温かい雰囲気の中でクリスマスの喜びを分かち合いました。</p>" },
     { id: 8, title: "秋の味覚ハイク 参加者募集", date: "2024-10-05", category: "イベント", categoryColor: "bg-blue-500", summary: "紅葉の中を歩き、秋の味覚を楽しむハイキングイベントです。ご家族での参加も大歓迎！", detailUrl: "news-detail-placeholder.html?id=8", bodyContent: "<p>実りの秋、紅葉の美しい季節となりました。下記の日程で「秋の味覚ハイク」を開催いたします。多治見の自然を満喫しながら、道中では秋ならではの味覚探しも予定しています。ご家族やお友達をお誘い合わせの上、ぜひご参加ください。</p><p><strong>日時:</strong> 2024年11月3日(日) 9:00集合<br><strong>集合場所:</strong> 〇〇公園入口<br><strong>持ち物:</strong> お弁当、水筒、雨具、帽子、軍手、レジャーシート、筆記用具<br><strong>参加費:</strong> 300円（保険料・材料費として）<br><strong>申込締切:</strong> 10月25日(金)</p><p>詳細は各隊リーダーまでお問い合わせください。</p>" }
 ];
+*/
 
 
 // Alpine.js ストアの初期化 (モバイルメニューアイコンのアニメーション対応)
@@ -70,15 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initTiltEffect();
 
     // ページ固有の初期化
-    initNewsListPage();
+    // initNewsListPage(); // 動的読み込みに置き換え
     initActivityLogPage();
     initContactForm();
     initHeroTextAnimation(); // ヒーローアニメーションの初期化
     initCounterAnimation();  // カウンターアニメーションの初期化
     initSimpleLightboxPlaceholder(); // Lightboxのプレースホルダー
     initActivityDetailPage();
-    initNewsDetailPage();
+    // initNewsDetailPage(); // 動的読み込みに置き換え
     initLazyLoadImages(); // 画像の遅延読み込み初期化 (HTMLでの設定を推奨)
+
+    // 動的コンテンツの読み込み
+    loadDynamicNews();
+    loadDynamicNewsDetail();
 });
 
 
@@ -208,6 +214,7 @@ function initSimpleLightboxPlaceholder() {
 
 
 // --- お知らせ一覧ページ (news-list.html) --- (変更点：カテゴリバッジのクラス付与検討)
+/*
 function initNewsListPage() {
     const newsListContainer = document.getElementById('news-list-container');
     if (!newsListContainer) return;
@@ -561,6 +568,61 @@ function initCounterAnimation() {
 }
 
 // --- 活動報告詳細ページ (activity-detail-placeholder.html) --- (変更点：メタ情報表示のHTML構造調整)
+/*
+function initNewsDetailPage() {
+    const articleContainer = document.getElementById('news-article-container');
+    if (!articleContainer) return;
+
+    const pageTitleElement = document.getElementById('page-title-news');
+    const articleNotFoundDiv = document.getElementById('news-article-not-found');
+
+    function findNewsById(id) {
+        return sampleNewsDataArray.find(news => news.id === parseInt(id));
+    }
+
+    function populateNewsDetails(news) {
+        if (!news) {
+            // (記事が見つからない場合の処理は既存のまま)
+            // ...
+            return;
+        }
+        // (記事が見つかった場合の表示処理は既存のまま)
+        // ...
+        if(pageTitleElement) pageTitleElement.textContent = `${news.title} - お知らせ`;
+
+        // メタ情報のHTML生成を調整
+        let metaInfoHTML = `<div class="article-meta-info mb-4">`;
+        metaInfoHTML += `<span><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>${formatDate(news.date)}</span>`;
+        metaInfoHTML += `<span class="${news.categoryColor || 'bg-gray-500'} text-white text-xs font-semibold px-2.5 py-1 rounded-full category-badge">${news.category}</span>`;
+        metaInfoHTML += `</div>`;
+
+        let htmlContent = `
+            <header class="mb-8 border-b pb-6">
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-green-700 mb-3">${news.title}</h1>
+                ${metaInfoHTML}
+            </header>
+            <div class="prose-custom prose-lg max-w-none text-gray-700 leading-relaxed">${news.bodyContent}</div>
+            {/* ... (フッターと共有ボタン、一覧へ戻るボタンは既存のロジックを流用) ... */}
+        `;
+        // 簡単のため、フッター部分のHTML生成は省略しますが、既存のコードを参考に追記してください。
+        if(articleContainer) articleContainer.innerHTML = htmlContent;
+
+        const breadcrumbTitleElem = document.getElementById('news-title-breadcrumb');
+        if (breadcrumbTitleElem) breadcrumbTitleElem.textContent = news.title.substring(0,20) + (news.title.length > 20 ? "..." : "");
+        // (SNS共有リンクの設定は既存のまま)
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const newsId = urlParams.get('id');
+
+    if (newsId) {
+        const newsItem = findNewsById(newsId);
+        populateNewsDetails(newsItem);
+    } else {
+        populateNewsDetails(null);
+    }
+}
+*/
 function initActivityDetailPage() {
     const articleContainer = document.getElementById('activity-article-container');
     if (!articleContainer) return;
