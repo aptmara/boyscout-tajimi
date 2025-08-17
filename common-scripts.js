@@ -11,33 +11,6 @@ const COMMON_SETTINGS = {
     scrollToTopSelector: 'a[href="#"]',
 };
 
-// --- サンプルデータ (本来はAPIやCMSから取得) ---
-/*
-const sampleActivities = [
-    { id: 1, title: "【活動報告】夏の友情キャンプ開催！", date: "2025-05-15", category: "キャンプ", categoryColor: "bg-blue-500", imageUrl: "https://placehold.co/600x400/4A934A/FFFFFF?text=夏のキャンプ風景1", mainImage: "https://placehold.co/1200x600/4A934A/FFFFFF?text=夏のキャンプ風景メイン1", mainImageCaption: "メインの活動写真キャプション1", author: "カブ隊リーダー", views: 123, summary: "最高の天気の中、カブ隊とボーイ隊合同で夏の友情キャンプを実施しました。", bodyContent: `<p>最高の天気に恵まれた先週末、カブ隊とボーイ隊は合同で夏の友情キャンプを〇〇キャンプ場で開催しました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">テント設営と野外料理</h2><p>スカウトたちは協力してテントを設営し、野外料理にも挑戦。自分たちで作ったカレーは格別でした。</p><figure class="my-6"><img src="https://placehold.co/800x500/5A69C4/FFFFFF?text=テント設営の様子1" alt="テント設営" loading="lazy"><figcaption class="text-sm text-gray-500 mt-1 text-center">テント設営風景</figcaption></figure><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">キャンプファイヤー</h2><p>夜はキャンプファイヤーで盛り上がり、歌やスタンツで友情を深めました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/4CAF50/FFFFFF?text=キャンプ写真A1", full: "https://placehold.co/800x600/4CAF50/FFFFFF?text=キャンプ写真A1", title: "キャンプファイヤー" },{ thumb: "https://placehold.co/400x300/FF9800/FFFFFF?text=キャンプ写真A2", full: "https://placehold.co/800x600/FF9800/FFFFFF?text=キャンプ写真A2", title: "野外料理" }] },
-    { id: 2, title: "【活動報告】秋の森探検とクラフト体験", date: "2025-10-05", category: "ビーバー隊", categoryColor: "bg-yellow-500", imageUrl: "https://placehold.co/600x400/FBBF24/FFFFFF?text=秋の森探検1", mainImage: "https://placehold.co/1200x600/FBBF24/4A5568?text=秋の森探検メイン", mainImageCaption: "落ち葉の絨毯の上で、秋の自然を満喫！", author: "ビーバー隊リーダー", views: 98, summary: "秋晴れの気持ち良い日曜日、ビーバー隊は近くの森へ探検に出かけました。", bodyContent: `<p>秋晴れの気持ち良い日曜日、ビーバー隊のスカウトたちは近くの〇〇の森へ探検に出かけました。色とりどりの落ち葉を踏みしめながら、ドングリや松ぼっくりなど、秋の宝物をたくさん見つけました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">自然の素材でアート作品！</h2><p>森で集めた材料を使って、午後はクラフト活動に挑戦。スカウトたちは思い思いのアイデアで、素敵な作品を完成させていました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/FBBF24/FFFFFF?text=秋の森B1", full: "https://placehold.co/800x600/FBBF24/FFFFFF?text=秋の森B1", title: "ドングリ拾い" }] },
-    { id: 3, title: "【活動報告】ボーイ隊、パイオニアリングに挑戦", date: "2025-11-12", category: "ボーイ隊", categoryColor: "bg-blue-600", imageUrl: "https://placehold.co/600x400/3B82F6/FFFFFF?text=パイオニアリング1", mainImage: "https://placehold.co/1200x600/3B82F6/FFFFFF?text=パイオニアリングメイン", mainImageCaption: "班で協力して信号塔を組立て中！", author: "ボーイ隊隊長", views: 150, summary: "ボーイ隊は週末、パイオニアリング（工作物組立）の技能訓練を行いました。", bodyContent: `<p>ボーイ隊は週末、パイオニアリング（工作物組立）の技能訓練を行いました。各班が知恵を絞り、ロープと丸太だけを使って実用的な信号塔やテーブル作りに挑戦しました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">計画と実践</h2><p>事前の計画と、現場での臨機応変な対応が求められる活動です。スカウトたちは何度も試行錯誤を繰り返しながら、見事な工作物を完成させました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/3B82F6/FFFFFF?text=パイオニアリング1", full: "https://placehold.co/800x600/3B82F6/FFFFFF?text=パイオニアリング1", title: "ロープワークの確認" }, { thumb: "https://placehold.co/400x300/3B82F6/FFFFFF?text=パイオニアリング2", full: "https://placehold.co/800x600/3B82F6/FFFFFF?text=パイオニアリング2", title: "完成した信号塔" }] },
-    { id: 4, title: "ベンチャー隊、地域防災マップを作成", date: "2025-09-20", category: "ベンチャー隊", categoryColor: "bg-purple-500", imageUrl: "https://placehold.co/600x400/A855F7/FFFFFF?text=防災マップ作成", mainImage: "https://placehold.co/1200x600/A855F7/FFFFFF?text=防災マップ作成メイン", mainImageCaption: "地域の危険箇所や避難場所を調査", author: "ベンチャー隊アドバイザー", views: 110, summary: "ベンチャー隊が自主プロジェクトとして、地域の防災マップ作成に取り組みました。", bodyContent: `<p>ベンチャー隊のスカウトたちが、自主プロジェクトとして地域の防災マップ作成に取り組みました。数ヶ月にわたり、地域の危険箇所や避難場所を実際に歩いて調査し、住民の方々へのヒアリングも行いました。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">完成したマップは地域へ寄贈</h2><p>完成した防災マップは、地域の公民館や自治会に寄贈され、住民の防災意識向上に役立てられる予定です。スカウトたちは、このプロジェクトを通じて地域社会への貢献を実感しました。</p>`, gallery: [] },
-    { id: 5, title: "ローバー隊、国際協力イベントを企画", date: "2025-07-05", category: "ローバー隊", categoryColor: "bg-red-500", imageUrl: "https://placehold.co/600x400/EF4444/FFFFFF?text=国際協力イベント", mainImage: "https://placehold.co/1200x600/EF4444/FFFFFF?text=国際協力イベントメイン", mainImageCaption: "イベントの企画会議の様子", author: "ローバー隊クルー", views: 85, summary: "ローバー隊が、開発途上国支援のためのチャリティイベントを企画・運営しました。", bodyContent: `<p>ローバー隊のクルー（仲間たち）が、開発途上国の子どもたちを支援するためのチャリティバザーと写真展を企画・運営しました。イベントの収益は、認定NPO法人を通じて寄付されます。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">多くの来場者で賑わう</h2><p>当日は多くの地域住民が訪れ、バザー品を購入したり、現地の様子を伝える写真展に見入ったりしていました。スカウトたちは、イベントを通じて国際協力への関心を高めることができました。</p>`, gallery: [{ thumb: "https://placehold.co/400x300/EF4444/FFFFFF?text=バザーの様子", full: "https://placehold.co/800x600/EF4444/FFFFFF?text=バザーの様子", title: "チャリティバザー" }] },
-    { id: 6, title: "ビーバー隊、春の草花観察会", date: "2026-04-10", category: "ビーバー隊", categoryColor: "bg-yellow-500", imageUrl: "https://placehold.co/600x400/FBBF24/FFFFFF?text=草花観察", mainImage: "https://placehold.co/1200x600/FBBF24/FFFFFF?text=草花観察メイン", mainImageCaption: "春の草花をスケッチ", author: "ビーバー隊リーダー", views: 75, summary: "ビーバー隊が春の公園で草花観察会を実施。見つけた草花をスケッチしました。", bodyContent: "<p>春の陽気に誘われて、ビーバー隊は近くの公園で草花観察会を行いました。タンポポやシロツメクサなど、たくさんの春の草花を見つけ、ルーペで観察したり、スケッチしたりして楽しみました。</p>", gallery: [] },
-    { id: 7, title: "カブ隊、手旗信号に挑戦！", date: "2026-03-15", category: "カブ隊", categoryColor: "bg-teal-500", imageUrl: "https://placehold.co/600x400/5EEAD4/FFFFFF?text=手旗信号", mainImage: "https://placehold.co/1200x600/5EEAD4/FFFFFF?text=手旗信号メイン", mainImageCaption: "手旗信号でメッセージを伝える練習", author: "カブ隊リーダー", views: 92, summary: "カブ隊が手旗信号の基本を学び、簡単なメッセージの送受信に挑戦しました。", bodyContent: "<p>カブ隊は、手旗信号の基本動作とアルファベットの送り方を学びました。最初は難しかったものの、練習を重ねるうちに、短い単語なら送受信できるようになりました。次回のハイキングで実践する予定です。</p>", gallery: [] },
-    { id: 8, title: "ボーイ隊、応急手当講習会", date: "2026-02-20", category: "技能章", categoryColor: "bg-purple-500", imageUrl: "https://placehold.co/600x400/C084FC/FFFFFF?text=応急手当", mainImage: "https://placehold.co/1200x600/C084FC/FFFFFF?text=応急手当メイン", mainImageCaption: "三角巾の使い方を学ぶスカウトたち", author: "ボーイ隊隊長", views: 130, summary: "ボーイ隊が消防署の方を講師に招き、応急手当講習会を実施しました。", bodyContent: "<p>ボーイ隊は、万が一の事態に備えるため、消防署の方を講師にお招きし、応急手当講習会を実施しました。心肺蘇生法や三角巾を使った固定法などを学び、実践的な訓練を行いました。</p>", gallery: [] },
-    { id: 9, title: "団行事：新年もちつき大会", date: "2026-01-08", category: "団行事", categoryColor: "bg-red-500", imageUrl: "https://placehold.co/600x400/F87171/FFFFFF?text=もちつき", mainImage: "https://placehold.co/1200x600/F87171/FFFFFF?text=もちつきメイン", mainImageCaption: "みんなでついたお餅は格別！", author: "団委員長", views: 210, summary: "新年の恒例行事、もちつき大会を盛大に開催しました。", bodyContent: "<p>新年あけましておめでとうございます。恒例のもちつき大会を団キャンプ場で開催しました。スカウト、リーダー、保護者が一体となり、力強くお餅をつきあげました。つきたてのお餅はきな粉やあんこで美味しくいただきました。</p>", gallery: [] },
-    { id: 10, title: "地域清掃活動への参加", date: "2025-12-05", category: "地域奉仕", categoryColor: "bg-yellow-500", imageUrl: "https://placehold.co/600x400/FCD34D/FFFFFF?text=地域清掃2", mainImage: "https://placehold.co/1200x600/FCD34D/FFFFFF?text=地域清掃2メイン", mainImageCaption: "街をきれいにするスカウトたち", author: "団本部", views: 105, summary: "年末の地域一斉清掃活動に、当団のスカウトも参加しました。", bodyContent: "<p>年末恒例の地域一斉清掃活動に、ボーイスカウト多治見第一団も参加しました。各隊のスカウトたちが、それぞれの担当区域でゴミ拾いや落ち葉掃きを行い、街の美化に貢献しました。</p>", gallery: [] },
-];
-
-const sampleNewsDataArray = [
-    { id: 1, title: "夏のキャンプ大会 参加者募集開始！", date: "2025-05-10", category: "イベント", categoryColor: "bg-blue-500", summary: "今年の夏も恒例のキャンプ大会を開催します。", detailUrl: "news-detail-placeholder.html?id=1", bodyContent: "<p>夏のキャンプ大会の詳細ページです。楽しい企画をたくさん用意しています！参加申し込みは〇月〇日まで。奮ってご参加ください。</p><p>キャンプのテーマは「星と友達」。夜空の観察や、新しい仲間との交流を深めるプログラムが盛りだくさんです。参加費や持ち物については、別途配布する案内をご確認ください。</p>" },
-    { id: 2, title: "【重要】団総会の開催について", date: "2025-04-28", category: "重要", categoryColor: "bg-red-500", summary: "次回の団総会を6月15日に開催いたします。", detailUrl: "news-detail-placeholder.html?id=2", bodyContent: `<p>保護者の皆様、関係各位</p><p>平素はボーイスカウト多治見第一団の活動にご理解とご協力を賜り、厚く御礼申し上げます。</p><p>さて、この度、下記の通り令和6年度（2025年度）の団総会を開催する運びとなりましたので、ご案内申し上げます。本総会は、当団の運営に関する重要な事項を審議・決定する場であり、また、一年間の活動を振り返り、今後の活動方針を共有する大切な機会でもございます。ご多忙のところ誠に恐縮ではございますが、万障お繰り合わせの上、ご出席くださいますようお願い申し上げます。</p><h2 class="text-2xl font-semibold text-green-600 mt-8 mb-4">令和6年度 団総会 開催要項</h2><ul><li><strong>日時:</strong> 2025年6月15日 (日) 10:00 ～ 12:00 (受付開始 9:30)</li><li><strong>場所:</strong> 多治見市〇〇公民館 大会議室 (予定)</li><li><strong>議題 (予定):</strong><ul><li>令和5年度 活動報告および会計報告</li><li>令和5年度 会計監査報告</li><li>令和6年度 活動計画案および予算案</li><li>役員改選について</li><li>その他</li></ul></li></ul><h3 class="text-xl font-semibold text-green-600 mt-6 mb-3">出欠について</h3><p>出欠につきましては、別途配布いたします出欠票にご記入の上、<strong>6月5日 (木) まで</strong>に各隊リーダーまたは団事務局までご提出ください。やむを得ずご欠席される場合は、委任状のご提出をお願いいたします。</p><figure class="my-6"><img src="https://placehold.co/800x400/D1FAE5/10B981?text=会議・集会のイメージ" alt="総会のイメージ" loading="lazy"><figcaption class="text-sm text-gray-500 mt-1 text-center">皆様のご参加をお待ちしております</figcaption></figure><p>本総会が実りあるものとなりますよう、皆様のご協力を心よりお願い申し上げます。</p><p class="text-right mt-6">ボーイスカウト多治見第一団<br>団委員長 [団委員長名]</p>` },
-    { id: 3, title: "春の地域清掃活動を実施しました", date: "2025-04-15", category: "活動報告", categoryColor: "bg-green-500", summary: "スカウトたちが地域の公園清掃活動に参加しました。", detailUrl: "news-detail-placeholder.html?id=3", bodyContent: "<p>先日、春の地域清掃活動に当団のスカウトたちが参加しました。公園や川沿いのゴミを拾い集め、地域美化に貢献しました。参加したスカウトからは「街がきれいになって気持ちがいい」との声が聞かれました。</p>" },
-    { id: 4, title: "新入団員募集説明会のお知らせ", date: "2025-03-20", category: "募集", categoryColor: "bg-yellow-500", summary: "来年度の新入団員募集に関する説明会を開催します。", detailUrl: "news-detail-placeholder.html?id=4", bodyContent: "<p>ボーイスカウト活動に興味のあるお子様と保護者の皆様を対象に、新入団員募集説明会を開催いたします。活動内容のご紹介や質疑応答の時間を設けますので、お気軽にご参加ください。<br><strong>日時:</strong> 2025年4月5日(土) 14:00～15:00<br><strong>場所:</strong> 〇〇公民館</p>" },
-    { id: 5, title: "ウェブサイトをリニューアルしました！", date: "2025-03-01", category: "その他", categoryColor: "bg-purple-500", summary: "公式ウェブサイトが新しくなりました。", detailUrl: "news-detail-placeholder.html?id=5", bodyContent: "<p>日頃よりボーイスカウト多治見第一団のウェブサイトをご覧いただき、誠にありがとうございます。この度、ウェブサイトを全面的にリニューアルいたしました。より見やすく、情報を探しやすく改善しております。今後ともご愛顧賜りますようお願い申し上げます。</p>" },
-    { id: 6, title: "冬季スキー訓練 中止のお知らせ", date: "2025-01-10", category: "重要", categoryColor: "bg-red-500", summary: "積雪不足のため、予定しておりました冬季スキー訓練は中止とさせていただきます。ご了承ください。", detailUrl: "news-detail-placeholder.html?id=6", bodyContent: "<p>保護者の皆様、スカウト諸君</p><p>非常に残念なお知らせとなりますが、今週末に予定しておりました冬季スキー訓練は、現地での積雪が極めて少ないため、安全な活動の実施が困難と判断し、中止とさせていただくことになりました。</p><p>楽しみにしていたスカウトの皆さんには大変申し訳ございませんが、ご理解いただけますようお願いいたします。代替行事については、改めて検討しご連絡いたします。</p>" },
-    { id: 7, title: "クリスマス集会のご報告", date: "2024-12-22", category: "活動報告", categoryColor: "bg-green-500", summary: "各隊合同でクリスマス集会を開催し、ゲームやプレゼント交換で楽しいひとときを過ごしました。", detailUrl: "news-detail-placeholder.html?id=7", bodyContent: "<p>先日、団ホールにてクリスマス集会を開催しました。ビーバー隊からローバー隊まで、全隊のスカウトとリーダー、そして多くの保護者の皆様にご参加いただき、盛況のうちに幕を閉じました。</p><p>各隊のスタンツ発表や、全員参加のゲーム、そしてお待ちかねのプレゼント交換など、笑顔あふれる時間となりました。スカウトたちが準備した手作りの飾り付けも会場を彩り、温かい雰囲気の中でクリスマスの喜びを分かち合いました。</p>" },
-    { id: 8, title: "秋の味覚ハイク 参加者募集", date: "2024-10-05", category: "イベント", categoryColor: "bg-blue-500", summary: "紅葉の中を歩き、秋の味覚を楽しむハイキングイベントです。ご家族での参加も大歓迎！", detailUrl: "news-detail-placeholder.html?id=8", bodyContent: "<p>実りの秋、紅葉の美しい季節となりました。下記の日程で「秋の味覚ハイク」を開催いたします。多治見の自然を満喫しながら、道中では秋ならではの味覚探しも予定しています。ご家族やお友達をお誘い合わせの上、ぜひご参加ください。</p><p><strong>日時:</strong> 2024年11月3日(日) 9:00集合<br><strong>集合場所:</strong> 〇〇公園入口<br><strong>持ち物:</strong> お弁当、水筒、雨具、帽子、軍手、レジャーシート、筆記用具<br><strong>参加費:</strong> 300円（保険料・材料費として）<br><strong>申込締切:</strong> 10月25日(金)</p><p>詳細は各隊リーダーまでお問い合わせください。</p>" }
-];
-*/
-
 
 // Alpine.js ストアの初期化 (モバイルメニューアイコンのアニメーション対応)
 document.addEventListener('alpine:init', () => {
@@ -64,27 +37,49 @@ document.addEventListener('alpine:init', () => {
 });
 
 // DOMContentLoaded後に行う共通初期化処理
+// DOMContentLoaded後に行う共通初期化処理
 document.addEventListener('DOMContentLoaded', () => {
+    // --- すべてのページで実行する共通処理 ---
     initSmoothScroll();
     initFooterYear();
     initIntersectionObserver();
     initHeaderScrollBehavior();
-    initTiltEffect();
+    initTiltEffect(); // ページ全体で使う可能性があるので共通に
+    initSimpleLightboxPlaceholder();
+    initLazyLoadImages();
 
-    // ページ固有の初期化
-    // initNewsListPage(); // 動的読み込みに置き換え
-    initActivityLogPage();
-    initContactForm();
-    initHeroTextAnimation(); // ヒーローアニメーションの初期化
-    initCounterAnimation();  // カウンターアニメーションの初期化
-    initSimpleLightboxPlaceholder(); // Lightboxのプレースホルダー
-    initActivityDetailPage();
-    // initNewsDetailPage(); // 動的読み込みに置き換え
-    initLazyLoadImages(); // 画像の遅延読み込み初期化 (HTMLでの設定を推奨)
+    // --- ページ固有の初期化（要素の存在を確認してから実行）---
 
-    // 動的コンテンツの読み込み
-    loadDynamicNews();
-    loadDynamicNewsDetail();
+    // トップページ用の処理 (index.html)
+    if (document.getElementById('hero')) {
+        initHeroTextAnimation();
+        initCounterAnimation();
+    }
+
+    // お知らせ一覧ページ用の処理 (news-list.html)
+    if (document.getElementById('news-list-container')) {
+        // initNewsListPage(); // dynamic-news.js で処理
+    }
+
+    // お知らせ詳細ページ用の処理 (news-detail-placeholder.html)
+    if (document.getElementById('news-article-container')) {
+        // initNewsDetailPage(); // dynamic-news.js で処理
+    }
+
+    // 活動報告一覧ページ用の処理 (activity-log.html)
+    if (document.getElementById('activity-log-container')) {
+        initActivityLogPage();
+    }
+
+    // 活動報告詳細ページ用の処理 (activity-detail-placeholder.html)
+    if (document.getElementById('activity-article-container')) {
+        initActivityDetailPage();
+    }
+
+    // お問い合わせページ用の処理 (contact.html)
+    if (document.getElementById('contact-form')) {
+        initContactForm();
+    }
 });
 
 
@@ -373,11 +368,6 @@ function initActivityLogPage() {
                         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                         <span class="absolute top-4 left-4 ${categoryColorClass} text-white text-xs font-semibold px-2.5 py-1 rounded-full category-badge">${activity.category}</span>
                     </div>
-                    <div class="p-6 flex-grow card-content-area"> {/* card-content-areaクラスを追加検討 */}
-                        <p class="text-sm text-gray-500 mb-1">${formatDate(activity.date)}</p>
-                        <h3 class="text-xl font-semibold text-green-800 mb-3 group-hover:text-blue-600 transition-colors">${activity.title}</h3>
-                        <p class="text-gray-700 leading-relaxed line-clamp-3 mb-4">${activity.summary}</p>
-                    </div>
                 </a>
                 <div class="p-6 pt-0 mt-auto">
                      <a href="activity-detail-placeholder.html?id=${activity.id}" class="inline-block text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">続きを読む <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span></a>
@@ -601,9 +591,6 @@ function initNewsDetailPage() {
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-green-700 mb-3">${news.title}</h1>
                 ${metaInfoHTML}
             </header>
-            <div class="prose-custom prose-lg max-w-none text-gray-700 leading-relaxed">${news.bodyContent}</div>
-            {/* ... (フッターと共有ボタン、一覧へ戻るボタンは既存のロジックを流用) ... */}
-        `;
         // 簡単のため、フッター部分のHTML生成は省略しますが、既存のコードを参考に追記してください。
         if(articleContainer) articleContainer.innerHTML = htmlContent;
 
