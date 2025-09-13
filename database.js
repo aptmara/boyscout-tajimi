@@ -12,19 +12,35 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
 const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set.');
+if (!connectionString) throw new Error('DATABASE_URL is not set.');
+
+function lookupIPv4(hostname, _opts, cb) {
+  return dns.lookup(hostname, { family: 4, all: false }, cb);
 }
 
-// Supabase環境でのSSL対策：DATABASE_URLにsslmode=requireが無くても接続できるようにする
+// デバッグ: 起動時に名前解決結果を一度出す
+(async () => {
+  try {
+    const host = new URL(connectionString).hostname;
+    const a = await dns.promises.resolve4(host);
+    console.log('[DB DNS A records]', host, a);
+    // AAAAが返ってくるかも見る
+    try {
+      const aaaa = await dns.promises.resolve6(host);
+      console.log('[DB DNS AAAA records]', host, aaaa);
+    } catch {}
+  } catch (e) {
+    console.warn('[DB DNS resolve warn]', e.message);
+  }
+})();
+
+// Pool設定：ssl明示 + IPv4 lookup 強制
 const pool = new Pool({
-    connectionString,
-    ssl: {
-        rejectUnauthorized: false, // Supabaseの証明書を信頼（Render等のPaaSでも安定）
-    },
-    // idleTimeoutMillis / connectionTimeoutMillis は必要に応じて調整
-    // idleTimeoutMillis: 30000,
-    // connectionTimeoutMillis: 10000,
+  connectionString,
+  ssl: { rejectUnauthorized: false },
+  lookup: lookupIPv4, // ← これでIPv4のみ使用
+  // connectionTimeoutMillis: 10000,
+  // idleTimeoutMillis: 30000,
 });
 
 // 起動時DDL（存在しなければ作る・不足列は追加）
