@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事の編集</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="page-title">新規記事の作成</h1>
+        <form id="edit-form">
+            <input type="hidden" id="article-id" name="id">
+            <div class="form-group">
+                <label for="title">タイトル</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="content">内容</label>
+                <textarea id="content" name="content" required></textarea>
+            </div>
+            <button type="submit">保存</button>
+            <a href="dashboard.html"><button type="button">キャンセル</button></a>
+        </form>
+        <p id="error-message" class="error-message"></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('edit-form');
+        const pageTitle = document.getElementById('page-title');
+        const articleIdInput = document.getElementById('article-id');
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+        const errorMessage = document.getElementById('error-message');
+
+        let isEditMode = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ログイン状態の確認
+            try {
+                const sessionRes = await fetch('/api/session');
+                const sessionData = await sessionRes.json();
+                if (!sessionData.loggedIn) {
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+                window.location.href = '/admin/login.html';
+                return;
+            }
+
+            // 編集モードかどうかの判定
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+
+            if (articleId) {
+                isEditMode = true;
+                articleIdInput.value = articleId;
+                pageTitle.textContent = '記事の編集';
+
+                // 既存の記事データを取得してフォームに設定
+                try {
+                    const response = await fetch(`/api/news/${articleId}`);
+                    if (response.ok) {
+                        const article = await response.json();
+                        titleInput.value = article.title;
+                        contentInput.value = article.content;
+                    } else {
+                        errorMessage.textContent = '記事の読み込みに失敗しました。';
+                    }
+                } catch (error) {
+                    errorMessage.textContent = 'エラーが発生しました。';
+                }
+            }
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessage.textContent = '';
+
+            const articleData = {
+                title: titleInput.value,
+                content: contentInput.value
+            };
+
+            const url = isEditMode ? `/api/news/${articleIdInput.value}` : '/api/news';
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(articleData)
+                });
+
+                if (response.ok) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const data = await response.json();
+                    errorMessage.textContent = data.error || '保存に失敗しました。';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'エラーが発生しました。';
+            }
+        });
+    </script>
+</body>
+</html>

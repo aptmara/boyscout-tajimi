@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理ダッシュボード</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>お知らせ管理</h1>
+            <div>
+                <a href="edit.html"><button>新規追加</button></a>
+                <button id="logout-button">ログアウト</button>
+            </div>
+        </div>
+
+        <ul id="news-list" class="news-list">
+            <!-- JavaScriptによって記事がここに挿入されます -->
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ログイン状態の確認
+            try {
+                const sessionRes = await fetch('/api/session');
+                const sessionData = await sessionRes.json();
+                if (!sessionData.loggedIn) {
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+                window.location.href = '/admin/login.html';
+                return;
+            }
+
+            // お知らせ一覧の取得と表示
+            const newsList = document.getElementById('news-list');
+            try {
+                const newsRes = await fetch('/api/news');
+                const newsItems = await newsRes.json();
+
+                if (newsItems.length === 0) {
+                    newsList.innerHTML = '<li>お知らせはまだありません。</li>';
+                    return;
+                }
+
+                newsItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'news-item';
+                    li.innerHTML = `
+                        <span class="news-item-title">${escapeHTML(item.title)}</span>
+                        <div class="news-item-actions">
+                            <a href="edit.html?id=${item.id}"><button>編集</button></a>
+                            <button class="danger" data-id="${item.id}">削除</button>
+                        </div>
+                    `;
+                    newsList.appendChild(li);
+                });
+            } catch (error) {
+                newsList.innerHTML = '<li>お知らせの読み込みに失敗しました。</li>';
+                console.error('Failed to load news:', error);
+            }
+        });
+
+        // ログアウト処理
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/admin/login.html';
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('ログアウトに失敗しました。');
+            }
+        });
+
+        // 削除処理（イベント委譲）
+        document.getElementById('news-list').addEventListener('click', async (event) => {
+            if (event.target.matches('button.danger')) {
+                const id = event.target.dataset.id;
+                if (confirm('本当にこの記事を削除しますか？')) {
+                    try {
+                        const response = await fetch(`/api/news/${id}`, { method: 'DELETE' });
+                        if (response.ok) {
+                            // 画面から要素を削除
+                            event.target.closest('.news-item').remove();
+                        } else {
+                            const data = await response.json();
+                            alert(data.error || '削除に失敗しました。');
+                        }
+                    } catch (error) {
+                        console.error('Delete failed:', error);
+                        alert('削除中にエラーが発生しました。');
+                    }
+                }
+            }
+        });
+
+        // HTMLエスケープ関数
+        function escapeHTML(str) {
+            return str.replace(/[&<>"']/g, function(match) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[match];
+            });
+        }
+    </script>
+</body>
+</html>

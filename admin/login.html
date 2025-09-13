@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ログイン</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>管理者ログイン</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">ユーザー名</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">ログイン</button>
+        </form>
+        <p id="error-message" class="error-message"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 既にログイン済みかチェックし、ログイン済みならダッシュボードへ
+            try {
+                const sessionRes = await fetch('/api/session');
+                const sessionData = await sessionRes.json();
+                if (sessionData.loggedIn) {
+                    window.location.href = '/admin/dashboard.html';
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+            }
+        });
+
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessage.textContent = '';
+
+            const username = form.username.value;
+            const password = form.password.value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    errorMessage.textContent = data.error || 'ログインに失敗しました。';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'エラーが発生しました。ネットワーク接続を確認してください。';
+                console.error('Login error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
