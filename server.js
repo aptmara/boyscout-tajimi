@@ -254,6 +254,57 @@ app.post('/api/news-webhook', webhookAuth, async (req, res) => {
   }
 });
 
+// =================================================================
+// ---- Activity Log API ----
+// =================================================================
+
+// ▼ 公開GET (活動報告一覧)
+app.get('/api/activities', (req, res) => {
+  try {
+    // 新しい順に並び替え
+    const stmt = db.prepare('SELECT * FROM activities ORDER BY activity_date DESC, created_at DESC');
+    const activities = stmt.all();
+    res.json(activities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ▼ 公開GET (活動報告詳細)
+app.get('/api/activities/:id', (req, res) => {
+  try {
+    const stmt = db.prepare('SELECT * FROM activities WHERE id = ?');
+    const activityItem = stmt.get(req.params.id);
+    if (activityItem) return res.json(activityItem);
+    return res.status(404).json({ error: 'Activity not found' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ▼ 新しいWebhook (活動報告用)
+app.post('/api/activity-webhook', webhookAuth, async (req, res) => {
+  const { title, content, category, activity_date } = req.body || {};
+  if (!title || !content) {
+    return res.status(400).json({ error: 'タイトルと本文は必須です。' });
+  }
+
+  try {
+    const stmt = db.prepare('INSERT INTO activities (title, content, category, activity_date) VALUES (?, ?, ?, ?)');
+    const info = stmt.run(title, content, category, activity_date);
+    return res.status(201).json({ id: info.lastInsertRowid, message: "活動報告の投稿に成功しました。" });
+  } catch (e) {
+    console.error('Activity Webhook処理中にエラーが発生しました:', e);
+    return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
+  }
+});
+
+// (参考) 将来の管理画面用の保護付きAPI
+app.post('/api/activities', authMiddleware, (req, res) => { /* ... */ });
+app.put('/api/activities/:id', authMiddleware, (req, res) => { /* ... */ });
+app.delete('/api/activities/:id', authMiddleware, (req, res) => { /* ... */ });
+
+
 // ---- 起動 ----
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
