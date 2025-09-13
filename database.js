@@ -6,6 +6,8 @@
 // - オプション: 初回管理者自動作成（INITIAL_ADMIN_* があれば）
 
 require('dotenv').config();
+const dns = require('node:dns');
+dns.setDefaultResultOrder('ipv4first');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
