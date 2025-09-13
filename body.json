@@ -1,7 +1,7 @@
 ﻿{
-    "title": "Webhookテスト（画像付き）",
-    "content": "Driveから画像をコピーして /uploads に保存します。",
+    "title": "新しい画像付きのテスト投稿",
+    "content": "新しいGoogle Driveの画像を添付して投稿します。",
     "images": [
-        "https://drive.google.com/uc?export=download&id=1ggMuNJWausdh-Ap78IA2sRr98TpmNId2"
+        "https://drive.google.com/uc?export=download&id=1Rur8LycC5f9hG_MxWhHiOggb9Tc6LcQe"
     ]
 }

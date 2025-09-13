@@ -4,6 +4,8 @@
  * - Webhook 受け口 /api/news-webhook (HMAC 署名検証, Drive画像のサーバー保存)
  * - /uploads 静的配信, 本文サイズ制限, タイムアウト/サイズ上限
  */
+
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
@@ -205,22 +207,28 @@ async function downloadImageToUploads(url) {
   const ext = ctype.split('/')[1]?.split(';')[0] || 'bin';
   const filename = `${randomUUID()}.${ext}`;
   const filepath = path.join(UPLOAD_DIR, filename);
+  const fileStream = fs.createWriteStream(filepath, { flags: 'wx' });
 
-  const file = fs.createWriteStream(filepath, { flags: 'wx' });
+  // Web Stream API を使ってデータを正しく処理する
+  const reader = res.body.getReader();
   let total = 0;
-  await new Promise((resolve, reject) => {
-    res.body.on('data', chunk => {
-      total += chunk.length;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      total += value.length;
       if (total > MAX_BYTES) {
-        res.body.destroy(new Error('file too large'));
-        return;
+        reader.releaseLock();
+        fileStream.close();
+        fs.unlinkSync(filepath); // 中途半端なファイルを削除
+        throw new Error('file too large');
       }
-      file.write(chunk);
-    });
-    res.body.on('end', () => file.end(resolve));
-    res.body.on('error', reject);
-    file.on('error', reject);
-  });
+      fileStream.write(value);
+    }
+  } finally {
+    fileStream.close();
+  }
 
   return { publicPath: `/uploads/${filename}`, contentType: ctype };
 }
