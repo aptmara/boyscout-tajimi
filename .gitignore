@@ -1,15 +1,57 @@
-# Dependencies
+# =========================================
+# Node.js & Dependencies
+# =========================================
+# ライブラリやパッケージのフォルダ
 /node_modules
 
-# Production
-/build
-
-# Miscellaneous
-.DS_Store
+# デバッグログファイル
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Database
+
+# =========================================
+# Secret & Environment Files
+# =========================================
+# 環境変数ファイル。APIキーやパスワードなどの秘密情報を含みます。
+# これはリポジトリに絶対に含めてはいけません。
+.env
+
+
+# =========================================
+# Local Data & Sessions
+# =========================================
+# SQLiteデータベースファイル（ローカル開発用）
 *.sqlite
-/sessions
+*.sqlite-journal
+
+# セッション情報を保存するフォルダ
+/sessions/
+
+# JSONデータベースファイル（ローカル実験用）
+/data/
+
+
+# =========================================
+# Uploaded Files
+# =========================================
+# ユーザーによってアップロードされた画像などを保存するフォルダ
+# Renderの無料プランでは消えてしまうため、Gitで管理しないのが一般的です。
+/uploads/
+
+
+# =========================================
+# OS & Editor specific
+# =========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/

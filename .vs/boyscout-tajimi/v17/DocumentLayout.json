@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-activities.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dynamic-activities.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\activity-log.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:activity-log.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "server.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js",
+              "RelativeDocumentMoniker": "server.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js",
+              "RelativeToolTip": "server.js",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAYwCwCAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-13T17:54:16.949Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "database.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js",
+              "RelativeDocumentMoniker": "database.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js",
+              "RelativeToolTip": "database.js",
+              "ViewState": "AgIAAG0AAAAAAAAAAAAqwIcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-13T17:53:49.144Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "dynamic-activities.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-activities.js",
+              "RelativeDocumentMoniker": "dynamic-activities.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-activities.js",
+              "RelativeToolTip": "dynamic-activities.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-13T17:53:05.374Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "activity-log.html",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\activity-log.html",
+              "RelativeDocumentMoniker": "activity-log.html",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\activity-log.html",
+              "RelativeToolTip": "activity-log.html",
+              "ViewState": "AgIAAJsAAAAAAAAAAAAgwKwAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-09-13T17:51:43.128Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

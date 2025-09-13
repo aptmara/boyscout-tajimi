@@ -1,8 +1,13 @@
 /**
- * server.js (patched full version)
- * - /api/news の GET を公開 (一覧/詳細)
- * - Webhook 受け口 /api/news-webhook (HMAC 署名検証, Drive画像のサーバー保存)
- * - /uploads 静的配信, 本文サイズ制限, タイムアウト/サイズ上限
+ * server.js (full)
+ * - /api/news: 公開GET（一覧/詳細）、変更系は認証必須、Webhook(HMAC)対応＋画像DL保存
+ * - /api/activities: 公開GET（一覧/詳細）、変更系は認証必須、Webhook(HMAC)対応＋画像DL保存
+ * - /uploads 静的配信、本文サイズ制限、タイムアウト/サイズ上限
+ *
+ * 前提：
+ *   - Node 18+（グローバル fetch 利用）
+ *   - database.js は Postgres 用の db.query / setupDatabase を提供
+ *   - news, activities テーブルに image_urls JSONB 列があること（なければ後述のDDLで追加）
  */
 
 require('dotenv').config();
@@ -14,34 +19,38 @@ const fs = require('fs');
 const fsp = fs.promises;
 const crypto = require('crypto');
 const { randomUUID } = require('crypto');
-const db = require('./database.js'); // データベース接続
 const bcrypt = require('bcrypt');
+const db = require('./database.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---- 基本設定 ----
+// ------------------------------
+// 基本設定
+// ------------------------------
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // セッション
-app.use(session({
-  store: new FileStore({
-    path: path.join(__dirname, 'sessions'),
-    ttl: 86400,
-    reapInterval: 86400
-  }),
-  secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24
-  }
-}));
+app.use(
+    session({
+        store: new FileStore({
+            path: path.join(__dirname, 'sessions'),
+            ttl: 86400,
+            reapInterval: 86400,
+        }),
+        secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+            maxAge: 1000 * 60 * 60 * 24, // 1 day
+        },
+    })
+);
 
-// 静的ファイル提供（既存サイト）
+// 既存サイト配信（必要に応じてルート調整）
 app.use(express.static(path.join(__dirname, '/')));
 
 // /uploads の静的配信
@@ -49,263 +58,500 @@ const UPLOAD_DIR = path.join(__dirname, 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 app.use('/uploads', express.static(UPLOAD_DIR));
 
-// ---- 認証ミドルウェア ----
+// DB 初期化
+db.setupDatabase().catch((e) => {
+    console.error('setupDatabase error:', e);
+});
+
+// ------------------------------
+// 認証ミドルウェア
+// ------------------------------
 const authMiddleware = (req, res, next) => {
-  if (req.session.user) return next();
-  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Authentication required' });
-  return res.redirect('/admin/login.html');
+    if (req.session.user) return next();
+    if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    return res.redirect('/admin/login.html');
 };
 
-// ---- セッション系API ----
-// ログイン
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
-  try {
-    const stmt = db.prepare('SELECT * FROM admins WHERE username = ?');
-    const admin = stmt.get(username);
-    if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
-    bcrypt.compare(password, admin.password, (err, result) => {
-      if (err || !result) return res.status(401).json({ error: 'Invalid credentials' });
-      req.session.user = { id: admin.id, username: admin.username };
-      res.json({ message: 'Login successful' });
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// ------------------------------
+// セッション系 API
+// ------------------------------
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body || {};
+    if (!username || !password)
+        return res
+            .status(400)
+            .json({ error: 'Username and password are required' });
+
+    try {
+        const { rows } = await db.query(
+            'SELECT id, username, password FROM admins WHERE username = $1',
+            [username]
+        );
+        const admin = rows[0];
+        if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+
+        const match = await bcrypt.compare(password, admin.password);
+        if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+        req.session.user = { id: admin.id, username: admin.username };
+        res.json({ message: 'Login successful' });
+    } catch (e) {
+        console.error('login error:', e);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-// ログアウト
 app.post('/api/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) return res.status(500).json({ error: 'Could not log out' });
-    res.clearCookie('connect.sid');
-    res.json({ message: 'Logout successful' });
-  });
+    req.session.destroy((err) => {
+        if (err) return res.status(500).json({ error: 'Could not log out' });
+        res.clearCookie('connect.sid');
+        res.json({ message: 'Logout successful' });
+    });
 });
 
-// セッション確認
 app.get('/api/session', (req, res) => {
-  if (req.session.user) return res.json({ loggedIn: true, user: req.session.user });
-  return res.json({ loggedIn: false });
+    if (req.session.user)
+        return res.json({ loggedIn: true, user: req.session.user });
+    return res.json({ loggedIn: false });
 });
 
-// ---- News API ----
-// ▼ 公開 GET（一覧/詳細）
-app.get('/api/news', (req, res) => {
-  try {
-    const stmt = db.prepare('SELECT * FROM news ORDER BY created_at DESC');
-    const news = stmt.all();
-    res.json(news);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-app.get('/api/news/:id', (req, res) => {
-  try {
-    const stmt = db.prepare('SELECT * FROM news WHERE id = ?');
-    const newsItem = stmt.get(req.params.id);
-    if (newsItem) return res.json(newsItem);
-    return res.status(404).json({ error: 'News not found' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ▼ 変更系は認証必須
-app.use('/api/news', authMiddleware);
-
-// 新規作成
-app.post('/api/news', (req, res) => {
-  const { title, content } = req.body;
-  if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
-  try {
-    const stmt = db.prepare('INSERT INTO news (title, content) VALUES (?, ?)');
-    const info = stmt.run(title, content);
-    res.status(201).json({ id: info.lastInsertRowid, title, content });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 更新
-app.put('/api/news/:id', (req, res) => {
-  const { title, content } = req.body;
-  if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
-  try {
-    const stmt = db.prepare('UPDATE news SET title = ?, content = ? WHERE id = ?');
-    const info = stmt.run(title, content, req.params.id);
-    if (info.changes > 0) return res.json({ id: req.params.id, title, content });
-    return res.status(404).json({ error: 'News not found' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 削除
-app.delete('/api/news/:id', (req, res) => {
-  try {
-    const stmt = db.prepare('DELETE FROM news WHERE id = ?');
-    const info = stmt.run(req.params.id);
-    if (info.changes > 0) return res.status(204).send();
-    return res.status(404).json({ error: 'News not found' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ---- Webhook（GAS→サーバー） ----
-// HMAC 検証
+// ------------------------------
+// HMAC 署名検証（Webhook 用）
+// ------------------------------
 function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
-  const secret = process.env.WEBHOOK_SECRET;
-  if (!secret) return false;
-  const now = Math.floor(Date.now() / 1000);
-  const ts = parseInt(timestamp, 10);
-  if (!ts || Math.abs(now - ts) > 300) return false; // 5分以内
-  const h = crypto.createHmac('sha256', secret);
-  h.update(`${timestamp}.${bodyRaw}`);
-  const expected = `sha256=${h.digest('hex')}`;
-  const a = Buffer.from(signature || '');
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+    const secret = process.env.WEBHOOK_SECRET;
+    if (!secret) return false;
+
+    const now = Math.floor(Date.now() / 1000);
+    const ts = parseInt(timestamp, 10);
+    if (!ts || Math.abs(now - ts) > 300) return false; // 5分以内
+
+    const h = crypto.createHmac('sha256', secret);
+    h.update(`${timestamp}.${bodyRaw}`);
+    const expected = `sha256=${h.digest('hex')}`;
+
+    const a = Buffer.from(signature || '');
+    const b = Buffer.from(expected);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 function webhookAuth(req, res, next) {
-  try {
-    const timestamp = req.header('X-Timestamp');
-    const signature = req.header('X-Signature');
-    const bodyRaw = JSON.stringify(req.body || {});
-    if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
-      return res.status(401).json({ error: 'invalid signature' });
+    try {
+        // 重要：生ボディが必要なら raw-body ミドルの導入を検討。
+        // ここでは JSON 化後を使うが、送信側(GAS)と合わせておくこと。
+        const timestamp = req.header('X-Timestamp');
+        const signature = req.header('X-Signature');
+        const bodyRaw = JSON.stringify(req.body || {});
+        if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
+            return res.status(401).json({ error: 'invalid signature' });
+        }
+        next();
+    } catch {
+        res.status(401).json({ error: 'unauthorized' });
     }
-    next();
-  } catch {
-    res.status(401).json({ error: 'unauthorized' });
-  }
 }
 
-// 画像保存（Google系URLのみ許可）
-const ALLOWED_HOSTS = new Set(['drive.google.com', 'lh3.googleusercontent.com', 'googleusercontent.com']);
+// ------------------------------
+// 画像保存（Google系の許可ドメインのみ）
+// ------------------------------
+const ALLOWED_HOSTS = new Set([
+    'drive.google.com',
+    'lh3.googleusercontent.com',
+    'googleusercontent.com',
+]);
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB
+const FETCH_TIMEOUT_MS = 20_000;
 
 async function downloadImageToUploads(url) {
-  let u;
-  try { u = new URL(url); } catch { throw new Error('invalid url'); }
-  if (!ALLOWED_HOSTS.has(u.hostname)) throw new Error('host not allowed');
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
-  const res = await fetch(url, { signal: controller.signal });
-  clearTimeout(timeout);
-  if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
-
-  const ctype = res.headers.get('content-type') || '';
-  if (!ctype.startsWith('image/')) throw new Error('not an image');
-
-  const ext = ctype.split('/')[1]?.split(';')[0] || 'bin';
-  const filename = `${randomUUID()}.${ext}`;
-  const filepath = path.join(UPLOAD_DIR, filename);
-  const fileStream = fs.createWriteStream(filepath, { flags: 'wx' });
-
-  // Web Stream API を使ってデータを正しく処理する
-  const reader = res.body.getReader();
-  let total = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      total += value.length;
-      if (total > MAX_BYTES) {
-        reader.releaseLock();
-        fileStream.close();
-        fs.unlinkSync(filepath); // 中途半端なファイルを削除
-        throw new Error('file too large');
-      }
-      fileStream.write(value);
+    let u;
+    try {
+        u = new URL(url);
+    } catch {
+        throw new Error('invalid url');
     }
-  } finally {
-    fileStream.close();
-  }
+    if (!ALLOWED_HOSTS.has(u.hostname)) throw new Error('host not allowed');
 
-  return { publicPath: `/uploads/${filename}`, contentType: ctype };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
+
+    const ctype = res.headers.get('content-type') || '';
+    if (!ctype.startsWith('image/')) throw new Error('not an image');
+
+    const ext = ctype.split('/')[1]?.split(';')[0] || 'bin';
+    const filename = `${randomUUID()}.${ext}`;
+    const filepath = path.join(UPLOAD_DIR, filename);
+    const fileStream = fs.createWriteStream(filepath, { flags: 'wx' });
+
+    const reader = res.body.getReader();
+    let total = 0;
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            total += value.length;
+            if (total > MAX_BYTES) {
+                reader.releaseLock();
+                fileStream.close();
+                try {
+                    await fsp.unlink(filepath);
+                } catch { }
+                throw new Error('file too large');
+            }
+            fileStream.write(value);
+        }
+    } finally {
+        fileStream.close();
+    }
+
+    return { publicPath: `/uploads/${filename}`, contentType: ctype };
 }
 
+// ================================================================
+// News API
+//   - 公開 GET（一覧/詳細）
+//   - 変更系は認証必須（POST/PUT/DELETE）
+//   - Webhook(HMAC) + 画像保存（image_urls JSONB）
+// ================================================================
+
+// 公開 GET（一覧）
+app.get('/api/news', async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            `SELECT id, title, content, image_urls, created_at
+         FROM news
+        ORDER BY created_at DESC`
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error('GET /api/news error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 公開 GET（詳細）
+app.get('/api/news/:id', async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            `SELECT id, title, content, image_urls, created_at
+         FROM news
+        WHERE id = $1`,
+            [req.params.id]
+        );
+        if (rows.length === 0)
+            return res.status(404).json({ error: 'News not found' });
+        return res.json(rows[0]);
+    } catch (err) {
+        console.error('GET /api/news/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 変更系は認証必須
+app.use('/api/news', authMiddleware);
+
+// 作成（管理画面）
+app.post('/api/news', async (req, res) => {
+    try {
+        const { title, content, images = [] } = req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'Title and content are required' });
+
+        const saved = [];
+        for (const url of Array.isArray(images) ? images : []) {
+            try {
+                const { publicPath } = await downloadImageToUploads(url);
+                saved.push(publicPath);
+            } catch (e) {
+                console.warn('news image skip:', url, e.message);
+            }
+        }
+
+        const { rows } = await db.query(
+            `INSERT INTO news (title, content, image_urls)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+            [title, content, JSON.stringify(saved)]
+        );
+        res.status(201).json({ id: rows[0].id, message: 'Created' });
+    } catch (err) {
+        console.error('POST /api/news error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 更新（管理画面）
+app.put('/api/news/:id', async (req, res) => {
+    try {
+        const { title, content, images = null } = req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'Title and content are required' });
+
+        let clause = '';
+        const params = [title, content, req.params.id];
+        if (Array.isArray(images)) {
+            const saved = [];
+            for (const url of images) {
+                try {
+                    const { publicPath } = await downloadImageToUploads(url);
+                    saved.push(publicPath);
+                } catch (e) {
+                    console.warn('news image skip:', url, e.message);
+                }
+            }
+            clause = ', image_urls = $3';
+            params.splice(2, 0, JSON.stringify(saved)); // $3 に image_urls を注入
+        }
+
+        const { rowCount } = await db.query(
+            `UPDATE news
+          SET title = $1,
+              content = $2
+              ${clause}
+        WHERE id = $${clause ? 4 : 3}`,
+            params
+        );
+
+        if (rowCount === 0) return res.status(404).json({ error: 'News not found' });
+        res.json({ id: req.params.id, message: 'Updated' });
+    } catch (err) {
+        console.error('PUT /api/news/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 削除（管理画面）
+app.delete('/api/news/:id', async (req, res) => {
+    try {
+        const { rowCount } = await db.query(`DELETE FROM news WHERE id = $1`, [
+            req.params.id,
+        ]);
+        if (rowCount === 0) return res.status(404).json({ error: 'News not found' });
+        res.status(204).send();
+    } catch (err) {
+        console.error('DELETE /api/news/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Webhook（GAS → サーバー）
 app.post('/api/news-webhook', webhookAuth, async (req, res) => {
-  // 受け取るのは「タイトル」と、画像タグが埋め込まれた「本文HTML」
-  const { title, content } = req.body || {};
-  if (!title || !content) {
-    return res.status(400).json({ error: 'タイトルと本文は必須です。' });
-  }
+    try {
+        const { title, content, images = [] } = req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'タイトルと本文は必須です。' });
 
-  try {
-    // 画像をダウンロードする処理を削除し、受け取った本文をそのまま保存する
-    const stmt = db.prepare('INSERT INTO news (title, content) VALUES (?, ?)');
-    const info = stmt.run(title, content);
-    
-    // 成功したことを返す（保存した画像のリストは不要）
-    return res.status(201).json({ id: info.lastInsertRowid, message: "投稿に成功しました。" });
+        const saved = [];
+        for (const url of Array.isArray(images) ? images : []) {
+            try {
+                const { publicPath } = await downloadImageToUploads(url);
+                saved.push(publicPath);
+            } catch (e) {
+                console.warn('news webhook image skip:', url, e.message);
+            }
+        }
 
-  } catch (e) {
-    console.error('Webhook処理中にエラーが発生しました:', e);
-    return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
-  }
+        const { rows } = await db.query(
+            `INSERT INTO news (title, content, image_urls)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+            [title, content, JSON.stringify(saved)]
+        );
+        return res
+            .status(201)
+            .json({ id: rows[0].id, message: '投稿に成功しました。' });
+    } catch (e) {
+        console.error('News Webhook Error:', e);
+        return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
+    }
 });
 
-// =================================================================
-// ---- Activity Log API ----
-// =================================================================
+// ================================================================
+// Activity API
+//   - 公開 GET（一覧/詳細）
+//   - 変更系は認証必須（POST/PUT/DELETE）
+//   - Webhook(HMAC) + 画像保存（image_urls JSONB）
+// ================================================================
 
-// ▼ 公開GET (活動報告一覧)
-app.get('/api/activities', (req, res) => {
-  try {
-    // 新しい順に並び替え
-    const stmt = db.prepare('SELECT * FROM activities ORDER BY activity_date DESC, created_at DESC');
-    const activities = stmt.all();
-    res.json(activities);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// 公開 GET（一覧）
+app.get('/api/activities', async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            `SELECT id, title, content, category, activity_date, image_urls, created_at
+         FROM activities
+        ORDER BY activity_date DESC NULLS LAST, created_at DESC`
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error('GET /api/activities error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-// ▼ 公開GET (活動報告詳細)
-app.get('/api/activities/:id', (req, res) => {
-  try {
-    const stmt = db.prepare('SELECT * FROM activities WHERE id = ?');
-    const activityItem = stmt.get(req.params.id);
-    if (activityItem) return res.json(activityItem);
-    return res.status(404).json({ error: 'Activity not found' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// 公開 GET（詳細）
+app.get('/api/activities/:id', async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            `SELECT id, title, content, category, activity_date, image_urls, created_at
+         FROM activities
+        WHERE id = $1`,
+            [req.params.id]
+        );
+        if (rows.length === 0)
+            return res.status(404).json({ error: 'Activity not found' });
+        res.json(rows[0]);
+    } catch (err) {
+        console.error('GET /api/activities/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-// ▼ 新しいWebhook (活動報告用)
+// 変更系は認証必須
+app.use('/api/activities', authMiddleware);
+
+// 作成（管理画面）
+app.post('/api/activities', async (req, res) => {
+    try {
+        const { title, content, category = null, activity_date = null, images = [] } =
+            req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'Title and content are required' });
+
+        const saved = [];
+        for (const url of Array.isArray(images) ? images : []) {
+            try {
+                const { publicPath } = await downloadImageToUploads(url);
+                saved.push(publicPath);
+            } catch (e) {
+                console.warn('activity image skip:', url, e.message);
+            }
+        }
+
+        const { rows } = await db.query(
+            `INSERT INTO activities (title, content, category, activity_date, image_urls)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+            [title, content, category, activity_date, JSON.stringify(saved)]
+        );
+        res.status(201).json({ id: rows[0].id, message: 'Created' });
+    } catch (err) {
+        console.error('POST /api/activities error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 更新（管理画面）
+app.put('/api/activities/:id', async (req, res) => {
+    try {
+        const {
+            title,
+            content,
+            category = null,
+            activity_date = null,
+            images = null,
+        } = req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'Title and content are required' });
+
+        let imageClause = '';
+        const params = [title, content, category, activity_date, req.params.id];
+        if (Array.isArray(images)) {
+            const saved = [];
+            for (const url of images) {
+                try {
+                    const { publicPath } = await downloadImageToUploads(url);
+                    saved.push(publicPath);
+                } catch (e) {
+                    console.warn('activity image skip:', url, e.message);
+                }
+            }
+            imageClause = ', image_urls = $5';
+            params.splice(4, 0, JSON.stringify(saved)); // $5 に image_urls
+        }
+
+        const { rowCount } = await db.query(
+            `UPDATE activities
+          SET title = $1,
+              content = $2,
+              category = $3,
+              activity_date = $4
+              ${imageClause}
+        WHERE id = $${imageClause ? 6 : 5}`,
+            params
+        );
+
+        if (rowCount === 0)
+            return res.status(404).json({ error: 'Activity not found' });
+        res.json({ id: req.params.id, message: 'Updated' });
+    } catch (err) {
+        console.error('PUT /api/activities/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 削除（管理画面）
+app.delete('/api/activities/:id', async (req, res) => {
+    try {
+        const { rowCount } = await db.query(
+            `DELETE FROM activities WHERE id = $1`,
+            [req.params.id]
+        );
+        if (rowCount === 0)
+            return res.status(404).json({ error: 'Activity not found' });
+        res.status(204).send();
+    } catch (err) {
+        console.error('DELETE /api/activities/:id error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Webhook（GAS → サーバー）
 app.post('/api/activity-webhook', webhookAuth, async (req, res) => {
-  const { title, content, category, activity_date } = req.body || {};
-  if (!title || !content) {
-    return res.status(400).json({ error: 'タイトルと本文は必須です。' });
-  }
+    try {
+        const {
+            title,
+            content,
+            category = null,
+            activity_date = null,
+            images = [],
+        } = req.body || {};
+        if (!title || !content)
+            return res.status(400).json({ error: 'タイトルと本文は必須です。' });
 
-  try {
-    const stmt = db.prepare('INSERT INTO activities (title, content, category, activity_date) VALUES (?, ?, ?, ?)');
-    const info = stmt.run(title, content, category, activity_date);
-    return res.status(201).json({ id: info.lastInsertRowid, message: "活動報告の投稿に成功しました。" });
-  } catch (e) {
-    console.error('Activity Webhook処理中にエラーが発生しました:', e);
-    return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
-  }
+        const saved = [];
+        for (const url of Array.isArray(images) ? images : []) {
+            try {
+                const { publicPath } = await downloadImageToUploads(url);
+                saved.push(publicPath);
+            } catch (e) {
+                console.warn('activity webhook image skip:', url, e.message);
+            }
+        }
+
+        const { rows } = await db.query(
+            `INSERT INTO activities (title, content, category, activity_date, image_urls)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+            [title, content, category, activity_date, JSON.stringify(saved)]
+        );
+        return res
+            .status(201)
+            .json({ id: rows[0].id, message: '活動報告の投稿に成功しました。' });
+    } catch (e) {
+        console.error('Activity Webhook Error:', e);
+        return res.status(500).json({ error: 'サーバー内部エラー' });
+    }
 });
 
-// (参考) 将来の管理画面用の保護付きAPI
-app.post('/api/activities', authMiddleware, (req, res) => { /* ... */ });
-app.put('/api/activities/:id', authMiddleware, (req, res) => { /* ... */ });
-app.delete('/api/activities/:id', authMiddleware, (req, res) => { /* ... */ });
-
-
-// ---- 起動 ----
+// ------------------------------
+// 起動
+// ------------------------------
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
