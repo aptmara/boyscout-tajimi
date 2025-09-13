@@ -30,6 +30,21 @@ function setupDatabase() {
     )
   `);
 
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS activities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT,
+      activity_date DATE,
+      image_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  console.log('Tables "admins", "news", and "activities" are ready.');
+
+
   console.log('Tables "admins" and "news" are ready.');
 
   const stmt = db.prepare('SELECT * FROM admins WHERE username = ?');
