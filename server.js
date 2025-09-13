@@ -234,25 +234,23 @@ async function downloadImageToUploads(url) {
 }
 
 app.post('/api/news-webhook', webhookAuth, async (req, res) => {
-  const { title, content, images = [] } = req.body || {};
-  if (!title || !content) return res.status(400).json({ error: 'missing fields' });
+  // 受け取るのは「タイトル」と、画像タグが埋め込まれた「本文HTML」
+  const { title, content } = req.body || {};
+  if (!title || !content) {
+    return res.status(400).json({ error: 'タイトルと本文は必須です。' });
+  }
+
   try {
-    const saved = [];
-    for (const url of images) {
-      try {
-        const { publicPath } = await downloadImageToUploads(url);
-        saved.push(publicPath);
-      } catch (e) {
-        console.warn('image skip:', url, e.message);
-      }
-    }
+    // 画像をダウンロードする処理を削除し、受け取った本文をそのまま保存する
     const stmt = db.prepare('INSERT INTO news (title, content) VALUES (?, ?)');
-    const htmlAppend = saved.map(p => `<p><img src="${p}" alt=""></p>`).join('');
-    const info = stmt.run(title, content + (htmlAppend ? `\n${htmlAppend}` : ''));
-    return res.status(201).json({ id: info.lastInsertRowid, images: saved });
+    const info = stmt.run(title, content);
+    
+    // 成功したことを返す（保存した画像のリストは不要）
+    return res.status(201).json({ id: info.lastInsertRowid, message: "投稿に成功しました。" });
+
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'server error' });
+    console.error('Webhook処理中にエラーが発生しました:', e);
+    return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
   }
 });
 
