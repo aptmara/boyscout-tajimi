@@ -1,9 +1,13 @@
 {
   "name": "app",
   "version": "1.0.0",
-  "description": "このリポジトリは、ボーイスカウト 多治見第一団 の公式ウェブサイトのソースコードです。 私たちの団の活動、各部門の紹介、最新ニュース、入団案内など、様々な情報を提供することを目的としています。",
-  "main": "common-scripts.js",
+  "description": "このリポジトリは、ボーイスカウト 多治見第一団 の公式ウェブサイトのソースコードです。 私たちの団の活動、各部門の紹介、最新ニュース、入団案内など、様々な情報を提供することを目指しています。",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
+    "start": "node server.js",
+    "db:setup": "node database.js",
+    "start:json": "node server-json.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -13,7 +17,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/aptmara/boyscout-tajimi/issues"
   },
@@ -21,6 +24,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "session-file-store": "^1.5.0"
