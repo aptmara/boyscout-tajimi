@@ -108,7 +108,8 @@ async function loadDynamicNewsList() {
 
   try {
     newsListContainer.innerHTML = '<p class="text-center">読み込み中...</p>';
-    const response = await fetch('/api/news');
+    const qs = window.location.search || '';
+    const response = await fetch(`/api/news${qs}`);
     if (!response.ok) throw new Error('Network response was not ok');
     allNews = await response.json();
     displayNewsItems(allNews);

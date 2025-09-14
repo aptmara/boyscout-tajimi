@@ -64,6 +64,22 @@ app.use((req, res, next) => {
 });
 
 // ------------------------------
+// Helpers: slug/tags normalize
+// ------------------------------
+function normalizeSlug(s) {
+  return String(s || '').trim().toLowerCase();
+}
+function normalizeTags(input) {
+  if (Array.isArray(input)) {
+    return input.map(normalizeSlug).filter(Boolean);
+  }
+  if (typeof input === 'string') {
+    return input.split(/[\s,]+/).map(normalizeSlug).filter(Boolean);
+  }
+  return [];
+}
+
+// ------------------------------
 // DB 初期化
 // ------------------------------
 db.setupDatabase().catch((e) => {
@@ -274,22 +290,58 @@ function webhookAuth(req, res, next) {
 // ================================================================
 app.get('/api/news', async (req, res) => {
   try {
+    const { category, unit, tags, tags_any, limit, offset } = req.query || {};
+    const lim = Math.min(parseInt(limit || '20', 10), 100);
+    const off = Math.max(parseInt(offset || '0', 10), 0);
+
+    const where = [];
+    const params = [];
+
+    if (category && String(category).trim()) {
+      params.push(String(category).trim());
+      where.push(`category = $${params.length}`);
+    }
+    if (unit && String(unit).trim()) {
+      params.push(normalizeSlug(unit));
+      where.push(`unit = $${params.length}`);
+    }
+    if (tags && String(tags).trim()) {
+      const t = normalizeTags(tags);
+      if (t.length) {
+        params.push(JSON.stringify(t));
+        where.push(`tags @> $${params.length}::jsonb`);
+      }
+    }
+    if (!tags && tags_any && String(tags_any).trim()) {
+      // Optional OR search across tags
+      const anyList = normalizeTags(tags_any);
+      if (anyList.length) {
+        params.push(anyList);
+        where.push(`EXISTS (SELECT 1 FROM jsonb_array_elements_text(tags) z WHERE z.value = ANY($${params.length}))`);
+      }
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    params.push(lim, off);
     const { rows } = await db.query(
-      `SELECT id, title, content, image_urls, created_at
-       FROM news
-       ORDER BY created_at DESC`
+      `SELECT id, title, content, image_urls, category, unit, tags, created_at
+         FROM news
+         ${whereSql}
+        ORDER BY created_at DESC
+        LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
     );
-    res.json(rows);
-  } catch (err) {
-    console.error('GET /api/news error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.json(rows);
+  } catch (e) {
+    console.error('GET /api/news error:', e);
+    return res.status(500).json({ error: 'server_error' });
   }
 });
 
 app.get('/api/news/:id', async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT id, title, content, image_urls, created_at
+      `SELECT id, title, content, image_urls, category, unit, tags, created_at
        FROM news
        WHERE id = $1`,
       [req.params.id]
@@ -306,16 +358,18 @@ app.use('/api/news', authMiddleware);
 
 app.post('/api/news', async (req, res) => {
   try {
-    const { title, content, images = [] } = req.body || {};
+    const { title, content, images = [], category = null, unit = null, tags = [] } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
     const urls = Array.isArray(images) ? images : [];
+    const uni = unit ? normalizeSlug(unit) : null;
+    const tgs = normalizeTags(tags);
     const { rows } = await db.query(
-      `INSERT INTO news (title, content, image_urls)
-       VALUES ($1, $2, $3)
+      `INSERT INTO news (title, content, image_urls, category, unit, tags)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb)
        RETURNING id`,
-      [title, content, JSON.stringify(urls)]
+      [title, content, JSON.stringify(urls), category, uni, JSON.stringify(tgs)]
     );
     res.status(201).json({ id: rows[0].id, message: 'Created' });
   } catch (err) {
@@ -326,23 +380,31 @@ app.post('/api/news', async (req, res) => {
 
 app.put('/api/news/:id', async (req, res) => {
   try {
-    const { title, content, images = null } = req.body || {};
+    const { title, content, images = null, category = null, unit = null, tags = null } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
     let clause = '';
-    const params = [title, content, req.params.id];
+    const params = [title, content, category, unit ? normalizeSlug(unit) : null, req.params.id];
     if (Array.isArray(images)) {
-      clause = ', image_urls = $3';
+      clause += ', image_urls = $3';
       params.splice(2, 0, JSON.stringify(images));
+    }
+    if (tags) {
+      clause += ', tags = $' + (clause ? 4 : 3);
+      // adjust index if images was present
+      const idx = images ? 4 : 3;
+      params.splice(idx - 1, 0, JSON.stringify(normalizeTags(tags)));
     }
 
     const { rowCount } = await db.query(
       `UPDATE news
        SET title = $1,
-           content = $2
+           content = $2,
+           category = $3,
+           unit = $4
            ${clause}
-       WHERE id = $${clause ? 4 : 3}`,
+       WHERE id = $${clause ? (images ? 6 : 5) : 5}`,
       params
     );
 
@@ -368,40 +430,77 @@ app.delete('/api/news/:id', async (req, res) => {
   }
 });
 
-app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
+// News WebHook（GAS からの投稿）：title, content, images[], category? を受け取る
+app.post('/api/news-webhook', async (req, res) => {
   try {
-    const { title, content, images = [] } = req.body || {};
-    if (!title || !content)
-      return res.status(400).json({ error: 'タイトルと本文は必須です。' });
+    const { title, content, images, category, unit, tags } = req.body || {};
+    if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
-    const urls = Array.isArray(images) ? images : [];
-    const { rows } = await db.query(
-      `INSERT INTO news (title, content, image_urls)
-       VALUES ($1, $2, $3)
-       RETURNING id`,
-      [title, content, JSON.stringify(urls)]
+    const imgs = Array.isArray(images) ? images : [];
+    const cat  = (category && String(category).trim()) || '未分類';
+    const uni  = normalizeSlug(unit);
+    const tgs  = normalizeTags(tags);
+
+    await db.query(
+      `INSERT INTO news (title, content, image_urls, category, unit, tags)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb)`,
+      [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
     );
-    return res.status(201).json({ id: rows[0].id, message: '投稿に成功しました。' });
+    return res.status(201).json({ ok: true });
   } catch (e) {
-    console.error('News Webhook Error:', e);
-    return res.status(500).json({ error: 'サーバー内部でエラーが発生しました。' });
+    console.error('news-webhook error:', e);
+    return res.status(500).json({ error: 'server_error' });
   }
 });
+
 
 // ================================================================
 // Activity API（DB版）
 // ================================================================
 app.get('/api/activities', async (req, res) => {
   try {
+    const { category, unit, tags, tags_any, limit, offset } = req.query || {};
+    const lim = Math.min(parseInt(limit || '20', 10), 100);
+    const off = Math.max(parseInt(offset || '0', 10), 0);
+
+    const where = [];
+    const params = [];
+    if (category && String(category).trim()) {
+      params.push(String(category).trim());
+      where.push(`category = $${params.length}`);
+    }
+    if (unit && String(unit).trim()) {
+      params.push(normalizeSlug(unit));
+      where.push(`unit = $${params.length}`);
+    }
+    if (tags && String(tags).trim()) {
+      const t = normalizeTags(tags);
+      if (t.length) {
+        params.push(JSON.stringify(t));
+        where.push(`tags @> $${params.length}::jsonb`);
+      }
+    }
+    if (!tags && tags_any && String(tags_any).trim()) {
+      const anyList = normalizeTags(tags_any);
+      if (anyList.length) {
+        params.push(anyList);
+        where.push(`EXISTS (SELECT 1 FROM jsonb_array_elements_text(tags) z WHERE z.value = ANY($${params.length}))`);
+      }
+    }
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    params.push(lim, off);
     const { rows } = await db.query(
-      `SELECT id, title, content, category, activity_date, image_urls, created_at
-       FROM activities
-       ORDER BY activity_date DESC NULLS LAST, created_at DESC`
+      `SELECT id, title, content, image_urls, category, unit, tags, activity_date, created_at
+         FROM activities
+         ${whereSql}
+        ORDER BY COALESCE(activity_date, created_at) DESC
+        LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
     );
-  res.json(rows);
-  } catch (err) {
-    console.error('GET /api/activities error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.json(rows);
+  } catch (e) {
+    console.error('GET /api/activities error:', e);
+    return res.status(500).json({ error: 'server_error' });
   }
 });
 
@@ -425,16 +524,18 @@ app.use('/api/activities', authMiddleware);
 
 app.post('/api/activities', async (req, res) => {
   try {
-    const { title, content, category = null, activity_date = null, images = [] } = req.body || {};
+    const { title, content, category = null, unit = null, tags = [], activity_date = null, images = [] } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
     const urls = Array.isArray(images) ? images : [];
+    const uni = unit ? normalizeSlug(unit) : null;
+    const tgs = normalizeTags(tags);
     const { rows } = await db.query(
-      `INSERT INTO activities (title, content, category, activity_date, image_urls)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO activities (title, content, category, unit, tags, activity_date, image_urls)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)
        RETURNING id`,
-      [title, content, category, activity_date, JSON.stringify(urls)]
+      [title, content, category, uni, JSON.stringify(tgs), activity_date, JSON.stringify(urls)]
     );
     res.status(201).json({ id: rows[0].id, message: 'Created' });
   } catch (err) {
@@ -445,15 +546,20 @@ app.post('/api/activities', async (req, res) => {
 
 app.put('/api/activities/:id', async (req, res) => {
   try {
-    const { title, content, category = null, activity_date = null, images = null } = req.body || {};
+    const { title, content, category = null, unit = null, tags = null, activity_date = null, images = null } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
     let imageClause = '';
-    const params = [title, content, category, activity_date, req.params.id];
+    let tagsClause = '';
+    const params = [title, content, category, unit ? normalizeSlug(unit) : null, activity_date, req.params.id];
     if (Array.isArray(images)) {
-      imageClause = ', image_urls = $5';
-      params.splice(4, 0, JSON.stringify(images));
+      imageClause = ', image_urls = $6';
+      params.splice(5, 0, JSON.stringify(images));
+    }
+    if (tags) {
+      tagsClause = ', tags = $' + (imageClause ? 7 : 6);
+      params.splice(imageClause ? 6 : 5, 0, JSON.stringify(normalizeTags(tags)));
     }
 
     const { rowCount } = await db.query(
@@ -461,9 +567,11 @@ app.put('/api/activities/:id', async (req, res) => {
        SET title = $1,
            content = $2,
            category = $3,
-           activity_date = $4
+           unit = $4,
+           activity_date = $5
            ${imageClause}
-       WHERE id = $${imageClause ? 6 : 5}`,
+           ${tagsClause}
+       WHERE id = $${imageClause ? (tagsClause ? 8 : 7) : (tagsClause ? 7 : 6)}`,
       params
     );
 
@@ -489,25 +597,30 @@ app.delete('/api/activities/:id', async (req, res) => {
   }
 });
 
-app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) => {
+// Activity WebHook：title, content, images[], category?, activity_date? を受け取る
+app.post('/api/activity-webhook', async (req, res) => {
   try {
-    const { title, content, category = null, activity_date = null, images = [] } = req.body || {};
-    if (!title || !content)
-      return res.status(400).json({ error: 'タイトルと本文は必須です。' });
+    const { title, content, images, category, unit, tags, activity_date } = req.body || {};
+    if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
-    const urls = Array.isArray(images) ? images : [];
-    const { rows } = await db.query(
-      `INSERT INTO activities (title, content, category, activity_date, image_urls)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
-      [title, content, category, activity_date, JSON.stringify(urls)]
+    const imgs = Array.isArray(images) ? images : [];
+    const cat  = (category && String(category).trim()) || '未分類';
+    const uni  = normalizeSlug(unit);
+    const tgs  = normalizeTags(tags);
+    const ad   = activity_date ? new Date(activity_date) : null;
+
+    await db.query(
+      `INSERT INTO activities (title, content, image_urls, category, unit, tags, activity_date)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7)`,
+      [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
     );
-    return res.status(201).json({ id: rows[0].id, message: '活動報告の投稿に成功しました。' });
+    return res.status(201).json({ ok: true });
   } catch (e) {
-    console.error('Activity Webhook Error:', e);
-    return res.status(500).json({ error: 'サーバー内部エラー' });
+    console.error('activity-webhook error:', e);
+    return res.status(500).json({ error: 'server_error' });
   }
 });
+
 
 // ================================================================
 // Settings API (修正版)

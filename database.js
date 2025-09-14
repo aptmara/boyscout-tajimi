@@ -81,15 +81,34 @@ async function setupDatabase() {
     `);
 
     // news
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS news (
-        id BIGSERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        image_urls JSONB DEFAULT '[]'::jsonb,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `);
+await client.query(`
+  CREATE TABLE IF NOT EXISTS news (
+    id BIGSERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    image_urls JSONB DEFAULT '[]'::jsonb,
+    category TEXT, -- ← 追加
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`);
+
+    
+    // --- NEWS: category 列の追加（存在しなければ） + インデックス ---
+await client.query(`
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name='news' AND column_name='category'
+    ) THEN
+      ALTER TABLE news ADD COLUMN category TEXT;
+      -- 既存データの初期カテゴリ（任意。不要ならこの UPDATE は削除）
+      UPDATE news SET category = '未分類' WHERE category IS NULL;
+    END IF;
+  END$$;
+`);
+await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (category);`);
+
 
     // site_settings 物理テーブル
     await client.query(`
@@ -222,6 +241,7 @@ async function setupDatabase() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_category ON activities (category);`);
 
     // 後方互換: 旧 image_url TEXT → image_urls JSONB へ移行
     await client.query(`
@@ -252,6 +272,74 @@ async function setupDatabase() {
 
     await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities (created_at DESC);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_activity_date ON activities (activity_date DESC NULLS LAST);`);
+
+    // --- Add unit/tags columns and indexes (idempotent) ---
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='unit'
+        ) THEN
+          ALTER TABLE news ADD COLUMN unit TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='tags'
+        ) THEN
+          ALTER TABLE news ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+        END IF;
+      END$$;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_unit ON news (unit);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_tags_gin ON news USING GIN (tags jsonb_path_ops);`);
+
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='activities' AND column_name='unit'
+        ) THEN
+          ALTER TABLE activities ADD COLUMN unit TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='activities' AND column_name='tags'
+        ) THEN
+          ALTER TABLE activities ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+        END IF;
+      END$$;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_unit ON activities (unit);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_tags_gin ON activities USING GIN (tags jsonb_path_ops);`);
+
+    // Seed units/tags master settings (idempotent)
+    await client.query(`
+      INSERT INTO site_settings (key, value, description) VALUES
+        ('units_json', '[
+          {"label":"ビーバー","slug":"beaver"},
+          {"label":"カブ","slug":"cub"},
+          {"label":"ボーイ","slug":"boy"},
+          {"label":"ベンチャー","slug":"venture"},
+          {"label":"ローバー","slug":"rover"}
+        ]', '隊別（JSON配列: {label,slug}）'),
+        ('news_tags_json', '[
+          {"label":"お知らせ","slug":"announce"},
+          {"label":"重要","slug":"important"},
+          {"label":"募集","slug":"recruit"},
+          {"label":"メディア","slug":"media"},
+          {"label":"安全","slug":"safety"}
+        ]', 'ニュース用タグ候補（JSON配列: {label,slug}）'),
+        ('activity_tags_json', '[
+          {"label":"キャンプ","slug":"camp"},
+          {"label":"ハイク","slug":"hike"},
+          {"label":"奉仕","slug":"service"},
+          {"label":"訓練","slug":"training"},
+          {"label":"式典","slug":"ceremony"}
+        ]', '活動用タグ候補（JSON配列: {label,slug}）')
+      ON CONFLICT (key) DO NOTHING;
+    `);
 
     await client.query('COMMIT');
     console.log('Tables are ready.');

@@ -17,7 +17,7 @@
     </div>
 
         <ul id="news-list" class="news-list">
-            <!-- JavaScriptによって記事がここに挿入されます -->
+        
         </ul>
     </div>
 
@@ -51,13 +51,16 @@
                 newsItems.forEach(item => {
                     const li = document.createElement('li');
                     li.className = 'news-item';
-                    li.innerHTML = `
-                        <span class="news-item-title">${escapeHTML(item.title)}</span>
-                        <div class="news-item-actions">
-                            <a href="edit.html?id=${item.id}"><button>編集</button></a>
-                            <button class="danger" data-id="${item.id}">削除</button>
-                        </div>
-                    `;
+					li.innerHTML = `
+					    <span class="news-item-title">${escapeHTML(item.title)}</span>
+					    <span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+					        ${escapeHTML(item.category || '未分類')}
+					    </span>
+					    <div class="news-item-actions">
+					        <a href="edit.html?id=${item.id}"><button>編集</button></a>
+					        <button class="danger" data-id="${item.id}">削除</button>
+					    </div>
+					`;
                     newsList.appendChild(li);
                 });
             } catch (error) {
