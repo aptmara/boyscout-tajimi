@@ -1,7 +1,8 @@
 // database.js (Supabase / Postgres, server.js と整合)
 // - pg Pool を使用
 // - SSL を明示（DATABASE_URL に sslmode=require が無い環境でも動かす）
-// - news / activities ともに image_urls を JSONB で作成
+// - news / activities は image_urls を JSONB
+// - site_settings を物理テーブル、互換ビュー settings を用意（INSTEAD OF TRIGGERで書き込み転送）
 // - 必要インデックス作成
 // - オプション: 初回管理者自動作成（INITIAL_ADMIN_* があれば）
 
@@ -24,7 +25,6 @@ function lookupIPv4(hostname, _opts, cb) {
     const host = new URL(connectionString).hostname;
     const a = await dns.promises.resolve4(host);
     console.log('[DB DNS A records]', host, a);
-    // AAAAが返ってくるかも見る
     try {
       const aaaa = await dns.promises.resolve6(host);
       console.log('[DB DNS AAAA records]', host, aaaa);
@@ -38,41 +38,41 @@ function lookupIPv4(hostname, _opts, cb) {
 const pool = new Pool({
   connectionString,
   ssl: { rejectUnauthorized: false },
-  lookup: lookupIPv4, // ← これでIPv4のみ使用
+  lookup: lookupIPv4,
   // connectionTimeoutMillis: 10000,
   // idleTimeoutMillis: 30000,
 });
 
 // 起動時DDL（存在しなければ作る・不足列は追加）
 async function setupDatabase() {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-        // session テーブル (connect-pg-simple 用)
-        await client.query(`
-          CREATE TABLE IF NOT EXISTS "session" (
-            "sid" varchar NOT NULL COLLATE "default",
-            "sess" json NOT NULL,
-            "expire" timestamp(6) NOT NULL
-          )
-          WITH (OIDS=FALSE);
-        `);
-        await client.query(`
-          DO $$
-          BEGIN
-            IF NOT EXISTS (
-              SELECT 1 FROM pg_constraint
-              WHERE conname = 'session_pkey'
-            ) THEN
-              ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
-            END IF;
-          END$$;
-        `);
-        await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
+    // session テーブル (connect-pg-simple 用)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL
+      )
+      WITH (OIDS=FALSE);
+    `);
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'session_pkey'
+        ) THEN
+          ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+        END IF;
+      END$$;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
 
-        // admins
-        await client.query(`
+    // admins
+    await client.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id BIGSERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
@@ -80,8 +80,8 @@ async function setupDatabase() {
       );
     `);
 
-        // news
-        await client.query(`
+    // news
+    await client.query(`
       CREATE TABLE IF NOT EXISTS news (
         id BIGSERIAL PRIMARY KEY,
         title TEXT NOT NULL,
@@ -91,68 +91,74 @@ async function setupDatabase() {
       );
     `);
 
-        // サイト設定テーブル
-        await client.query(`
+    // site_settings 物理テーブル
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_settings (
         key TEXT PRIMARY KEY,
         value TEXT,
-        description TEXT, -- 管理画面用の説明
+        description TEXT,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
-// ---- settings 互換ビュー（site_settings を透過利用）----
-await client.query(`
-  DO $$
-  BEGIN
-    IF EXISTS (
-      SELECT 1 FROM information_schema.tables
-      WHERE table_name = 'settings'
-    ) THEN
-      ALTER TABLE settings RENAME TO settings_legacy_backup;
-    END IF;
-  END$$;
-`);
-
-await client.query(`DROP VIEW IF EXISTS settings CASCADE;`);
-await client.query(`
-  CREATE VIEW settings AS
-    SELECT key, value FROM site_settings;
-`);
-
-await client.query(`DROP FUNCTION IF EXISTS settings_view_upsert() CASCADE;`);
-await client.query(`
-  CREATE FUNCTION settings_view_upsert()
-  RETURNS trigger
-  LANGUAGE plpgsql
-  AS $$
-  BEGIN
-    IF (TG_OP = 'INSERT') THEN
-      INSERT INTO site_settings(key, value, updated_at)
-      VALUES (NEW.key, NEW.value, NOW())
-      ON CONFLICT (key) DO UPDATE
-        SET value = EXCLUDED.value, updated_at = NOW();
-      RETURN NEW;
-    ELSIF (TG_OP = 'UPDATE') THEN
-      UPDATE site_settings
-         SET value = NEW.value, updated_at = NOW()
-       WHERE key = NEW.key;
-      RETURN NEW;
-    ELSE
-      RETURN NEW;
-    END IF;
-  END;
-  $$;
-`);
-
-await client.query(`DROP TRIGGER IF EXISTS settings_view_upsert_trg ON settings;`);
-await client.query(`
-  CREATE TRIGGER settings_view_upsert_trg
-  INSTEAD OF INSERT OR UPDATE ON settings
-  FOR EACH ROW EXECUTE FUNCTION settings_view_upsert();
-`);
-
     `);
-        // 設定項目の初期データを挿入
-        await client.query(`
+
+    // ---- settings 互換ビュー（site_settings を透過利用）----
+    // 物理テーブル settings が存在していた場合は退避（極稀ケース）
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM information_schema.tables
+          WHERE table_name = 'settings'
+        ) THEN
+          ALTER TABLE settings RENAME TO settings_legacy_backup;
+        END IF;
+      END
+      $$;
+    `);
+
+    await client.query(`DROP VIEW IF EXISTS settings CASCADE;`);
+    await client.query(`
+      CREATE VIEW settings AS
+        SELECT key, value FROM site_settings;
+    `);
+
+    await client.query(`DROP FUNCTION IF EXISTS settings_view_upsert() CASCADE;`);
+    await client.query(`
+      CREATE FUNCTION settings_view_upsert()
+      RETURNS trigger
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        IF (TG_OP = 'INSERT') THEN
+          INSERT INTO site_settings(key, value, updated_at)
+          VALUES (NEW.key, NEW.value, NOW())
+          ON CONFLICT (key) DO UPDATE
+            SET value = EXCLUDED.value,
+                updated_at = NOW();
+          RETURN NEW;
+        ELSIF (TG_OP = 'UPDATE') THEN
+          UPDATE site_settings
+             SET value = NEW.value,
+                 updated_at = NOW()
+           WHERE key = NEW.key;
+          RETURN NEW;
+        ELSE
+          RETURN NEW;
+        END IF;
+      END;
+      $$;
+    `);
+
+    await client.query(`DROP TRIGGER IF EXISTS settings_view_upsert_trg ON settings;`);
+    await client.query(`
+      CREATE TRIGGER settings_view_upsert_trg
+      INSTEAD OF INSERT OR UPDATE ON settings
+      FOR EACH ROW EXECUTE FUNCTION settings_view_upsert();
+    `);
+
+    // 設定項目の初期データを挿入（既存は維持）
+    await client.query(`
       INSERT INTO site_settings (key, value, description) VALUES
         -- 連絡先
         ('contact_address', '〒XXX-XXXX 岐阜県多治見市XX町X-X-X', 'フッターや連絡先ページに表示する住所'),
@@ -188,8 +194,8 @@ await client.query(`
       ON CONFLICT (key) DO NOTHING;
     `);
 
-        // 後方互換: 既存newsにimage_urlsが無ければ追加
-        await client.query(`
+    // 後方互換: 既存newsにimage_urlsが無ければ追加
+    await client.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (
@@ -201,11 +207,11 @@ await client.query(`
         END IF;
       END$$;
     `);
-        // 並び順に使う created_at へインデックス
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_news_created_at ON news (created_at DESC);`);
+    // 並び順に使う created_at へインデックス
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_created_at ON news (created_at DESC);`);
 
-        // activities
-        await client.query(`
+    // activities
+    await client.query(`
       CREATE TABLE IF NOT EXISTS activities (
         id BIGSERIAL PRIMARY KEY,
         title TEXT NOT NULL,
@@ -216,15 +222,15 @@ await client.query(`
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
-        // 後方互換: 旧 image_url TEXT を使っていた場合の移行（存在すればimage_urlsへ変換・取り込み）
-        await client.query(`
+
+    // 後方互換: 旧 image_url TEXT → image_urls JSONB へ移行
+    await client.query(`
       DO $$
       BEGIN
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_name='activities' AND column_name='image_url'
         ) THEN
-          -- image_urls が無ければ追加
           IF NOT EXISTS (
             SELECT 1 FROM information_schema.columns
             WHERE table_name='activities' AND column_name='image_urls'
@@ -232,7 +238,6 @@ await client.query(`
             ALTER TABLE activities ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
           END IF;
 
-          -- image_url が埋まっている行を image_urls へ移行（先頭要素として）
           UPDATE activities
              SET image_urls = CASE
                  WHEN COALESCE(image_url, '') <> '' THEN jsonb_build_array(image_url)
@@ -240,47 +245,45 @@ await client.query(`
                END
            WHERE image_url IS NOT NULL;
 
-          -- 旧カラム削除
           ALTER TABLE activities DROP COLUMN image_url;
         END IF;
       END$$;
     `);
 
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities (created_at DESC);`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_activity_date ON activities (activity_date DESC NULLS LAST);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities (created_at DESC);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_activity_date ON activities (activity_date DESC NULLS LAST);`);
 
-        await client.query('COMMIT');
-        console.log('Tables are ready.');
+    await client.query('COMMIT');
+    console.log('Tables are ready.');
 
-        // --- オプション: 初回管理者自動作成 ---
-        // 環境変数があれば、存在しない場合のみ作成する（本番では最初に一度だけセット）
-        const adminUser = process.env.INITIAL_ADMIN_USERNAME;
-        const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
-        if (adminUser && adminPass) {
-            const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
-            if (rows.length === 0) {
-                const hash = await bcrypt.hash(adminPass, 12);
-                await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
-                console.log(`Admin user '${adminUser}' created.`);
-            }
-        }
-    } catch (err) {
-        await client.query('ROLLBACK');
-        console.error('Error during database setup:', err);
-        throw err;
-    } finally {
-        client.release();
+    // --- オプション: 初回管理者自動作成 ---
+    const adminUser = process.env.INITIAL_ADMIN_USERNAME;
+    const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
+    if (adminUser && adminPass) {
+      const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
+      if (rows.length === 0) {
+        const hash = await bcrypt.hash(adminPass, 12);
+        await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
+        console.log(`Admin user '${adminUser}' created.`);
+      }
     }
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error during database setup:', err);
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 // 共通 query
 function query(text, params) {
-    return pool.query(text, params);
+  return pool.query(text, params);
 }
 
 module.exports = {
-    query,
-    setupDatabase,
-    getClient: () => pool.connect(),
-    pool,
+  query,
+  setupDatabase,
+  getClient: () => pool.connect(),
+  pool, // connect-pg-simple 用
 };
