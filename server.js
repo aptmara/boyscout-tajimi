@@ -180,6 +180,16 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
       bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
     });
   }
+// ★デバッグ（必ず後で消す or NODE_ENVで抑止）
+ if (process.env.NODE_ENV !== 'production') {
+   console.warn('[SIG_DEBUG]', {
+     expSigHead: expBuf.toString('hex').slice(0,16),
+     gotSigHead: gotBuf.toString('hex').slice(0,16),
+     gotLen: gotBuf.length,
+     ts: String(ts),
+     bodyBytes: Buffer.byteLength(bodyRaw,'utf8')
+   });
+ }
   // 固定時間比較
   return gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
 }
