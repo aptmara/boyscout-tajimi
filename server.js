@@ -26,6 +26,12 @@ const db = require('./database.js');
   const s = process.env.WEBHOOK_SECRET || '';
   const fp = crypto.createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 16);
   console.log('[SECRET_FP]', fp);
+  if (process.env.NODE_ENV !== 'production') {
+    const secret = process.env.WEBHOOK_SECRET || '';
+    const codes = [...secret].map(c => c.charCodeAt(0));
+    console.log('[SECRET_LEN]', secret.length, 'head', codes.slice(0,8), 'tail', codes.slice(-8));
+  }
+
 })();
 
 const app = express();
