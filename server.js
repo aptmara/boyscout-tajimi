@@ -19,7 +19,7 @@ const db = require('./database.js');
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
 
 const app = express();
-
+app.set('trust proxy', 1);
 // === secret fingerprint (ログ最小限)
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
