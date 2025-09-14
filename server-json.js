@@ -1,16 +1,13 @@
 /**
  * server-json.js
- * Express server using JSON file storage instead of SQLite (for local experiments).
- * Includes:
- *  - Public GET /api/news, /api/news/:id
- *  - Admin session (POST /api/login, /api/logout)
- *  - CRUD (POST/PUT/DELETE /api/news/*) behind session
- *  - Webhook /api/news-webhook (HMAC timestamp signature) + image copy to /uploads
+ * Express Router using JSON file storage (for local/alt path).
+ * - Public GET /api/news, /api/news/:id
+ * - Admin session check via req.session (sessionは server.js で設定)
+ * - CRUD (POST/PUT/DELETE /api/news/*) behind session
+ * - Webhook /api/news-webhook (HMAC timestamp signature) + image copy to /uploads
  */
 
 const express = require('express');
-const session = require('express-session');
-const FileStore = require('session-file-store')(session);
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -19,42 +16,23 @@ const storage = require('./news-storage.js');
 
 const router = express.Router();
 
-// ---- middleware
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
+// ---- body parsers（Routerに付与）
+router.use(express.json({ limit: '1mb' }));
+router.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-app.use(session({
-  store: new FileStore({
-    path: path.join(__dirname, 'sessions'),
-    ttl: 86400,
-    reapInterval: 86400
-  }),
-  secret: process.env.SESSION_SECRET || 'dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false, // local
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24
-  }
-}));
-
-// static site files (current directory)
-app.use(express.static(path.join(__dirname, '/')));
-
-// public uploads
+// ---- public uploads ディレクトリ（保存先の公開は server.js 側で配信）
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-app.use('/uploads', express.static(UPLOAD_DIR));
 
-const authMiddleware = (req, res, next) => {
-  if (req.session.user) return next();
+// ---- auth middleware（sessionは server.js 側で確立される想定）
+function authMiddleware(req, res, next) {
+  if (req.session && req.session.user) return next();
   if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Authentication required' });
   return res.redirect('/admin/login.html');
-};
+}
 
 // --- auth api (very simple for local)
-app.post('/api/login', (req, res) => {
+router.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
   const initialPass = process.env.INITIAL_ADMIN_PASSWORD || 'password';
   if (username === 'admin' && typeof password === 'string' && password === initialPass) {
@@ -64,16 +42,16 @@ app.post('/api/login', (req, res) => {
   res.status(401).json({ error: 'Invalid credentials' });
 });
 
-app.post('/api/logout', (req, res) => {
+router.post('/api/logout', (req, res) => {
   req.session.destroy(() => res.json({ message: 'Logged out' }));
 });
 
-app.get('/api/session', (req, res) => {
-  res.json({ loggedIn: !!req.session.user, user: req.session.user || null });
+router.get('/api/session', (req, res) => {
+  res.json({ loggedIn: !!(req.session && req.session.user), user: (req.session && req.session.user) || null });
 });
 
 // --- news public GET
-app.get('/api/news', (req, res) => {
+router.get('/api/news', (req, res) => {
   try {
     return res.json(storage.list());
   } catch (e) {
@@ -81,7 +59,7 @@ app.get('/api/news', (req, res) => {
   }
 });
 
-app.get('/api/news/:id', (req, res) => {
+router.get('/api/news/:id', (req, res) => {
   try {
     const item = storage.get(req.params.id);
     if (!item) return res.status(404).json({ error: 'News not found' });
@@ -92,9 +70,9 @@ app.get('/api/news/:id', (req, res) => {
 });
 
 // --- protected CRUD
-app.use('/api/news', authMiddleware);
+router.use('/api/news', authMiddleware);
 
-app.post('/api/news', (req, res) => {
+router.post('/api/news', (req, res) => {
   const { title, content } = req.body || {};
   if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
   try {
@@ -105,7 +83,7 @@ app.post('/api/news', (req, res) => {
   }
 });
 
-app.put('/api/news/:id', (req, res) => {
+router.put('/api/news/:id', (req, res) => {
   const { title, content } = req.body || {};
   if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
   try {
@@ -117,7 +95,7 @@ app.put('/api/news/:id', (req, res) => {
   }
 });
 
-app.delete('/api/news/:id', (req, res) => {
+router.delete('/api/news/:id', (req, res) => {
   try {
     const ok = storage.remove(req.params.id);
     if (!ok) return res.status(404).json({ error: 'News not found' });
@@ -136,10 +114,13 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
   if (!ts || Math.abs(now - ts) > 300) return false;
   const h = crypto.createHmac('sha256', secret);
   h.update(`${timestamp}.${bodyRaw}`);
-  const expected = `sha256=${h.digest('hex')}`;
-  const a = Buffer.from(signature || '');
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const expected = Buffer.from(h.digest());         // bytes
+  const m =
+    String(signature || '').match(/^sha256=([0-9a-fA-F]{64})$/) ||
+    String(signature || '').match(/^([0-9a-fA-F]{64})$/);
+  if (!m) return false;
+  const got = Buffer.from(m[1], 'hex');
+  return got.length === expected.length && crypto.timingSafeEqual(got, expected);
 }
 
 function webhookAuth(req, res, next) {
@@ -198,7 +179,7 @@ async function downloadImageToUploads(url) {
   return { publicPath: `/uploads/${filename}`, contentType: ctype };
 }
 
-app.post('/api/news-webhook', webhookAuth, async (req, res) => {
+router.post('/api/news-webhook', webhookAuth, async (req, res) => {
   const { title, content, images = [] } = req.body || {};
   if (!title || !content) return res.status(400).json({ error: 'missing fields' });
   try {
@@ -220,5 +201,6 @@ app.post('/api/news-webhook', webhookAuth, async (req, res) => {
   }
 });
 
-// Router を公開（server.js から mount する）
+// Router と UPLOAD_DIR を公開（UPLOAD_DIR は server.js で静的配信に使う）
+router.UPLOAD_DIR = UPLOAD_DIR;
 module.exports = router;
