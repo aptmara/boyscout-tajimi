@@ -165,6 +165,17 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
     console.warn('[SIG_DEBUG]', {
       expSigHead: expBuf.toString('hex').slice(0,16),
       gotSigHead: gotBuf.toString('hex').slice(0,16),
+      gotLen: gotBuf.length,
+      ts: String(ts),
+      // 重要：HMACはUTF-8バイトで計算するので、bytes長を出す
+      bodyChars: bodyRaw.length,
+      bodyBytes: Buffer.byteLength(bodyRaw, 'utf8')
+    });
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[SIG_DEBUG]', {
+      expSigHead: expBuf.toString('hex').slice(0,16),
+      gotSigHead: gotBuf.toString('hex').slice(0,16),
       ts: String(ts),
       bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
     });
@@ -474,6 +485,22 @@ app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) 
   }
 });
 
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/__hmac_debug', express.raw({ type: 'application/json' }), (req, res) => {
+    const ts = req.get('X-Timestamp') || '';
+    const secret = process.env.WEBHOOK_SECRET || '';
+    const raw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body || {});
+    const exp = crypto.createHmac('sha256', secret).update(`${ts}.${raw}`, 'utf8').digest('hex');
+    res.json({
+      ts,
+      bodyChars: raw.length,
+      bodyBytes: Buffer.byteLength(raw,'utf8'),
+      bodySha256: crypto.createHash('sha256').update(raw,'utf8').digest('hex'),
+      expHead: exp.slice(0,16),
+      exp
+    });
+  });
+}
 // ------------------------------
 // 起動
 // ------------------------------
