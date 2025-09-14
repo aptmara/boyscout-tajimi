@@ -48,7 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
-    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation();
+    // タイピング風アニメーションの呼び出し
+    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation('#hero-title', 300, 120);
+    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation('#hero-subtitle', 4000, 50);
     if (typeof initCounterAnimation === 'function') initCounterAnimation();
   }
   if (document.getElementById('activity-log-container')) {
@@ -68,26 +70,45 @@ document.addEventListener('DOMContentLoaded', () => {
 // =========================================================================
 
 /**
- * (実装) ヒーローセクションのテキストアニメーション
+ * (実装) ヒーローセクションのテキストアニメーション (タイピング風)
+ * @param {string} targetSelector - アニメーション対象の要素のCSSセレクタ
+ * @param {number} initialDelay - アニメーション開始までの遅延時間(ミリ秒)
+ * @param {number} typingSpeed - 一文字あたりのタイピング速度(ミリ秒)
  */
-function initHeroTextAnimation() {
-  const target = document.querySelector('.hero-text-animation');
+function initHeroTextAnimation(targetSelector, initialDelay = 0, typingSpeed = 100) {
+  const target = document.querySelector(targetSelector);
   if (!target) return;
 
-  const text = target.textContent.trim();
-  target.textContent = ''; // 元のテキストを空にする
-  target.style.opacity = 1; // 透明を解除
+  const originalText = target.innerHTML.replace(/<br\s*\/?>/g, '\n').trim();
+  target.textContent = '';
+  target.classList.add('typing-container');
+  target.style.whiteSpace = 'pre-wrap';
 
   let i = 0;
-  const typing = () => {
-    if (i < text.length) {
-      target.textContent += text.charAt(i);
+  const type = () => {
+    if (i < originalText.length) {
+      if (originalText.charAt(i) === '\n') {
+        target.innerHTML += '<br>';
+      } else {
+        target.textContent += originalText.charAt(i);
+      }
       i++;
-      setTimeout(typing, 100); // 100ミリ秒ごとに一文字表示
+      setTimeout(type, typingSpeed);
+    } else {
+      target.classList.remove('typing-container');
     }
   };
-  // ページ読み込み後、少し遅れてアニメーション開始
-  setTimeout(typing, 500);
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setTimeout(type, initialDelay);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  observer.observe(target);
 }
 
 /**

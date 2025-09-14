@@ -196,6 +196,25 @@ header#main-header.scrolled {
 }
 /* JS側で transition-delay がインラインスタイルで設定される想定 */
 
+/* タイピングアニメーション用のカーソル表示 */
+.typing-container {
+    position: relative;
+    display: inline;
+}
+
+.typing-container::after {
+    content: '█';
+    display: inline-block;
+    animation: blink 1s infinite;
+    font-weight: 300;
+    color: #f3f4f6;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
 /* ヒーローセクションのボタン (既存の .hero-title-char[href] に適用) */
 #hero .hero-title-char[href] {
     padding: 0.875rem 2.25rem; /* 少し横幅調整 */
