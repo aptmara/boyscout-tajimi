@@ -6,4 +6,3 @@ function loadEnv(options) {
   loaded = true;
 }
 module.exports = { loadEnv };
-
