@@ -9,7 +9,7 @@
     "db:setup": "node database.js",
     "start:json": "node server-json.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./styles/input.css -o ./common-styles.css --minify",
+    "build:css": "npx tailwindcss -i ./styles/input.css -o ./common-styles.css --minify",
     "tailwind:init": "tailwindcss init"
   },
   "repository": {
