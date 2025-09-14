@@ -1,4 +1,5 @@
 // common-scripts.js
+
 // グローバルな設定やユーティリティ
 const COMMON_SETTINGS = {
   headerId: 'main-header',
@@ -47,19 +48,164 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
-    initHeroTextAnimation?.();
-    initCounterAnimation?.();
+    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation();
+    if (typeof initCounterAnimation === 'function') initCounterAnimation();
   }
   if (document.getElementById('activity-log-container')) {
-    initActivityLogPage?.();
+    if (typeof initActivityLogPage === 'function') initActivityLogPage();
   }
   if (document.getElementById('activity-article-container')) {
-    initActivityDetailPage?.();
+    if (typeof initActivityDetailPage === 'function') initActivityDetailPage();
   }
   if (document.getElementById('contact-form')) {
-    initContactForm?.();
+    if (typeof initContactForm === 'function') initContactForm();
   }
 });
+
+
+// =========================================================================
+// ここから下に関数を実装していきます
+// =========================================================================
+
+/**
+ * (実装) ヒーローセクションのテキストアニメーション
+ */
+function initHeroTextAnimation() {
+  const target = document.querySelector('.hero-text-animation');
+  if (!target) return;
+
+  const text = target.textContent.trim();
+  target.textContent = ''; // 元のテキストを空にする
+  target.style.opacity = 1; // 透明を解除
+
+  let i = 0;
+  const typing = () => {
+    if (i < text.length) {
+      target.textContent += text.charAt(i);
+      i++;
+      setTimeout(typing, 100); // 100ミリ秒ごとに一文字表示
+    }
+  };
+  // ページ読み込み後、少し遅れてアニメーション開始
+  setTimeout(typing, 500);
+}
+
+/**
+ * (実装) 数字のカウンターアニメーション
+ */
+function initCounterAnimation() {
+  const counters = document.querySelectorAll('.counter');
+  if (counters.length === 0) return;
+
+  const animateCounter = (counter) => {
+    const target = +counter.getAttribute('data-target');
+    const duration = 2000; // 2秒でアニメーション
+    const stepTime = Math.abs(Math.floor(duration / target));
+
+    let count = 0;
+    const updateCount = () => {
+      count++;
+      counter.innerText = count;
+      if (count < target) {
+        setTimeout(updateCount, stepTime);
+      } else {
+        counter.innerText = target; // 最終値をセット
+      }
+    };
+    updateCount();
+  };
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        observer.unobserve(entry.target); // 一度だけ実行
+      }
+    });
+  }, { threshold: 0.7 });
+
+  counters.forEach(counter => {
+    counter.innerText = '0'; // 初期値を0に
+    observer.observe(counter);
+  });
+}
+
+
+/**
+ * (実装) 活動記録一覧ページの初期化
+ * dynamic-activities.jsの `loadActivityLog` 関数を呼び出すことを想定
+ */
+function initActivityLogPage() {
+    console.log("活動記録一覧ページを初期化します。");
+    // `dynamic-activities.js` に `loadActivityLog` 関数が定義されている場合
+    if (typeof loadActivityLog === 'function') {
+        loadActivityLog();
+    } else {
+        console.warn('`loadActivityLog`関数が`dynamic-activities.js`に見つかりません。');
+    }
+}
+
+/**
+ * (実装) 活動記録詳細ページの初期化
+ * dynamic-activities.jsの `loadActivityDetail` 関数を呼び出すことを想定
+ */
+function initActivityDetailPage() {
+    console.log("活動記録詳細ページを初期化します。");
+    // `dynamic-activities.js` に `loadActivityDetail` 関数が定義されている場合
+    if (typeof loadActivityDetail === 'function') {
+        loadActivityDetail();
+    } else {
+        console.warn('`loadActivityDetail`関数が`dynamic-activities.js`に見つかりません。');
+    }
+}
+
+
+/**
+ * (実装) お問い合わせフォームの初期化
+ */
+function initContactForm() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="animate-spin h-5 w-5 mr-3 border-t-2 border-b-2 border-white rounded-full inline-block"></span> 送信中...';
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      // ここで実際のAPIエンドポイントにデータを送信します
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message || 'お問い合わせありがとうございます。メッセージが正常に送信されました。');
+        form.reset();
+      } else {
+        throw new Error(result.message || 'サーバーでエラーが発生しました。');
+      }
+    } catch (error) {
+      console.error('フォーム送信エラー:', error);
+      alert('メッセージの送信に失敗しました。時間をおいて再度お試しください。');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalButtonText;
+    }
+  });
+}
+
 
 /**
  * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる
