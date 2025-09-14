@@ -10,6 +10,12 @@
  *   - .env: WEBHOOK_SECRET, SESSION_SECRET, PORT, NODE_ENV, HMAC_TOLERANCE_SEC(optional)
  *   - database.js: db.query / setupDatabase を提供（あなたの提示どおり）
  */
+const crypto = require('crypto');
+(function logSecretFingerprint() {
+  const s = process.env.WEBHOOK_SECRET || '';
+  const fp = crypto.createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 16);
+  console.log('[SECRET_FP]', fp);
+})();
 
 require('dotenv').config();
 const express = require('express');
