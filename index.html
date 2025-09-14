@@ -14,7 +14,7 @@
     <style>
         /* ヒーローセクションの背景画像 (common-styles.css に移動しても良い) */
         .hero-bg {
-            background-image: url('https://placehold.co/1920x1080/334155/e2e8f0?text=High-Quality+Hero+Image'); /* 高品質なヒーロー画像に差し替えてください */
+            background-image: url('https://placehold.co/1920x1080/334155/e2e8f0?text=High-Quality+Hero+Image'); /* 管理画面の設定で差し替え可能 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed; /* パララックス風効果 */
@@ -173,7 +173,7 @@
                     <!-- 活動ハイライトカード - 画像を実際の活動写真に差し替え推奨 -->
                     <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
                         <div class="relative">
-                            <img src="https://placehold.co/600x400/4A934A/FFFFFF?text=夏のキャンプ風景" alt="夏のキャンプ" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <img id="index-activity-img-1" src="https://placehold.co/600x400/4A934A/FFFFFF?text=夏のキャンプ風景" alt="夏のキャンプ" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
                             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                         </div>
                         <div class="p-6 card-content-area">
@@ -184,7 +184,7 @@
                     </div>
                     <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
                          <div class="relative">
-                            <img src="https://placehold.co/600x400/5A69C4/FFFFFF?text=地域清掃活動" alt="地域清掃活動" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <img id="index-activity-img-2" src="https://placehold.co/600x400/5A69C4/FFFFFF?text=地域清掃活動" alt="地域清掃活動" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
                             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                         </div>
                         <div class="p-6 card-content-area">
@@ -195,7 +195,7 @@
                     </div>
                     <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
                         <div class="relative">
-                            <img src="https://placehold.co/600x400/D4A24F/FFFFFF?text=技能章チャレンジ" alt="技能章チャレンジ" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <img id="index-activity-img-3" src="https://placehold.co/600x400/D4A24F/FFFFFF?text=技能章チャレンジ" alt="技能章チャレンジ" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
                             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                         </div>
                         <div class="p-6 card-content-area">
@@ -219,7 +219,7 @@
                 <div class="grid md:grid-cols-2 gap-10">
                     <div class="bg-white p-8 rounded-xl shadow-lg card-hover-effect">
                         <div class="flex items-center mb-4">
-                            <img src="https://placehold.co/80x80/FF9800/FFFFFF?text=保護者A" alt="保護者A" class="w-16 h-16 rounded-full mr-4 border-2 border-yellow-400 shadow-sm" loading="lazy">
+                            <img id="index-testimonial-img-1" src="https://placehold.co/80x80/FF9800/FFFFFF?text=保護者A" alt="保護者A" class="w-16 h-16 rounded-full mr-4 border-2 border-yellow-400 shadow-sm" loading="lazy">
                             <div>
                                 <h4 class="text-xl font-semibold text-gray-800">佐藤さん (カブスカウト保護者)</h4>
                                 <p class="text-sm text-gray-500">多治見市在住</p>
@@ -229,7 +229,7 @@
                     </div>
                     <div class="bg-white p-8 rounded-xl shadow-lg card-hover-effect">
                         <div class="flex items-center mb-4">
-                            <img src="https://placehold.co/80x80/03A9F4/FFFFFF?text=スカウトB" alt="スカウトB" class="w-16 h-16 rounded-full mr-4 border-2 border-blue-400 shadow-sm" loading="lazy">
+                            <img id="index-testimonial-img-2" src="https://placehold.co/80x80/03A9F4/FFFFFF?text=スカウトB" alt="スカウトB" class="w-16 h-16 rounded-full mr-4 border-2 border-blue-400 shadow-sm" loading="lazy">
                             <div>
                                 <h4 class="text-xl font-semibold text-gray-800">鈴木くん (ボーイスカウト)</h4>
                                 <p class="text-sm text-gray-500">中学2年生</p>

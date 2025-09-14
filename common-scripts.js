@@ -118,6 +118,62 @@ async function applySiteSettings() {
             leaderRoverEl.textContent = settings.leader_rover || '（アドバイザー名未設定）';
         }
 
+        // 3. プライバシーポリシー関連（存在するページのみ）
+        const effEl = document.getElementById('enactment-date');
+        if (effEl && settings.privacy_effective_date) {
+            effEl.textContent = settings.privacy_effective_date;
+        }
+        const updEl = document.getElementById('last-updated-date');
+        if (updEl && settings.privacy_last_updated_date) {
+            updEl.textContent = settings.privacy_last_updated_date;
+        }
+        document.querySelectorAll('.privacy-contact-person').forEach(el => {
+            if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
+        });
+        document.querySelectorAll('.privacy-contact-phone').forEach(el => {
+            if (settings.privacy_contact_phone) {
+                el.textContent = settings.privacy_contact_phone;
+                if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
+            }
+        });
+        document.querySelectorAll('.privacy-contact-email').forEach(el => {
+            if (settings.privacy_contact_email) {
+                el.textContent = settings.privacy_contact_email;
+                if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
+            }
+        });
+
+        // 4. お問い合わせページ専用（担当者名、サブ電話、地図埋め込み）
+        document.querySelectorAll('.contact-person-name').forEach(el => {
+            if (settings.contact_person_name) el.textContent = settings.contact_person_name;
+        });
+        document.querySelectorAll('.contact-phone-secondary').forEach(el => {
+            if (settings.contact_secondary_phone) {
+                el.textContent = settings.contact_secondary_phone;
+                if (el.tagName === 'A') el.href = 'tel:' + settings.contact_secondary_phone.replace(/-/g, '');
+            }
+        });
+        const mapEl = document.getElementById('contact-map-embed');
+        if (mapEl && settings.contact_map_embed_html) {
+            mapEl.innerHTML = settings.contact_map_embed_html;
+        }
+
+        // 5. トップページの画像差し替え（存在時のみ適用）
+        const hero = document.querySelector('.hero-bg');
+        if (hero && settings.index_hero_image_url) {
+            hero.style.backgroundImage = `url('${settings.index_hero_image_url}')`;
+        }
+        for (let i of [1,2,3]) {
+            const el = document.getElementById(`index-activity-img-${i}`);
+            const key = `index_highlight_img_${i}_url`;
+            if (el && settings[key]) el.src = settings[key];
+        }
+        for (let i of [1,2]) {
+            const el = document.getElementById(`index-testimonial-img-${i}`);
+            const key = `index_testimonial_img_${i}_url`;
+            if (el && settings[key]) el.src = settings[key];
+        }
+
     } catch (error) {
         console.error('Error applying site settings:', error);
     }

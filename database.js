@@ -81,14 +81,37 @@ async function setupDatabase() {
         // 設定項目の初期データを挿入
         await client.query(`
       INSERT INTO site_settings (key, value, description) VALUES
+        -- 連絡先
         ('contact_address', '〒XXX-XXXX 岐阜県多治見市XX町X-X-X', 'フッターや連絡先ページに表示する住所'),
-        ('contact_phone', '0572-XX-XXXX', 'フッターや連絡先ページに表示する電話番号'),
+        ('contact_phone', '0572-XX-XXXX', 'フッターや連絡先ページに表示する代表電話番号'),
+        ('contact_secondary_phone', '0572-00-0000', '連絡先のサブ電話番号'),
         ('contact_email', 'info@bs-tajimi1.example.jp', 'フッターや連絡先ページに表示するメールアドレス'),
+        ('contact_person_name', '', 'お問い合わせ担当者名（表示用）'),
+
+        -- 各隊リーダー名
         ('leader_beaver', '佐藤 愛', 'ビーバー隊リーダー名'),
         ('leader_cub', '鈴木 一郎', 'カブ隊リーダー名'),
         ('leader_boy', '渡辺 健', 'ボーイ隊隊長名'),
         ('leader_venture', '伊藤 誠', 'ベンチャー隊隊長名'),
-        ('leader_rover', '高橋 明', 'ローバー隊アドバイザー名')
+        ('leader_rover', '高橋 明', 'ローバー隊アドバイザー名'),
+
+        -- プライバシーポリシー用
+        ('privacy_contact_person', '', 'プライバシーポリシー：お問い合わせ窓口担当'),
+        ('privacy_contact_phone', '', 'プライバシーポリシー：窓口電話番号'),
+        ('privacy_contact_email', '', 'プライバシーポリシー：窓口メールアドレス'),
+        ('privacy_effective_date', '2025年5月12日', 'プライバシーポリシー：制定日'),
+        ('privacy_last_updated_date', '2025年5月12日', 'プライバシーポリシー：最終更新日'),
+
+        -- お問い合わせページ（Googleマップ埋め込み）
+        ('contact_map_embed_html', '', 'お問い合わせページに表示するGoogleマップ埋め込みHTML'),
+
+        -- トップページ画像
+        ('index_hero_image_url', '', 'トップページのヒーロー画像URL'),
+        ('index_highlight_img_1_url', '', '活動ハイライト1の画像URL'),
+        ('index_highlight_img_2_url', '', '活動ハイライト2の画像URL'),
+        ('index_highlight_img_3_url', '', '活動ハイライト3の画像URL'),
+        ('index_testimonial_img_1_url', '', 'トップの体験談プロフィール画像1 URL'),
+        ('index_testimonial_img_2_url', '', 'トップの体験談プロフィール画像2 URL')
       ON CONFLICT (key) DO NOTHING;
     `);
 

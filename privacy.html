@@ -124,8 +124,10 @@
                     <h2>10. お問い合わせ窓口</h2>
                     <p>
                         ボーイスカウト多治見第一団<br>
-                        担当: [担当者名または役職を記載]<br>
-                        連絡先: <a href="contact.html">お問い合わせページ</a>をご利用いただくか、お電話 [電話番号を記載] またはメール [メールアドレスを記載] にてご連絡ください。
+                        担当: <span class="privacy-contact-person">[担当者名または役職を記載]</span><br>
+                        連絡先: <a href="contact.html">お問い合わせページ</a>をご利用いただくか、
+                        お電話 <a class="privacy-contact-phone" href="#">[電話番号を記載]</a> または
+                        メール <a class="privacy-contact-email" href="#">[メールアドレスを記載]</a> にてご連絡ください。
                     </p>
 
                     <p class="mt-10 text-right">制定日: <span id="enactment-date">2025年5月12日</span></p>
@@ -184,25 +186,6 @@
     </footer>
 
     <script src="common-scripts.js" defer></script>
-    <script>
-        // ページ固有のJS (日付の動的設定など)
-        document.addEventListener('DOMContentLoaded', () => {
-            const lastUpdatedDateElem = document.getElementById('last-updated-date');
-            const enactmentDateElem = document.getElementById('enactment-date');
-            
-            // この日付は実際のポリシー更新に合わせて手動で変更するか、CMSで管理することを推奨します。
-            // ここでは、もしHTML内の日付が初期プレースホルダーのままなら、今日の日付に書き換えるデモです。
-            const initialPlaceholderDate = "2025年5月12日"; 
-            const today = new Date();
-            const formattedDate = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
-
-            if (lastUpdatedDateElem && lastUpdatedDateElem.textContent.trim() === initialPlaceholderDate) {
-                lastUpdatedDateElem.textContent = formattedDate;
-            }
-            if (enactmentDateElem && enactmentDateElem.textContent.trim() === initialPlaceholderDate) {
-                enactmentDateElem.textContent = formattedDate;
-            }
-        });
-    </script>
+    <!-- 日付は管理画面の設定から反映します -->
 </body>
 </html>

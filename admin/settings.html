@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サイト設定 - 管理</title>
+  <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>サイト設定</h1>
+    <div>
+      <a href="dashboard.html"><button>ダッシュボードへ戻る</button></a>
+      <button id="logout-button">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <form id="settings-form">
+      <h2>連絡先・共通情報</h2>
+      <div class="form-group">
+        <label for="contact_address">住所</label>
+        <input type="text" id="contact_address" name="contact_address" placeholder="〒XXX-XXXX 岐阜県多治見市XX町X-X-X">
+      </div>
+      <div class="form-group">
+        <label for="contact_phone">電話番号（代表）</label>
+        <input type="text" id="contact_phone" name="contact_phone" placeholder="0572-XX-XXXX">
+      </div>
+      <div class="form-group">
+        <label for="contact_secondary_phone">電話番号（サブ）</label>
+        <input type="text" id="contact_secondary_phone" name="contact_secondary_phone" placeholder="0572-00-0000 など">
+      </div>
+      <div class="form-group">
+        <label for="contact_email">メールアドレス</label>
+        <input type="email" id="contact_email" name="contact_email" placeholder="info@bs-tajimi1.example.jp">
+      </div>
+      <div class="form-group">
+        <label for="contact_person_name">お問い合わせ担当者名</label>
+        <input type="text" id="contact_person_name" name="contact_person_name" placeholder="担当者名">
+      </div>
+
+      <h2>プライバシーポリシー表示項目</h2>
+      <div class="form-group">
+        <label for="privacy_contact_person">窓口担当（氏名・役職）</label>
+        <input type="text" id="privacy_contact_person" name="privacy_contact_person" placeholder="例）団委員長 ○○ ○○">
+      </div>
+      <div class="form-group">
+        <label for="privacy_contact_phone">窓口電話番号</label>
+        <input type="text" id="privacy_contact_phone" name="privacy_contact_phone" placeholder="電話番号を記載">
+      </div>
+      <div class="form-group">
+        <label for="privacy_contact_email">窓口メールアドレス</label>
+        <input type="email" id="privacy_contact_email" name="privacy_contact_email" placeholder="メールアドレスを記載">
+      </div>
+      <div class="form-group">
+        <label for="privacy_effective_date">制定日</label>
+        <input type="text" id="privacy_effective_date" name="privacy_effective_date" placeholder="例）2025年5月12日">
+      </div>
+      <div class="form-group">
+        <label for="privacy_last_updated_date">最終更新日</label>
+        <input type="text" id="privacy_last_updated_date" name="privacy_last_updated_date" placeholder="例）2025年5月12日">
+      </div>
+
+      <h2>各隊リーダー名</h2>
+      <div class="form-group"><label for="leader_beaver">ビーバー隊リーダー</label><input type="text" id="leader_beaver" name="leader_beaver" placeholder="氏名"></div>
+      <div class="form-group"><label for="leader_cub">カブ隊リーダー</label><input type="text" id="leader_cub" name="leader_cub" placeholder="氏名"></div>
+      <div class="form-group"><label for="leader_boy">ボーイ隊隊長</label><input type="text" id="leader_boy" name="leader_boy" placeholder="氏名"></div>
+      <div class="form-group"><label for="leader_venture">ベンチャー隊隊長</label><input type="text" id="leader_venture" name="leader_venture" placeholder="氏名"></div>
+      <div class="form-group"><label for="leader_rover">ローバー隊アドバイザー</label><input type="text" id="leader_rover" name="leader_rover" placeholder="氏名"></div>
+
+      <h2>トップページ画像URL</h2>
+      <div class="form-group"><label for="index_hero_image_url">ヒーロー画像URL</label><input type="text" id="index_hero_image_url" name="index_hero_image_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="index_highlight_img_1_url">活動ハイライト1</label><input type="text" id="index_highlight_img_1_url" name="index_highlight_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="index_highlight_img_2_url">活動ハイライト2</label><input type="text" id="index_highlight_img_2_url" name="index_highlight_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="index_highlight_img_3_url">活動ハイライト3</label><input type="text" id="index_highlight_img_3_url" name="index_highlight_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="index_testimonial_img_1_url">プロフィール画像1</label><input type="text" id="index_testimonial_img_1_url" name="index_testimonial_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="index_testimonial_img_2_url">プロフィール画像2</label><input type="text" id="index_testimonial_img_2_url" name="index_testimonial_img_2_url" placeholder="https://..."></div>
+
+      <h2>お問い合わせページ</h2>
+      <div class="form-group">
+        <label for="contact_map_embed_html">Googleマップ埋め込みHTML</label>
+        <textarea id="contact_map_embed_html" name="contact_map_embed_html" rows="5" placeholder="&lt;iframe ...&gt;&lt;/iframe&gt;"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit">保存</button>
+        <a href="dashboard.html"><button type="button">キャンセル</button></a>
+      </div>
+      <p id="save-message" class="success-message" style="display:none;">保存しました。</p>
+      <p id="error-message" class="error-message"></p>
+    </form>
+  </div>
+
+  <script>
+    async function ensureLoggedIn() {
+      try {
+        const r = await fetch('/api/session');
+        const d = await r.json();
+        if (!d.loggedIn) { window.location.href = '/admin/login.html'; }
+      } catch { window.location.href = '/admin/login.html'; }
+    }
+
+    function fillForm(settings) {
+      const fields = [
+        'contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name',
+        'privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date',
+        'leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover',
+        'index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url',
+        'index_testimonial_img_1_url','index_testimonial_img_2_url','contact_map_embed_html'
+      ];
+      fields.forEach(k => {
+        const el = document.getElementById(k);
+        if (!el) return;
+        el.value = settings[k] || '';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await ensureLoggedIn();
+      // 初期値ロード
+      try {
+        const res = await fetch('/api/settings/all');
+        if (!res.ok) throw new Error('fetch settings failed');
+        const rows = await res.json();
+        const settings = rows.reduce((acc, r) => { acc[r.key] = r.value; return acc; }, {});
+        fillForm(settings);
+      } catch (e) {
+        document.getElementById('error-message').textContent = '設定の読み込みに失敗しました。';
+      }
+
+      // 保存
+      document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById('error-message');
+        const okEl = document.getElementById('save-message');
+        errEl.textContent = '';
+        okEl.style.display = 'none';
+
+        const payload = {};
+        document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(input => {
+          if (input.name) payload[input.name] = input.value;
+        });
+
+        try {
+          const res = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || '保存に失敗しました');
+          }
+          okEl.style.display = 'block';
+          setTimeout(() => okEl.style.display = 'none', 2000);
+        } catch (e) {
+          errEl.textContent = e.message || '保存に失敗しました。';
+        }
+      });
+
+      // ログアウト
+      document.getElementById('logout-button').addEventListener('click', async () => {
+        try { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/admin/login.html'; }
+        catch { alert('ログアウトに失敗しました。'); }
+      });
+    });
+  </script>
+</body>
+</html>
+
