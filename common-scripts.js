@@ -1,4 +1,4 @@
-// common-scripts.js (patched minimal diff)
+// common-scripts.js
 // グローバルな設定やユーティリティ
 const COMMON_SETTINGS = {
   headerId: 'main-header',
@@ -10,6 +10,10 @@ const COMMON_SETTINGS = {
   scrollToTopSelector: 'a[href="#"]',
 };
 
+/**
+ * Alpine.jsのストアを初期化
+ * - mobileMenu: モバイルメニューの開閉状態を管理
+ */
 document.addEventListener('alpine:init', () => {
   Alpine.store(COMMON_SETTINGS.mobileMenuStoreName, {
     isOpen: false,
@@ -28,16 +32,20 @@ document.addEventListener('alpine:init', () => {
   });
 });
 
+/**
+ * DOMコンテンツが読み込まれた後に初期化処理を実行
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  applySiteSettings(); // サイト設定を適用
+  applySiteSettings(); // サイト設定をAPIから読み込み適用
   initSmoothScroll();
   initFooterYear();
   initIntersectionObserver();
   initHeaderScrollBehavior();
   initTiltEffect();
   initSimpleLightboxPlaceholder();
-  initLazyLoadImages?.();
+  initLazyLoadImages(); // 画像の遅延読み込みを初期化
 
+  // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
     initHeroTextAnimation?.();
     initCounterAnimation?.();
@@ -53,137 +61,128 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// サイト全体の設定を読み込んで適用する
 /**
- * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる関数
+ * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる
  */
 async function applySiteSettings() {
-    try {
-        const response = await fetch('/api/settings');
-        if (!response.ok) {
-            console.error('Failed to fetch site settings: Network response was not ok');
-            return;
-        }
-        const settings = await response.json();
-
-        // 1. フッターや連絡先ページの共通情報を更新
-        // 住所
-        document.querySelectorAll('.contact-address').forEach(el => {
-            el.textContent = settings.contact_address || '（住所情報未設定）';
-        });
-
-        // 電話番号
-        document.querySelectorAll('.contact-phone').forEach(el => {
-            const phone = settings.contact_phone || '（電話番号未設定）';
-            el.textContent = phone;
-            // 電話番号のリンク(href)も設定
-            if (el.tagName === 'A') {
-                el.href = 'tel:' + phone.replace(/-/g, '');
-            }
-        });
-
-        // メールアドレス
-        document.querySelectorAll('.contact-email').forEach(el => {
-            const email = settings.contact_email || '（メールアドレス未設定）';
-            el.textContent = email;
-            // メールアドレスのリンク(href)も設定
-            if (el.tagName === 'A') {
-                el.href = 'mailto:' + email;
-            }
-        });
-
-        // 2. 各隊の紹介ページに記載されているリーダー名を更新
-        const leaderBeaverEl = document.querySelector('.leader-beaver-name');
-        if (leaderBeaverEl) {
-            leaderBeaverEl.textContent = settings.leader_beaver || '（リーダー名未設定）';
-        }
-
-        const leaderCubEl = document.querySelector('.leader-cub-name');
-        if (leaderCubEl) {
-            leaderCubEl.textContent = settings.leader_cub || '（リーダー名未設定）';
-        }
-
-        const leaderBoyEl = document.querySelector('.leader-boy-name');
-        if (leaderBoyEl) {
-            leaderBoyEl.textContent = settings.leader_boy || '（隊長名未設定）';
-        }
-
-        const leaderVentureEl = document.querySelector('.leader-venture-name');
-        if (leaderVentureEl) {
-            leaderVentureEl.textContent = settings.leader_venture || '（隊長名未設定）';
-        }
-
-        const leaderRoverEl = document.querySelector('.leader-rover-name');
-        if (leaderRoverEl) {
-            leaderRoverEl.textContent = settings.leader_rover || '（アドバイザー名未設定）';
-        }
-
-        // 3. プライバシーポリシー関連（存在するページのみ）
-        const effEl = document.getElementById('enactment-date');
-        if (effEl && settings.privacy_effective_date) {
-            effEl.textContent = settings.privacy_effective_date;
-        }
-        const updEl = document.getElementById('last-updated-date');
-        if (updEl && settings.privacy_last_updated_date) {
-            updEl.textContent = settings.privacy_last_updated_date;
-        }
-        document.querySelectorAll('.privacy-contact-person').forEach(el => {
-            if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
-        });
-        document.querySelectorAll('.privacy-contact-phone').forEach(el => {
-            if (settings.privacy_contact_phone) {
-                el.textContent = settings.privacy_contact_phone;
-                if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
-            }
-        });
-        document.querySelectorAll('.privacy-contact-email').forEach(el => {
-            if (settings.privacy_contact_email) {
-                el.textContent = settings.privacy_contact_email;
-                if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
-            }
-        });
-
-        // 4. お問い合わせページ専用（担当者名、サブ電話、地図埋め込み）
-        document.querySelectorAll('.contact-person-name').forEach(el => {
-            if (settings.contact_person_name) el.textContent = settings.contact_person_name;
-        });
-        document.querySelectorAll('.contact-phone-secondary').forEach(el => {
-            if (settings.contact_secondary_phone) {
-                el.textContent = settings.contact_secondary_phone;
-                if (el.tagName === 'A') el.href = 'tel:' + settings.contact_secondary_phone.replace(/-/g, '');
-            }
-        });
-        const mapEl = document.getElementById('contact-map-embed');
-        if (mapEl && settings.contact_map_embed_html) {
-            mapEl.innerHTML = settings.contact_map_embed_html;
-        }
-
-        // 5. トップページの画像差し替え（存在時のみ適用）
-        const hero = document.querySelector('.hero-bg');
-        if (hero && settings.index_hero_image_url) {
-            hero.style.backgroundImage = `url('${settings.index_hero_image_url}')`;
-        }
-        for (let i of [1,2,3]) {
-            const el = document.getElementById(`index-activity-img-${i}`);
-            const key = `index_highlight_img_${i}_url`;
-            if (el && settings[key]) el.src = settings[key];
-        }
-        for (let i of [1,2]) {
-            const el = document.getElementById(`index-testimonial-img-${i}`);
-            const key = `index_testimonial_img_${i}_url`;
-            if (el && settings[key]) el.src = settings[key];
-        }
-
-    } catch (error) {
-        console.error('Error applying site settings:', error);
+  try {
+    const response = await fetch('/api/settings');
+    if (!response.ok) {
+      console.error('Failed to fetch site settings: Network response was not ok');
+      return;
     }
+    const settings = await response.json();
+
+    // 1. フッターや連絡先ページの共通情報を更新
+    document.querySelectorAll('.contact-address').forEach(el => {
+      el.textContent = settings.contact_address || '（住所情報未設定）';
+    });
+    document.querySelectorAll('.contact-phone').forEach(el => {
+      const phone = settings.contact_phone || '（電話番号未設定）';
+      el.textContent = phone;
+      if (el.tagName === 'A') {
+        el.href = 'tel:' + phone.replace(/-/g, '');
+      }
+    });
+    document.querySelectorAll('.contact-email').forEach(el => {
+      const email = settings.contact_email || '（メールアドレス未設定）';
+      el.textContent = email;
+      if (el.tagName === 'A') {
+        el.href = 'mailto:' + email;
+      }
+    });
+
+    // 2. 各隊の紹介ページに記載されているリーダー名を更新
+    const leaderMapping = {
+        'leader-beaver-name': 'leader_beaver',
+        'leader-cub-name': 'leader_cub',
+        'leader-boy-name': 'leader_boy',
+        'leader-venture-name': 'leader_venture',
+        'leader-rover-name': 'leader_rover'
+    };
+    for (const className in leaderMapping) {
+        const el = document.querySelector(`.${className}`);
+        if (el) {
+            el.textContent = settings[leaderMapping[className]] || '（リーダー名未設定）';
+        }
+    }
+
+    // 3. プライバシーポリシー関連
+    const privacyMapping = {
+        '#enactment-date': 'privacy_effective_date',
+        '#last-updated-date': 'privacy_last_updated_date'
+    };
+    for (const selector in privacyMapping) {
+        const el = document.querySelector(selector);
+        if (el && settings[privacyMapping[selector]]) {
+            el.textContent = settings[privacyMapping[selector]];
+        }
+    }
+    document.querySelectorAll('.privacy-contact-person').forEach(el => {
+        if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
+    });
+    document.querySelectorAll('.privacy-contact-phone').forEach(el => {
+        if (settings.privacy_contact_phone) {
+            el.textContent = settings.privacy_contact_phone;
+            if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
+        }
+    });
+    document.querySelectorAll('.privacy-contact-email').forEach(el => {
+        if (settings.privacy_contact_email) {
+            el.textContent = settings.privacy_contact_email;
+            if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
+        }
+    });
+
+    // 4. お問い合わせページ専用
+    document.querySelectorAll('.contact-person-name').forEach(el => {
+        if (settings.contact_person_name) el.textContent = settings.contact_person_name;
+    });
+    document.querySelectorAll('.contact-phone-secondary').forEach(el => {
+        if (settings.contact_secondary_phone) {
+            el.textContent = settings.contact_secondary_phone;
+            if (el.tagName === 'A') el.href = 'tel:' + settings.contact_secondary_phone.replace(/-/g, '');
+        }
+    });
+    const mapEl = document.getElementById('contact-map-embed');
+    if (mapEl && settings.contact_map_embed_html) {
+      mapEl.innerHTML = settings.contact_map_embed_html;
+    }
+
+    // 5. トップページの画像差し替え
+    const hero = document.querySelector('.hero-bg');
+    if (hero && settings.index_hero_image_url) {
+      hero.style.backgroundImage = `url('${settings.index_hero_image_url}')`;
+    }
+    for (let i of [1, 2, 3]) {
+      const el = document.getElementById(`index-activity-img-${i}`);
+      const key = `index_highlight_img_${i}_url`;
+      if (el && settings[key]) el.src = settings[key];
+    }
+    for (let i of [1, 2]) {
+      const el = document.getElementById(`index-testimonial-img-${i}`);
+      const key = `index_testimonial_img_${i}_url`;
+      if (el && settings[key]) el.src = settings[key];
+    }
+
+  } catch (error) {
+    console.error('Error applying site settings:', error);
+  }
 }
 
+/**
+ * 日付文字列を 'YYYY年M月D日' 形式にフォーマットする
+ * @param {string} dateString - ISO 8601形式の日付文字列
+ * @returns {string} フォーマットされた日付文字列
+ */
 function formatDate(dateString) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('ja-JP', options);
 }
 
+/**
+ * ページ内スムーススクロールを初期化
+ */
 function initSmoothScroll() {
   document.querySelectorAll(COMMON_SETTINGS.smoothScrollSelector).forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -219,11 +218,17 @@ function initSmoothScroll() {
   });
 }
 
+/**
+ * フッターの年表示を現在の年に更新
+ */
 function initFooterYear() {
   const yearElement = document.querySelector(COMMON_SETTINGS.currentYearSelector);
   if (yearElement) yearElement.textContent = new Date().getFullYear();
 }
 
+/**
+ * 要素が画面内に入ったらフェードインさせるIntersection Observerを初期化
+ */
 function initIntersectionObserver() {
   const fadeInSections = document.querySelectorAll(COMMON_SETTINGS.fadeInSelector);
   if (fadeInSections.length === 0) return;
@@ -239,15 +244,25 @@ function initIntersectionObserver() {
   fadeInSections.forEach(section => fadeInObserver.observe(section));
 }
 
+/**
+ * スクロール時のヘッダーの挙動を初期化
+ */
 function initHeaderScrollBehavior() {
   const header = document.getElementById(COMMON_SETTINGS.headerId);
   if (!header) return;
   window.addEventListener('scroll', () => {
-    if (window.pageYOffset > 50) header.classList.add('scrolled');
-    else header.classList.remove('scrolled');
-  });
+    if (window.pageYOffset > 50) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+  }, { passive: true });
 }
 
+/**
+ * カードのチルトエフェクトを初期化
+ * @param {string} selector - 対象要素のCSSセレクタ
+ */
 function initTiltEffect(selector = COMMON_SETTINGS.tiltCardSelector) {
   const tiltCards = document.querySelectorAll(selector);
   if (tiltCards.length === 0) return;
@@ -261,14 +276,17 @@ function handleTiltMouseMove(e) {
   const rect = card.getBoundingClientRect();
   const x = e.clientX - rect.left - rect.width / 2;
   const y = e.clientY - rect.top - rect.height / 2;
-  const rotateX = (y / (rect.height / 2)) * -3;
-  const rotateY = (x / (rect.width / 2)) * 3;
+  const rotateX = (y / (rect.height / 2)) * -3; // 傾き具合を調整
+  const rotateY = (x / (rect.width / 2)) * 3;  // 傾き具合を調整
   card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
 }
 function handleTiltMouseLeave(e) {
   e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
 }
 
+/**
+ * Lightboxのプレースホルダー（未実装時の代替）
+ */
 function initSimpleLightboxPlaceholder() {
   document.querySelectorAll('a[data-lightbox]').forEach(link => {
     link.addEventListener('click', (e) => {
@@ -276,4 +294,37 @@ function initSimpleLightboxPlaceholder() {
       alert(`画像 ${link.href} を表示します。(Lightbox未実装)`);
     });
   });
+}
+
+/**
+ * 画像の遅延読み込み（Lazy Loading）を初期化
+ * class="lazy" と data-src="image_url" を持つimg要素を対象とする
+ */
+function initLazyLoadImages() {
+  const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target;
+          lazyImage.src = lazyImage.dataset.src;
+          // lazyImage.srcset = lazyImage.dataset.srcset; // 必要に応じてsrcsetも
+          lazyImage.classList.remove("lazy");
+          lazyImageObserver.unobserve(lazyImage);
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage);
+    });
+  } else {
+    // IntersectionObserverをサポートしない古いブラウザ向けのフォールバック
+    // （ここでは単純にすべての画像を読み込む）
+    lazyImages.forEach(function(lazyImage) {
+        lazyImage.src = lazyImage.dataset.src;
+        lazyImage.classList.remove("lazy");
+    });
+  }
 }

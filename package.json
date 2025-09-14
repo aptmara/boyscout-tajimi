@@ -8,7 +8,9 @@
     "start": "node server.js",
     "db:setup": "node database.js",
     "start:json": "node server-json.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ./styles/input.css -o ./common-styles.css --minify",
+    "tailwind:init": "tailwindcss init"
   },
   "repository": {
     "type": "git",
@@ -30,5 +32,8 @@
     "express-session": "^1.18.2",
     "pg": "^8.16.3",
     "session-file-store": "^1.5.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.3"
   }
 }
