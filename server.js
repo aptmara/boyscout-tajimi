@@ -8,7 +8,7 @@
  * 前提：
  *   - Node 18+（グローバル fetch）
  *   - .env: WEBHOOK_SECRET, SESSION_SECRET, PORT, NODE_ENV, HMAC_TOLERANCE_SEC(optional)
- *   - database.js: db.query / setupDatabase を提供
+ *   - database.js: db.query / setupDatabase を提供（あなたの提示どおり）
  */
 
 require('dotenv').config();
@@ -355,7 +355,10 @@ app.put('/api/news/:id', async (req, res) => {
 // 削除（管理画面）
 app.delete('/api/news/:id', async (req, res) => {
   try {
-    const { rowCount } = await db.query(`DELETE FROM news WHERE id = $1`, [req.params.id]);
+    const { rowCount } = await db.query(
+      `DELETE FROM news WHERE id = $1`,
+      [req.params.id]
+    );
     if (rowCount === 0) return res.status(404).json({ error: 'News not found' });
     res.status(204).send();
   } catch (err) {
