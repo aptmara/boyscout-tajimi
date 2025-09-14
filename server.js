@@ -21,6 +21,12 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('./database.js');
 
+if (process.env.NODE_ENV !== 'production') {
+  const secret = process.env.WEBHOOK_SECRET || '';
+  const codes = [...secret].map(c => c.charCodeAt(0));
+  console.log('[SECRET_LEN]', secret.length, 'head', codes.slice(0,8), 'tail', codes.slice(-8));
+}
+
 // === Secret fingerprint（ログ用: 先頭16桁のみ） ===
 (function logSecretFingerprint() {
   const s = process.env.WEBHOOK_SECRET || '';
