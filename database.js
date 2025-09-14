@@ -99,6 +99,57 @@ async function setupDatabase() {
         description TEXT, -- 管理画面用の説明
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+// ---- settings 互換ビュー（site_settings を透過利用）----
+await client.query(`
+  DO $$
+  BEGIN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.tables
+      WHERE table_name = 'settings'
+    ) THEN
+      ALTER TABLE settings RENAME TO settings_legacy_backup;
+    END IF;
+  END$$;
+`);
+
+await client.query(`DROP VIEW IF EXISTS settings CASCADE;`);
+await client.query(`
+  CREATE VIEW settings AS
+    SELECT key, value FROM site_settings;
+`);
+
+await client.query(`DROP FUNCTION IF EXISTS settings_view_upsert() CASCADE;`);
+await client.query(`
+  CREATE FUNCTION settings_view_upsert()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  AS $$
+  BEGIN
+    IF (TG_OP = 'INSERT') THEN
+      INSERT INTO site_settings(key, value, updated_at)
+      VALUES (NEW.key, NEW.value, NOW())
+      ON CONFLICT (key) DO UPDATE
+        SET value = EXCLUDED.value, updated_at = NOW();
+      RETURN NEW;
+    ELSIF (TG_OP = 'UPDATE') THEN
+      UPDATE site_settings
+         SET value = NEW.value, updated_at = NOW()
+       WHERE key = NEW.key;
+      RETURN NEW;
+    ELSE
+      RETURN NEW;
+    END IF;
+  END;
+  $$;
+`);
+
+await client.query(`DROP TRIGGER IF EXISTS settings_view_upsert_trg ON settings;`);
+await client.query(`
+  CREATE TRIGGER settings_view_upsert_trg
+  INSTEAD OF INSERT OR UPDATE ON settings
+  FOR EACH ROW EXECUTE FUNCTION settings_view_upsert();
+`);
+
     `);
         // 設定項目の初期データを挿入
         await client.query(`
@@ -231,4 +282,5 @@ module.exports = {
     query,
     setupDatabase,
     getClient: () => pool.connect(),
+    pool,
 };

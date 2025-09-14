@@ -116,6 +116,64 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
+app.get('
+
+
+// ===== Settings API (互換) =====
+
+app.get(['/api/settings','/api/settings/all'], authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT key, value FROM settings ORDER BY key ASC');
+    if (req.path.endsWith('/all')) {
+      // admin/settings.html は配列 [{key,value},...] を期待
+      return res.status(200).json(rows);
+    } else {
+      // 互換: マップ { key: value, ... }
+      const obj = {};
+      for (const r of rows) obj[r.key] = r.value ?? '';
+      return res.status(200).json(obj);
+    }
+  } catch (err) {
+    console.error(`GET ${req.path} error:`, err);
+    res.status(500).json({ error: 'failed_to_fetch_settings' });
+  }
+});
+
+app.put('/api/settings', authMiddleware, async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'invalid_payload' });
+    }
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+      for (const [k, v] of Object.entries(body)) {
+        if (typeof k !== 'string' || !k.length) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ error: 'invalid_key' });
+        }
+        const val = (v === null || v === undefined) ? '' : String(v);
+        await client.query(
+          `INSERT INTO settings(key, value) VALUES ($1, $2)
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+          [k, val]
+        );
+      }
+      await client.query('COMMIT');
+      return res.status(200).json({ ok: true });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('PUT /api/settings error:', err);
+    res.status(500).json({ error: 'failed_to_update_settings' });
+  }
+});
+
 app.get('/api/session', (req, res) => {
   if (req.session && req.session.user) return res.json({ loggedIn: true, user: req.session.user });
   return res.json({ loggedIn: false });
@@ -431,6 +489,61 @@ app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) 
   } catch (e) {
     console.error('Activity Webhook Error:', e);
     return res.status(500).json({ error: 'サーバー内部エラー' });
+  }
+});
+
+// ================================================================
+// Settings API (修正版)
+// ================================================================
+
+// GET /api/settings - 設定を取得
+// (admin/settings.html が実際に使用する /api/settings/all のエイリアスとしても機能)
+app.get(['/api/settings', '/api/settings/all'], authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT key, value FROM settings');
+    const settings = rows.reduce((acc, row) => {
+      acc[row.key] = row.value;
+      return acc;
+    }, {});
+    res.json(settings);
+  } catch (err) {
+    console.error(`GET ${req.path} error:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/settings - 設定を保存
+app.post('/api/settings', authMiddleware, async (req, res) => {
+  try {
+    const { site_title, contact_email } = req.body;
+    if (typeof site_title === 'undefined' || typeof contact_email === 'undefined') {
+      return res.status(400).json({ error: 'site_title and contact_email are required.' });
+    }
+
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `INSERT INTO settings (key, value) VALUES ('site_title', $1)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [site_title]
+      );
+      await client.query(
+        `INSERT INTO settings (key, value) VALUES ('contact_email', $1)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [contact_email]
+      );
+      await client.query('COMMIT');
+      res.json({ message: 'Settings updated successfully' });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('POST /api/settings error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
