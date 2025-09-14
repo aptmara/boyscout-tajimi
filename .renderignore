@@ -1,0 +1,39 @@
+# ===== IDE/OS 特有 =====
+.vs/
+.vscode/
+.DS_Store
+
+# ===== VCS =====
+.git/
+.gitignore
+.github/
+
+# ===== ローカル生成物 =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ===== 大型/設計資料・生素材（該当すれば）=====
+*.psd
+*.ai
+*.sketch
+*.fig
+*.zip
+*.7z
+*.rar
+
+# ===== ランタイム生成/キャッシュ =====
+data/
+tmp/
+cache/
+uploads/
+
+# ===== ドキュメント・サンプル（必要に応じて）=====
+docs/
+samples/
+examples/
+
+# ===== Tailwind の出力先以外のビルド生成物（必要に応じて調整）=====
+dist/
+build/
+out/
