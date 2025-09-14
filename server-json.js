@@ -7,7 +7,6 @@
  *  - CRUD (POST/PUT/DELETE /api/news/*) behind session
  *  - Webhook /api/news-webhook (HMAC timestamp signature) + image copy to /uploads
  */
-require('dotenv').config();
 
 const express = require('express');
 const session = require('express-session');
@@ -18,8 +17,7 @@ const crypto = require('crypto');
 const { randomUUID } = require('crypto');
 const storage = require('./news-storage.js');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const router = express.Router();
 
 // ---- middleware
 app.use(express.json({ limit: '1mb' }));
@@ -222,7 +220,5 @@ app.post('/api/news-webhook', webhookAuth, async (req, res) => {
   }
 });
 
-// --- start
-app.listen(PORT, () => {
-  console.log(`JSON-mode server listening on http://localhost:${PORT}`);
-});
+// Router を公開（server.js から mount する）
+module.exports = router;

@@ -21,6 +21,9 @@ const fs = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('./database.js');
+const jsonApi = require('./server-json');
+app.use('/json-api', jsonApi);
+
 
 // === Secret fingerprint（ログ用: 先頭16桁のみ） ===
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
