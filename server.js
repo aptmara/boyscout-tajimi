@@ -431,7 +431,7 @@ app.delete('/api/news/:id', async (req, res) => {
 });
 
 // News WebHook（GAS からの投稿）：title, content, images[], category? を受け取る
-app.post('/api/news-webhook', async (req, res) => {
+app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, images, category, unit, tags } = req.body || {};
     if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
@@ -598,7 +598,7 @@ app.delete('/api/activities/:id', async (req, res) => {
 });
 
 // Activity WebHook：title, content, images[], category?, activity_date? を受け取る
-app.post('/api/activity-webhook', async (req, res) => {
+app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, images, category, unit, tags, activity_date } = req.body || {};
     if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
