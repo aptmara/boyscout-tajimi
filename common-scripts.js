@@ -29,6 +29,7 @@ document.addEventListener('alpine:init', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  applySiteSettings(); // サイト設定を適用
   initSmoothScroll();
   initFooterYear();
   initIntersectionObserver();
@@ -51,6 +52,76 @@ document.addEventListener('DOMContentLoaded', () => {
     initContactForm?.();
   }
 });
+
+// サイト全体の設定を読み込んで適用する
+/**
+ * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる関数
+ */
+async function applySiteSettings() {
+    try {
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+            console.error('Failed to fetch site settings: Network response was not ok');
+            return;
+        }
+        const settings = await response.json();
+
+        // 1. フッターや連絡先ページの共通情報を更新
+        // 住所
+        document.querySelectorAll('.contact-address').forEach(el => {
+            el.textContent = settings.contact_address || '（住所情報未設定）';
+        });
+
+        // 電話番号
+        document.querySelectorAll('.contact-phone').forEach(el => {
+            const phone = settings.contact_phone || '（電話番号未設定）';
+            el.textContent = phone;
+            // 電話番号のリンク(href)も設定
+            if (el.tagName === 'A') {
+                el.href = 'tel:' + phone.replace(/-/g, '');
+            }
+        });
+
+        // メールアドレス
+        document.querySelectorAll('.contact-email').forEach(el => {
+            const email = settings.contact_email || '（メールアドレス未設定）';
+            el.textContent = email;
+            // メールアドレスのリンク(href)も設定
+            if (el.tagName === 'A') {
+                el.href = 'mailto:' + email;
+            }
+        });
+
+        // 2. 各隊の紹介ページに記載されているリーダー名を更新
+        const leaderBeaverEl = document.querySelector('.leader-beaver-name');
+        if (leaderBeaverEl) {
+            leaderBeaverEl.textContent = settings.leader_beaver || '（リーダー名未設定）';
+        }
+
+        const leaderCubEl = document.querySelector('.leader-cub-name');
+        if (leaderCubEl) {
+            leaderCubEl.textContent = settings.leader_cub || '（リーダー名未設定）';
+        }
+
+        const leaderBoyEl = document.querySelector('.leader-boy-name');
+        if (leaderBoyEl) {
+            leaderBoyEl.textContent = settings.leader_boy || '（隊長名未設定）';
+        }
+
+        const leaderVentureEl = document.querySelector('.leader-venture-name');
+        if (leaderVentureEl) {
+            leaderVentureEl.textContent = settings.leader_venture || '（隊長名未設定）';
+        }
+
+        const leaderRoverEl = document.querySelector('.leader-rover-name');
+        if (leaderRoverEl) {
+            leaderRoverEl.textContent = settings.leader_rover || '（アドバイザー名未設定）';
+        }
+
+    } catch (error) {
+        console.error('Error applying site settings:', error);
+    }
+}
 
 function formatDate(dateString) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };

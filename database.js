@@ -68,6 +68,30 @@ async function setupDatabase() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
+
+        // サイト設定テーブル
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        description TEXT, -- 管理画面用の説明
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+        // 設定項目の初期データを挿入
+        await client.query(`
+      INSERT INTO site_settings (key, value, description) VALUES
+        ('contact_address', '〒XXX-XXXX 岐阜県多治見市XX町X-X-X', 'フッターや連絡先ページに表示する住所'),
+        ('contact_phone', '0572-XX-XXXX', 'フッターや連絡先ページに表示する電話番号'),
+        ('contact_email', 'info@bs-tajimi1.example.jp', 'フッターや連絡先ページに表示するメールアドレス'),
+        ('leader_beaver', '佐藤 愛', 'ビーバー隊リーダー名'),
+        ('leader_cub', '鈴木 一郎', 'カブ隊リーダー名'),
+        ('leader_boy', '渡辺 健', 'ボーイ隊隊長名'),
+        ('leader_venture', '伊藤 誠', 'ベンチャー隊隊長名'),
+        ('leader_rover', '高橋 明', 'ローバー隊アドバイザー名')
+      ON CONFLICT (key) DO NOTHING;
+    `);
+
         // 後方互換: 既存newsにimage_urlsが無ければ追加
         await client.query(`
       DO $$
@@ -161,6 +185,5 @@ function query(text, params) {
 module.exports = {
     query,
     setupDatabase,
-    // 必要なら graceful shutdown 用:
-    // end: () => pool.end(),
+    getClient: () => pool.connect(),
 };

@@ -14,7 +14,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session);
+const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -44,26 +44,22 @@ const PORT = process.env.PORT || 3000;
 // 既存サイト配信（必要に応じて調整）
 app.use(express.static(path.join(__dirname, '/')));
 
-// セッション（保存先ディレクトリを用意）
-const SESS_DIR = path.join(__dirname, 'sessions');
-fs.mkdirSync(SESS_DIR, { recursive: true });
 
 app.use(
-  session({
-    store: new FileStore({
-      path: SESS_DIR,
-      ttl: 86400,
-      reapInterval: 86400,
-    }),
-    secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-    },
-  })
+    session({
+        store: new pgSession({
+            pool: db.pool, // database.jsからpoolをエクスポートする必要があります
+            tableName: 'session', // セッション情報を保存するテーブル名
+        }),
+        secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+            maxAge: 1000 * 60 * 60 * 24, // 1 day
+        },
+    })
 );
 
 // ------------------------------
@@ -511,6 +507,63 @@ if (process.env.NODE_ENV !== 'production') {
     });
   });
 }
+
+// --- サイト設定 API ---
+
+// 公開用: 全設定を取得
+app.get('/api/settings', async (req, res) => {
+    try {
+        const { rows } = await db.query('SELECT key, value FROM site_settings');
+        // キーと値のオブジェクトに変換して返す
+        const settings = rows.reduce((acc, row) => {
+            acc[row.key] = row.value;
+            return acc;
+        }, {});
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 管理画面用: 全設定を詳細付きで取得 (認証必須)
+app.get('/api/settings/all', authMiddleware, async (req, res) => {
+    try {
+        const { rows } = await db.query('SELECT key, value, description FROM site_settings ORDER BY key');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// 管理画面用: 設定をまとめて更新 (認証必須)
+app.put('/api/settings', authMiddleware, async (req, res) => {
+    const settings = req.body; // { key1: value1, key2: value2, ... }
+    if (typeof settings !== 'object' || settings === null) {
+        return res.status(400).json({ error: 'Invalid format' });
+    }
+
+    const client = await db.getClient(); // プールからクライアントを取得
+    try {
+        await client.query('BEGIN');
+        for (const key in settings) {
+            if (Object.hasOwnProperty.call(settings, key)) {
+                await client.query(
+                    'UPDATE site_settings SET value = $1, updated_at = NOW() WHERE key = $2',
+                    [settings[key], key]
+                );
+            }
+        }
+        await client.query('COMMIT');
+        res.json({ message: 'Settings updated successfully' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('PUT /api/settings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    } finally {
+        client.release();
+    }
+});
+
 // ------------------------------
 // 起動
 // ------------------------------
