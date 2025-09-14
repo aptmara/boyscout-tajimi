@@ -148,35 +148,49 @@ app.put('/api/settings', authMiddleware, async (req, res) => {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return res.status(400).json({ error: 'invalid_payload' });
     }
+
     const client = await db.getClient();
     try {
       await client.query('BEGIN');
+
       for (const [k, v] of Object.entries(body)) {
         if (typeof k !== 'string' || !k.length) {
           await client.query('ROLLBACK');
           return res.status(400).json({ error: 'invalid_key' });
         }
         const val = (v === null || v === undefined) ? '' : String(v);
-        await client.query(
-          `INSERT INTO settings(key, value) VALUES ($1, $2)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+
+        // 重要：ビュー(settings)には ON CONFLICT を使うな
+        // 1) UPDATE（INSTEAD OF UPDATE トリガ経由で site_settings へ反映）
+        const upd = await client.query(
+          `UPDATE settings SET value = $2 WHERE key = $1`,
           [k, val]
         );
+
+        // 2) 更新0件なら INSERT（INSTEAD OF INSERT トリガ経由で upsert）
+        if (upd.rowCount === 0) {
+          await client.query(
+            `INSERT INTO settings(key, value) VALUES ($1, $2)`,
+            [k, val]
+          );
+        }
       }
+
       await client.query('COMMIT');
       return res.status(200).json({ ok: true });
     } catch (e) {
       await client.query('ROLLBACK');
-      throw e;
+      console.error('PUT /api/settings error:', e);
+      // デバッグ用に message を返す（本番で気になるなら消してよい）
+      return res.status(500).json({ error: 'failed_to_update_settings', detail: e.message });
     } finally {
       client.release();
     }
   } catch (err) {
-    console.error('PUT /api/settings error:', err);
-    res.status(500).json({ error: 'failed_to_update_settings' });
+    console.error('PUT /api/settings error (outer):', err);
+    return res.status(500).json({ error: 'failed_to_update_settings' });
   }
 });
-
 app.get('/api/session', (req, res) => {
   if (req.session && req.session.user) return res.json({ loggedIn: true, user: req.session.user });
   return res.json({ loggedIn: false });
