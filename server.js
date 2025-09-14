@@ -1,14 +1,14 @@
 /**
- * server.js (full, raw-HMAC対応)
+ * server.js (full, raw-HMAC対応 / 画像はURLパススルー)
  * - /api/news: 公開GET（一覧/詳細）、変更系は認証必須
  * - /api/activities: 同上
- * - /api/*-webhook: Apps Script からのHMAC検証（raw body）+ 画像DL保存
- * - /uploads 静的配信
+ * - /api/*-webhook: Apps Script からの HMAC 検証（raw body）
+ * - /uploads は使わない（Render ディスク非依存）
  *
  * 前提：
  *   - Node 18+（グローバル fetch）
  *   - .env: WEBHOOK_SECRET, SESSION_SECRET, PORT, NODE_ENV, HMAC_TOLERANCE_SEC(optional)
- *   - database.js: db.query / setupDatabase を提供（あなたの提示どおり）
+ *   - database.js: db.query / setupDatabase を提供
  */
 
 require('dotenv').config();
@@ -17,17 +17,16 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const path = require('path');
 const fs = require('fs');
-const fsp = fs.promises;
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const db = require('./database.js');
+
+// === Secret fingerprint（ログ用: 先頭16桁のみ） ===
 (function logSecretFingerprint() {
   const s = process.env.WEBHOOK_SECRET || '';
   const fp = crypto.createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 16);
   console.log('[SECRET_FP]', fp);
 })();
-
-const { randomUUID } = require('crypto');
-const bcrypt = require('bcrypt');
-const db = require('./database.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,16 +38,14 @@ const PORT = process.env.PORT || 3000;
 // 既存サイト配信（必要に応じて調整）
 app.use(express.static(path.join(__dirname, '/')));
 
-// /uploads の静的配信
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-app.use('/uploads', express.static(UPLOAD_DIR));
+// セッション（保存先ディレクトリを用意）
+const SESS_DIR = path.join(__dirname, 'sessions');
+fs.mkdirSync(SESS_DIR, { recursive: true });
 
-// セッション
 app.use(
   session({
     store: new FileStore({
-      path: path.join(__dirname, 'sessions'),
+      path: SESS_DIR,
       ttl: 86400,
       reapInterval: 86400,
     }),
@@ -140,57 +137,56 @@ app.get('/api/session', (req, res) => {
 // HMAC 署名検証（Webhook 用）
 // ------------------------------
 function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
-  const secret = process.env.WEBHOOK_SECRET;
+  const secret = process.env.WEBHOOK_SECRET || '';
   if (!secret) return false;
 
   const tol = parseInt(process.env.HMAC_TOLERANCE_SEC || '300', 10); // 既定: 5分
   const now = Math.floor(Date.now() / 1000);
-  const ts = parseInt(timestamp, 10);
+  const ts = parseInt(String(timestamp || ''), 10);
   if (!ts || Math.abs(now - ts) > tol) return false;
 
-  // "sha256=" の有無を許容
-  const sigHex = String(signature || '').replace(/^sha256=/i, '').trim();
-  if (!/^[0-9a-f]{64}$/i.test(sigHex)) return false;
+  // 署名ヘッダ正規化: "sha256=<hex>" or "<hex>"
+  const m =
+    String(signature || '').match(/^sha256=([0-9a-fA-F]{64})$/) ||
+    String(signature || '').match(/^([0-9a-fA-F]{64})$/);
+  if (!m) return false;
+  const gotBuf = Buffer.from(m[1], 'hex');
+  if (gotBuf.length !== 32) return false;
 
-  // 期待：ts.body の “生文字列”
-  const expHex = crypto.createHmac('sha256', secret)
-    .update(`${timestamp}.${bodyRaw}`, 'utf8')
-    .digest('hex');
+  // 期待： HMAC-SHA256(secret, "<ts>.<raw>") の**バイト列**
+  const expBuf = crypto.createHmac('sha256', secret).update(`${ts}.${bodyRaw}`, 'utf8').digest();
 
   // 固定時間比較
-  const a = Buffer.from(sigHex, 'utf8');
-  const b = Buffer.from(expHex, 'utf8');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  return gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
 }
 
 function webhookAuth(req, res, next) {
   try {
-    const sigHex = String(req.header('X-Signature')||'').replace(/^sha256=/i,'').trim();
-const timestamp = req.header('X-Timestamp');
-const bodyRaw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body||{});
-const expHex = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET).update(`${timestamp}.${bodyRaw}`,'utf8').digest('hex');
-const bodySha = crypto.createHash('sha256').update(bodyRaw,'utf8').digest('hex');
-const skew = Math.abs(Math.floor(Date.now()/1000) - parseInt(timestamp||'0',10));
-if (!verifyHmacSignature({ bodyRaw, timestamp, signature: req.header('X-Signature') })) {
-  console.warn('[SIG_FAIL]', {
-    ts: timestamp, skew,
-    gotSigHead: sigHex.slice(0,16),
-    expSigHead: expHex.slice(0,16),
-    bodyLen: bodyRaw.length,
-    bodySha256: bodySha
-  });
-  return res.status(401).json({ error: 'invalid signature' });
-}
+    const secret = process.env.WEBHOOK_SECRET || '';
+    if (!secret) return res.status(500).json({ error: 'server misconfigured' });
 
-    const timestamp = req.header('X-Timestamp');
-    const signature = req.header('X-Signature');
+    const timestamp = req.get('X-Timestamp');
+    const signature = req.get('X-Signature');
 
     // raw受信時: req.body は Buffer。そうでなければ JSON化後のObject。
     const bodyRaw = Buffer.isBuffer(req.body)
       ? req.body.toString('utf8')
       : JSON.stringify(req.body || {});
 
+    // 失敗時はログに最小限の情報のみ
     if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
+      const bodySha = crypto.createHash('sha256').update(bodyRaw, 'utf8').digest('hex');
+      const sigHex = String(signature || '').replace(/^sha256=/i, '').trim();
+      const now = Math.floor(Date.now() / 1000);
+      const ts = parseInt(String(timestamp || '0'), 10);
+      const skew = isFinite(ts) ? Math.abs(now - ts) : null;
+      console.warn('[SIG_FAIL]', {
+        ts: timestamp,
+        skew,
+        gotSigHead: (sigHex || '').slice(0, 16),
+        bodyLen: bodyRaw.length,
+        bodySha256: bodySha,
+      });
       return res.status(401).json({ error: 'invalid signature' });
     }
 
@@ -202,72 +198,15 @@ if (!verifyHmacSignature({ bodyRaw, timestamp, signature: req.header('X-Signatur
         return res.status(400).json({ error: 'bad json' });
       }
     }
-    next();
+    return next();
   } catch (e) {
+    console.error('[webhookAuth:error]', e);
     return res.status(401).json({ error: 'unauthorized' });
   }
 }
 
-// ------------------------------
-// 画像保存（Google系の許可ドメインのみ）
-// ------------------------------
-const ALLOWED_HOSTS = new Set([
-  'drive.google.com',
-  'lh3.googleusercontent.com',
-  'googleusercontent.com',
-]);
-const MAX_BYTES = 10 * 1024 * 1024; // 10MB
-const FETCH_TIMEOUT_MS = 20_000;
-
-async function downloadImageToUploads(url) {
-  let u;
-  try {
-    u = new URL(url);
-  } catch {
-    throw new Error('invalid url');
-  }
-  if (!ALLOWED_HOSTS.has(u.hostname)) throw new Error('host not allowed');
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-  const res = await fetch(url, { signal: controller.signal });
-  clearTimeout(timeout);
-  if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
-
-  const ctype = res.headers.get('content-type') || '';
-  if (!ctype.startsWith('image/')) throw new Error('not an image');
-
-  const ext = ctype.split('/')[1]?.split(';')[0] || 'bin';
-  const filename = `${randomUUID()}.${ext}`;
-  const filepath = path.join(UPLOAD_DIR, filename);
-  const fileStream = fs.createWriteStream(filepath, { flags: 'wx' });
-
-  const reader = res.body.getReader();
-  let total = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      total += value.length;
-      if (total > MAX_BYTES) {
-        reader.releaseLock();
-        fileStream.close();
-        try { await fsp.unlink(filepath); } catch {}
-        throw new Error('file too large');
-      }
-      fileStream.write(value);
-    }
-  } finally {
-    fileStream.close();
-  }
-
-  return { publicPath: `/uploads/${filename}`, contentType: ctype };
-}
-
 // ================================================================
-// News API
+// News API （画像はURLパススルー）
 // ================================================================
 
 // 公開 GET（一覧）
@@ -305,28 +244,19 @@ app.get('/api/news/:id', async (req, res) => {
 // 変更系は認証必須
 app.use('/api/news', authMiddleware);
 
-// 作成（管理画面）
+// 作成（管理画面）— 受け取った images を**そのまま保存**
 app.post('/api/news', async (req, res) => {
   try {
     const { title, content, images = [] } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
-    const saved = [];
-    for (const url of Array.isArray(images) ? images : []) {
-      try {
-        const { publicPath } = await downloadImageToUploads(url);
-        saved.push(publicPath);
-      } catch (e) {
-        console.warn('news image skip:', url, e.message);
-      }
-    }
-
+    const urls = Array.isArray(images) ? images : [];
     const { rows } = await db.query(
       `INSERT INTO news (title, content, image_urls)
        VALUES ($1, $2, $3)
        RETURNING id`,
-      [title, content, JSON.stringify(saved)]
+      [title, content, JSON.stringify(urls)]
     );
     res.status(201).json({ id: rows[0].id, message: 'Created' });
   } catch (err) {
@@ -345,17 +275,8 @@ app.put('/api/news/:id', async (req, res) => {
     let clause = '';
     const params = [title, content, req.params.id];
     if (Array.isArray(images)) {
-      const saved = [];
-      for (const url of images) {
-        try {
-          const { publicPath } = await downloadImageToUploads(url);
-          saved.push(publicPath);
-        } catch (e) {
-          console.warn('news image skip:', url, e.message);
-        }
-      }
       clause = ', image_urls = $3';
-      params.splice(2, 0, JSON.stringify(saved)); // $3 に image_urls
+      params.splice(2, 0, JSON.stringify(images));
     }
 
     const { rowCount } = await db.query(
@@ -390,28 +311,19 @@ app.delete('/api/news/:id', async (req, res) => {
   }
 });
 
-// Webhook（GAS → サーバー） raw -> auth -> handler
+// Webhook（GAS → サーバー）— 画像は payload.images を**そのまま保存**
 app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, images = [] } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'タイトルと本文は必須です。' });
 
-    const saved = [];
-    for (const url of Array.isArray(images) ? images : []) {
-      try {
-        const { publicPath } = await downloadImageToUploads(url);
-        saved.push(publicPath);
-      } catch (e) {
-        console.warn('news webhook image skip:', url, e.message);
-      }
-    }
-
+    const urls = Array.isArray(images) ? images : [];
     const { rows } = await db.query(
       `INSERT INTO news (title, content, image_urls)
        VALUES ($1, $2, $3)
        RETURNING id`,
-      [title, content, JSON.stringify(saved)]
+      [title, content, JSON.stringify(urls)]
     );
     return res.status(201).json({ id: rows[0].id, message: '投稿に成功しました。' });
   } catch (e) {
@@ -421,7 +333,7 @@ app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
 });
 
 // ================================================================
-// Activity API
+// Activity API（画像はURLパススルー）
 // ================================================================
 
 // 公開 GET（一覧）
@@ -466,21 +378,12 @@ app.post('/api/activities', async (req, res) => {
     if (!title || !content)
       return res.status(400).json({ error: 'Title and content are required' });
 
-    const saved = [];
-    for (const url of Array.isArray(images) ? images : []) {
-      try {
-        const { publicPath } = await downloadImageToUploads(url);
-        saved.push(publicPath);
-      } catch (e) {
-        console.warn('activity image skip:', url, e.message);
-      }
-    }
-
+    const urls = Array.isArray(images) ? images : [];
     const { rows } = await db.query(
       `INSERT INTO activities (title, content, category, activity_date, image_urls)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [title, content, category, activity_date, JSON.stringify(saved)]
+      [title, content, category, activity_date, JSON.stringify(urls)]
     );
     res.status(201).json({ id: rows[0].id, message: 'Created' });
   } catch (err) {
@@ -499,17 +402,8 @@ app.put('/api/activities/:id', async (req, res) => {
     let imageClause = '';
     const params = [title, content, category, activity_date, req.params.id];
     if (Array.isArray(images)) {
-      const saved = [];
-      for (const url of images) {
-        try {
-          const { publicPath } = await downloadImageToUploads(url);
-          saved.push(publicPath);
-        } catch (e) {
-          console.warn('activity image skip:', url, e.message);
-        }
-      }
       imageClause = ', image_urls = $5';
-      params.splice(4, 0, JSON.stringify(saved)); // $5 に image_urls
+      params.splice(4, 0, JSON.stringify(images)); // $5 に image_urls
     }
 
     const { rowCount } = await db.query(
@@ -546,28 +440,19 @@ app.delete('/api/activities/:id', async (req, res) => {
   }
 });
 
-// Webhook（GAS → サーバー） raw -> auth -> handler
+// Webhook（GAS → サーバー）— 画像は payload.images を**そのまま保存**
 app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, category = null, activity_date = null, images = [] } = req.body || {};
     if (!title || !content)
       return res.status(400).json({ error: 'タイトルと本文は必須です。' });
 
-    const saved = [];
-    for (const url of Array.isArray(images) ? images : []) {
-      try {
-        const { publicPath } = await downloadImageToUploads(url);
-        saved.push(publicPath);
-      } catch (e) {
-        console.warn('activity webhook image skip:', url, e.message);
-      }
-    }
-
+    const urls = Array.isArray(images) ? images : [];
     const { rows } = await db.query(
       `INSERT INTO activities (title, content, category, activity_date, image_urls)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [title, content, category, activity_date, JSON.stringify(saved)]
+      [title, content, category, activity_date, JSON.stringify(urls)]
     );
     return res.status(201).json({ id: rows[0].id, message: '活動報告の投稿に成功しました。' });
   } catch (e) {
