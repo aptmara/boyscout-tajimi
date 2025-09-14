@@ -11,7 +11,7 @@
  *   - database.js: db.query / setupDatabase を提供
  */
 
-const { loadEnv } = require('./config/env');
+const { loadEnv } = require("./config/env");
 loadEnv();
 const express = require('express');
 const session = require('express-session');
@@ -28,13 +28,15 @@ logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
 const app = express();
 function startServer(app) {
-  const port = process.env.PORT ? Number(process.env.PORT) : 10000;
-  const host = process.env.HOST || '0.0.0.0';
+  const port = Number(process.env.PORT || 10000); // ← 環境変数優先
+  const host = process.env.HOST || "0.0.0.0";
   const server = app.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`);
   });
   return server;
 }
+module.exports = { startServer };
+
 
 // ------------------------------
 // 静的・セッション
