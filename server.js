@@ -165,6 +165,23 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
 
 function webhookAuth(req, res, next) {
   try {
+    const sigHex = String(req.header('X-Signature')||'').replace(/^sha256=/i,'').trim();
+const timestamp = req.header('X-Timestamp');
+const bodyRaw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body||{});
+const expHex = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET).update(`${timestamp}.${bodyRaw}`,'utf8').digest('hex');
+const bodySha = crypto.createHash('sha256').update(bodyRaw,'utf8').digest('hex');
+const skew = Math.abs(Math.floor(Date.now()/1000) - parseInt(timestamp||'0',10));
+if (!verifyHmacSignature({ bodyRaw, timestamp, signature: req.header('X-Signature') })) {
+  console.warn('[SIG_FAIL]', {
+    ts: timestamp, skew,
+    gotSigHead: sigHex.slice(0,16),
+    expSigHead: expHex.slice(0,16),
+    bodyLen: bodyRaw.length,
+    bodySha256: bodySha
+  });
+  return res.status(401).json({ error: 'invalid signature' });
+}
+
     const timestamp = req.header('X-Timestamp');
     const signature = req.header('X-Signature');
 
