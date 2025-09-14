@@ -21,12 +21,6 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('./database.js');
 
-if (process.env.NODE_ENV !== 'production') {
-  const secret = process.env.WEBHOOK_SECRET || '';
-  const codes = [...secret].map(c => c.charCodeAt(0));
-  console.log('[SECRET_LEN]', secret.length, 'head', codes.slice(0,8), 'tail', codes.slice(-8));
-}
-
 // === Secret fingerprint（ログ用: 先頭16桁のみ） ===
 (function logSecretFingerprint() {
   const s = process.env.WEBHOOK_SECRET || '';
@@ -161,7 +155,14 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
 
   // 期待： HMAC-SHA256(secret, "<ts>.<raw>") の**バイト列**
   const expBuf = crypto.createHmac('sha256', secret).update(`${ts}.${bodyRaw}`, 'utf8').digest();
-
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[SIG_DEBUG]', {
+      expSigHead: expBuf.toString('hex').slice(0,16),
+      gotSigHead: gotBuf.toString('hex').slice(0,16),
+      ts: String(ts),
+      bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
+    });
+  }
   // 固定時間比較
   return gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
 }
