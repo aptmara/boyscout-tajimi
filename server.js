@@ -1,69 +1,51 @@
 /**
- * server.js (full, raw-HMAC対応 / 画像はURLパススルー)
- * - /api/news: 公開GET（一覧/詳細）、変更系は認証必須
- * - /api/activities: 同上
- * - /api/*-webhook: Apps Script からの HMAC 検証（raw body）
- * - /uploads は使わない（Render ディスク非依存）
- *
- * 前提：
- *   - Node 18+（グローバル fetch）
- *   - .env: WEBHOOK_SECRET, SESSION_SECRET, PORT, NODE_ENV, HMAC_TOLERANCE_SEC(optional)
- *   - database.js: db.query / setupDatabase を提供
+ * server.js (full)
+ * - Only entrypoint that loads .env and listens on PORT
+ * - Session/Postgres, static, webhooks (raw body), main DB-backed APIs
+ * - Mounts /json-api (router from server-json.js) and serves /uploads globally
  */
 
 const { loadEnv } = require("./config/env");
 loadEnv();
+
 const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+
 const db = require('./database.js');
-const jsonApi = require('./server-json');
-app.use('/json-api', jsonApi);
-
-
-// === Secret fingerprint（ログ用: 先頭16桁のみ） ===
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
-logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
 const app = express();
-function startServer(app) {
-  const port = Number(process.env.PORT || 10000); // ← 環境変数優先
-  const host = process.env.HOST || "0.0.0.0";
-  const server = app.listen(port, host, () => {
-    console.log(`Server is running on http://${host}:${port}`);
-  });
-  return server;
-}
-module.exports = { startServer };
 
+// === secret fingerprint (ログ最小限)
+logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
 // ------------------------------
-// 静的・セッション
+// 静的配信・圧縮など（必要に応じ追加）
 // ------------------------------
-
-// 既存サイト配信（必要に応じて調整）
 app.use(express.static(path.join(__dirname, '/')));
 
-
+// ------------------------------
+// セッション（Postgres）
+// ------------------------------
 app.use(
-    session({
-        store: new pgSession({
-            pool: db.pool, // database.jsからpoolをエクスポートする必要があります
-            tableName: 'session', // セッション情報を保存するテーブル名
-        }),
-        secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            secure: process.env.NODE_ENV === 'production',
-            httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24, // 1 day
-        },
-    })
+  session({
+    store: new pgSession({
+      pool: db.pool,
+      tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
+  })
 );
 
 // ------------------------------
@@ -71,7 +53,7 @@ app.use(
 // ------------------------------
 const webhookRawJson = express.raw({ type: 'application/json', limit: '1mb' });
 
-// グローバルの JSON/urlencoded は**Webhookを除外**して適用
+// グローバル JSON/urlencoded は**Webhookを除外**して適用
 app.use((req, res, next) => {
   if (req.path === '/api/news-webhook' || req.path === '/api/activity-webhook') return next();
   return express.json({ limit: '1mb' })(req, res, next);
@@ -92,7 +74,7 @@ db.setupDatabase().catch((e) => {
 // 認証ミドルウェア
 // ------------------------------
 const authMiddleware = (req, res, next) => {
-  if (req.session.user) return next();
+  if (req.session && req.session.user) return next();
   if (req.path.startsWith('/api/')) {
     return res.status(401).json({ error: 'Authentication required' });
   }
@@ -135,7 +117,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/session', (req, res) => {
-  if (req.session.user) return res.json({ loggedIn: true, user: req.session.user });
+  if (req.session && req.session.user) return res.json({ loggedIn: true, user: req.session.user });
   return res.json({ loggedIn: false });
 });
 
@@ -146,12 +128,11 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
   const secret = process.env.WEBHOOK_SECRET || '';
   if (!secret) return false;
 
-  const tol = parseInt(process.env.HMAC_TOLERANCE_SEC || '300', 10); // 既定: 5分
+  const tol = parseInt(process.env.HMAC_TOLERANCE_SEC || '300', 10);
   const now = Math.floor(Date.now() / 1000);
   const ts = parseInt(String(timestamp || ''), 10);
   if (!ts || Math.abs(now - ts) > tol) return false;
 
-  // 署名ヘッダ正規化: "sha256=<hex>" or "<hex>"
   const m =
     String(signature || '').match(/^sha256=([0-9a-fA-F]{64})$/) ||
     String(signature || '').match(/^([0-9a-fA-F]{64})$/);
@@ -159,19 +140,7 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
   const gotBuf = Buffer.from(m[1], 'hex');
   if (gotBuf.length !== 32) return false;
 
-  // 期待： HMAC-SHA256(secret, "<ts>.<raw>") の**バイト列**
   const expBuf = crypto.createHmac('sha256', secret).update(`${ts}.${bodyRaw}`, 'utf8').digest();
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('[SIG_DEBUG]', {
-      expSigHead: expBuf.toString('hex').slice(0,16),
-      gotSigHead: gotBuf.toString('hex').slice(0,16),
-      gotLen: gotBuf.length,
-      ts: String(ts),
-      // 重要：HMACはUTF-8バイトで計算するので、bytes長を出す
-      bodyChars: bodyRaw.length,
-      bodyBytes: Buffer.byteLength(bodyRaw, 'utf8')
-    });
-  }
   if (process.env.NODE_ENV !== 'production') {
     console.warn('[SIG_DEBUG]', {
       expSigHead: expBuf.toString('hex').slice(0,16),
@@ -180,17 +149,6 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
       bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
     });
   }
-// ★デバッグ（必ず後で消す or NODE_ENVで抑止）
- if (process.env.NODE_ENV !== 'production') {
-   console.warn('[SIG_DEBUG]', {
-     expSigHead: expBuf.toString('hex').slice(0,16),
-     gotSigHead: gotBuf.toString('hex').slice(0,16),
-     gotLen: gotBuf.length,
-     ts: String(ts),
-     bodyBytes: Buffer.byteLength(bodyRaw,'utf8')
-   });
- }
-  // 固定時間比較
   return gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
 }
 
@@ -202,12 +160,10 @@ function webhookAuth(req, res, next) {
     const timestamp = req.get('X-Timestamp');
     const signature = req.get('X-Signature');
 
-    // raw受信時: req.body は Buffer。そうでなければ JSON化後のObject。
     const bodyRaw = Buffer.isBuffer(req.body)
       ? req.body.toString('utf8')
       : JSON.stringify(req.body || {});
 
-    // 失敗時はログに最小限の情報のみ
     if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
       const bodySha = crypto.createHash('sha256').update(bodyRaw, 'utf8').digest('hex');
       const sigHex = String(signature || '').replace(/^sha256=/i, '').trim();
@@ -224,7 +180,6 @@ function webhookAuth(req, res, next) {
       return res.status(401).json({ error: 'invalid signature' });
     }
 
-    // 検証通過後、JSONに戻す（rawのときのみ）
     if (Buffer.isBuffer(req.body)) {
       try {
         req.body = JSON.parse(bodyRaw);
@@ -240,10 +195,8 @@ function webhookAuth(req, res, next) {
 }
 
 // ================================================================
-// News API （画像はURLパススルー）
+// News API（DB版）
 // ================================================================
-
-// 公開 GET（一覧）
 app.get('/api/news', async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -258,7 +211,6 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// 公開 GET（詳細）
 app.get('/api/news/:id', async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -275,10 +227,8 @@ app.get('/api/news/:id', async (req, res) => {
   }
 });
 
-// 変更系は認証必須
 app.use('/api/news', authMiddleware);
 
-// 作成（管理画面）— 受け取った images を**そのまま保存**
 app.post('/api/news', async (req, res) => {
   try {
     const { title, content, images = [] } = req.body || {};
@@ -299,7 +249,6 @@ app.post('/api/news', async (req, res) => {
   }
 });
 
-// 更新（管理画面）
 app.put('/api/news/:id', async (req, res) => {
   try {
     const { title, content, images = null } = req.body || {};
@@ -330,7 +279,6 @@ app.put('/api/news/:id', async (req, res) => {
   }
 });
 
-// 削除（管理画面）
 app.delete('/api/news/:id', async (req, res) => {
   try {
     const { rowCount } = await db.query(
@@ -345,7 +293,6 @@ app.delete('/api/news/:id', async (req, res) => {
   }
 });
 
-// Webhook（GAS → サーバー）— 画像は payload.images を**そのまま保存**
 app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, images = [] } = req.body || {};
@@ -367,10 +314,8 @@ app.post('/api/news-webhook', webhookRawJson, webhookAuth, async (req, res) => {
 });
 
 // ================================================================
-// Activity API（画像はURLパススルー）
+// Activity API（DB版）
 // ================================================================
-
-// 公開 GET（一覧）
 app.get('/api/activities', async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -378,14 +323,13 @@ app.get('/api/activities', async (req, res) => {
        FROM activities
        ORDER BY activity_date DESC NULLS LAST, created_at DESC`
     );
-    res.json(rows);
+  res.json(rows);
   } catch (err) {
     console.error('GET /api/activities error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// 公開 GET（詳細）
 app.get('/api/activities/:id', async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -402,10 +346,8 @@ app.get('/api/activities/:id', async (req, res) => {
   }
 });
 
-// 変更系は認証必須
 app.use('/api/activities', authMiddleware);
 
-// 作成（管理画面）
 app.post('/api/activities', async (req, res) => {
   try {
     const { title, content, category = null, activity_date = null, images = [] } = req.body || {};
@@ -426,7 +368,6 @@ app.post('/api/activities', async (req, res) => {
   }
 });
 
-// 更新（管理画面）
 app.put('/api/activities/:id', async (req, res) => {
   try {
     const { title, content, category = null, activity_date = null, images = null } = req.body || {};
@@ -437,7 +378,7 @@ app.put('/api/activities/:id', async (req, res) => {
     const params = [title, content, category, activity_date, req.params.id];
     if (Array.isArray(images)) {
       imageClause = ', image_urls = $5';
-      params.splice(4, 0, JSON.stringify(images)); // $5 に image_urls
+      params.splice(4, 0, JSON.stringify(images));
     }
 
     const { rowCount } = await db.query(
@@ -459,7 +400,6 @@ app.put('/api/activities/:id', async (req, res) => {
   }
 });
 
-// 削除（管理画面）
 app.delete('/api/activities/:id', async (req, res) => {
   try {
     const { rowCount } = await db.query(
@@ -474,7 +414,6 @@ app.delete('/api/activities/:id', async (req, res) => {
   }
 });
 
-// Webhook（GAS → サーバー）— 画像は payload.images を**そのまま保存**
 app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) => {
   try {
     const { title, content, category = null, activity_date = null, images = [] } = req.body || {};
@@ -495,82 +434,31 @@ app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) 
   }
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.post('/__hmac_debug', express.raw({ type: 'application/json' }), (req, res) => {
-    const ts = req.get('X-Timestamp') || '';
-    const secret = process.env.WEBHOOK_SECRET || '';
-    const raw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body || {});
-    const exp = crypto.createHmac('sha256', secret).update(`${ts}.${raw}`, 'utf8').digest('hex');
-    res.json({
-      ts,
-      bodyChars: raw.length,
-      bodyBytes: Buffer.byteLength(raw,'utf8'),
-      bodySha256: crypto.createHash('sha256').update(raw,'utf8').digest('hex'),
-      expHead: exp.slice(0,16),
-      exp
-    });
+// ------------------------------
+// /json-api を mount（最後でOK）
+// ------------------------------
+const jsonApi = require('./server-json');      // Router
+app.use('/json-api', jsonApi);
+
+// /uploads をグローバルで公開（server-json.js の保存先を流用）
+const UPLOAD_DIR = jsonApi.UPLOAD_DIR;
+app.use('/uploads', express.static(UPLOAD_DIR, {
+  etag: true,
+  maxAge: '7d',
+  immutable: true,
+}));
+
+// ------------------------------
+// 起動（唯一の listen ）
+// ------------------------------
+function startServer(app) {
+  const port = Number(process.env.PORT || 10000);
+  const host = process.env.HOST || '0.0.0.0';
+  const server = app.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
+    console.log(`env.PORT=${process.env.PORT ?? 'undefined'}`);
   });
+  return server;
 }
 
-// --- サイト設定 API ---
-
-// 公開用: 全設定を取得
-app.get('/api/settings', async (req, res) => {
-    try {
-        const { rows } = await db.query('SELECT key, value FROM site_settings');
-        // キーと値のオブジェクトに変換して返す
-        const settings = rows.reduce((acc, row) => {
-            acc[row.key] = row.value;
-            return acc;
-        }, {});
-        res.json(settings);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-// 管理画面用: 全設定を詳細付きで取得 (認証必須)
-app.get('/api/settings/all', authMiddleware, async (req, res) => {
-    try {
-        const { rows } = await db.query('SELECT key, value, description FROM site_settings ORDER BY key');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-// 管理画面用: 設定をまとめて更新 (認証必須)
-app.put('/api/settings', authMiddleware, async (req, res) => {
-    const settings = req.body; // { key1: value1, key2: value2, ... }
-    if (typeof settings !== 'object' || settings === null) {
-        return res.status(400).json({ error: 'Invalid format' });
-    }
-
-    const client = await db.getClient(); // プールからクライアントを取得
-    try {
-        await client.query('BEGIN');
-        for (const key in settings) {
-            if (Object.hasOwnProperty.call(settings, key)) {
-                await client.query(
-                    'UPDATE site_settings SET value = $1, updated_at = NOW() WHERE key = $2',
-                    [settings[key], key]
-                );
-            }
-        }
-        await client.query('COMMIT');
-        res.json({ message: 'Settings updated successfully' });
-    } catch (err) {
-        await client.query('ROLLBACK');
-        console.error('PUT /api/settings error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    } finally {
-        client.release();
-    }
-});
-
-// ------------------------------
-// 起動
-// ------------------------------
 startServer(app);
-
-module.exports = { startServer };
