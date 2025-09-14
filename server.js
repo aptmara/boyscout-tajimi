@@ -11,7 +11,8 @@
  *   - database.js: db.query / setupDatabase を提供
  */
 
-require('dotenv').config();
+const { loadEnv } = require('./config/env');
+loadEnv();
 const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
@@ -22,20 +23,18 @@ const bcrypt = require('bcrypt');
 const db = require('./database.js');
 
 // === Secret fingerprint（ログ用: 先頭16桁のみ） ===
-(function logSecretFingerprint() {
-  const s = process.env.WEBHOOK_SECRET || '';
-  const fp = crypto.createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 16);
-  console.log('[SECRET_FP]', fp);
-  if (process.env.NODE_ENV !== 'production') {
-    const secret = process.env.WEBHOOK_SECRET || '';
-    const codes = [...secret].map(c => c.charCodeAt(0));
-    console.log('[SECRET_LEN]', secret.length, 'head', codes.slice(0,8), 'tail', codes.slice(-8));
-  }
-
-})();
+const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
+logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+function startServer(app) {
+  const port = process.env.PORT ? Number(process.env.PORT) : 10000;
+  const host = process.env.HOST || '0.0.0.0';
+  const server = app.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
+  });
+  return server;
+}
 
 // ------------------------------
 // 静的・セッション
@@ -567,6 +566,6 @@ app.put('/api/settings', authMiddleware, async (req, res) => {
 // ------------------------------
 // 起動
 // ------------------------------
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+startServer(app);
+
+module.exports = { startServer };
