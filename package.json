@@ -9,7 +9,7 @@
     "db:setup": "node database.js",
     "start:json": "node server-json.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "./node_modules/.bin/tailwindcss -i ./styles/input.css -o ./common-styles.css --minify",
+    "build:css": "npx tailwindcss -i ./styles/input.css -o ./common-styles.css --minify",
     "tailwind:init": "tailwindcss init"
   },
   "repository": {
@@ -32,10 +32,11 @@
     "express-session": "^1.18.2",
     "pg": "^8.16.3",
     "session-file-store": "^1.5.0"
+    "tailwindcss": "^3.4.3"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.3"
   }
 }
+
 
 
