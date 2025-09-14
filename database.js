@@ -1,12 +1,13 @@
-// database.js (Supabase / Postgres, server.js と整合)
-// - pg Pool を使用
-// - SSL を明示（DATABASE_URL に sslmode=require が無い環境でも動かす）
-// - news / activities は image_urls を JSONB
-// - site_settings を物理テーブル、互換ビュー settings を用意（INSTEAD OF TRIGGERで書き込み転送）
+// database.js (統合・是正済み)
+// - IPv4優先 + SSL
+// - 起動DDLはトランザクション + advisory lock で再実行安全
+// - site_settings 物理テーブル + 互換VIEW settings（INSTEAD OF TRIGGERで書き込み）
+// - news / activities: image_urls は JSONB、unit / tags 追加（JSONB）
 // - 必要インデックス作成
-// - オプション: 初回管理者自動作成（INITIAL_ADMIN_* があれば）
+// - 初回管理者自動作成（INITIAL_ADMIN_* があれば）
 
 require('dotenv').config();
+
 const dns = require('node:dns');
 dns.setDefaultResultOrder('ipv4first');
 const { Pool } = require('pg');
@@ -19,7 +20,7 @@ function lookupIPv4(hostname, _opts, cb) {
   return dns.lookup(hostname, { family: 4, all: false }, cb);
 }
 
-// デバッグ: 起動時に名前解決結果を一度出す
+// デバッグ: 起動時にDBホストの名前解決結果を出力
 (async () => {
   try {
     const host = new URL(connectionString).hostname;
@@ -34,7 +35,7 @@ function lookupIPv4(hostname, _opts, cb) {
   }
 })();
 
-// Pool設定：ssl明示 + IPv4 lookup 強制
+// Pool設定（SSL明示 + IPv4 lookup 強制）
 const pool = new Pool({
   connectionString,
   ssl: { rejectUnauthorized: false },
@@ -43,13 +44,24 @@ const pool = new Pool({
   // idleTimeoutMillis: 30000,
 });
 
-// 起動時DDL（存在しなければ作る・不足列は追加）
+// 起動時DDL（存在しなければ作る・不足列は追加）— 再実行安全
 async function setupDatabase() {
   const client = await pool.connect();
+  const lockKey = 'aptma_schema_setup_v2'; // 同時起動抑止用（任意文字列）
   try {
+    // 並行起動対策：アドバイザリロック
+    await client.query('SELECT pg_advisory_lock(hashtext($1))', [lockKey]);
     await client.query('BEGIN');
 
-    // session テーブル (connect-pg-simple 用)
+    // 0) マイグレーション記録テーブル（将来拡張用）
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS public.schema_migrations (
+        version TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `);
+
+    // 1) セッションテーブル（connect-pg-simple 用）
     await client.query(`
       CREATE TABLE IF NOT EXISTS "session" (
         "sid" varchar NOT NULL COLLATE "default",
@@ -62,16 +74,17 @@ async function setupDatabase() {
       DO $$
       BEGIN
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint
-          WHERE conname = 'session_pkey'
+          SELECT 1 FROM pg_constraint WHERE conname = 'session_pkey'
         ) THEN
-          ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+          ALTER TABLE "session"
+            ADD CONSTRAINT "session_pkey"
+            PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
         END IF;
       END$$;
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
 
-    // admins
+    // 2) 管理者
     await client.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id BIGSERIAL PRIMARY KEY,
@@ -80,37 +93,101 @@ async function setupDatabase() {
       );
     `);
 
-    // news
-await client.query(`
-  CREATE TABLE IF NOT EXISTS news (
-    id BIGSERIAL PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    image_urls JSONB DEFAULT '[]'::jsonb,
-    category TEXT, -- ← 追加
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  );
-`);
+    // 3) news（JSONB列・分類列）
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS news (
+        id BIGSERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        image_urls JSONB DEFAULT '[]'::jsonb,
+        category TEXT,
+        unit TEXT,
+        tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
 
-    
-    // --- NEWS: category 列の追加（存在しなければ） + インデックス ---
-await client.query(`
-  DO $$
-  BEGIN
-    IF NOT EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name='news' AND column_name='category'
-    ) THEN
-      ALTER TABLE news ADD COLUMN category TEXT;
-      -- 既存データの初期カテゴリ（任意。不要ならこの UPDATE は削除）
-      UPDATE news SET category = '未分類' WHERE category IS NULL;
-    END IF;
-  END$$;
-`);
-await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (category);`);
+    // 3-1) 既存スキーマとの差分吸収（何度走っても安全）
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='image_urls'
+        ) THEN
+          ALTER TABLE news ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='category'
+        ) THEN
+          ALTER TABLE news ADD COLUMN category TEXT;
+          UPDATE news SET category = '未分類' WHERE category IS NULL;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='unit'
+        ) THEN
+          ALTER TABLE news ADD COLUMN unit TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='news' AND column_name='tags'
+        ) THEN
+          ALTER TABLE news ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+        END IF;
+      END$$;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_created_at ON news (created_at DESC);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category   ON news (category);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_unit       ON news (unit);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_tags_gin   ON news USING GIN (tags jsonb_path_ops);`);
 
+    // 4) activities（JSONB列・分類/日付）
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS activities (
+        id BIGSERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT,
+        activity_date DATE,
+        image_urls JSONB DEFAULT '[]'::jsonb,
+        unit TEXT,
+        tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    // 旧 image_url → image_urls へ片道移行（残っていれば）
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='activities' AND column_name='image_url'
+        ) THEN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='activities' AND column_name='image_urls'
+          ) THEN
+            ALTER TABLE activities ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
+          END IF;
+          UPDATE activities
+             SET image_urls = CASE
+               WHEN COALESCE(image_url, '') <> '' THEN jsonb_build_array(image_url)
+               ELSE COALESCE(image_urls, '[]'::jsonb)
+             END
+           WHERE image_url IS NOT NULL;
+          ALTER TABLE activities DROP COLUMN image_url;
+        END IF;
+      END$$;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_created_at     ON activities (created_at DESC);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_activity_date  ON activities (activity_date DESC NULLS LAST);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_category       ON activities (category);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_unit           ON activities (unit);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_tags_gin       ON activities USING GIN (tags jsonb_path_ops);`);
 
-    // site_settings 物理テーブル
+    // 5) site_settings 物理テーブル
     await client.query(`
       CREATE TABLE IF NOT EXISTS site_settings (
         key TEXT PRIMARY KEY,
@@ -120,44 +197,58 @@ await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (catego
       );
     `);
 
-    // ---- settings 互換ビュー（site_settings を透過利用）----
-    // 物理テーブル settings が存在していた場合は退避（極稀ケース）
+    // 5-1) 旧 settings テーブルがあれば一度だけ退避（既に退避済みなら何もしない）
     await client.query(`
       DO $$
       BEGIN
-        IF EXISTS (
-          SELECT 1
-          FROM information_schema.tables
-          WHERE table_name = 'settings'
-        ) THEN
-          ALTER TABLE settings RENAME TO settings_legacy_backup;
+        IF to_regclass('public.settings') IS NOT NULL
+           AND to_regclass('public.settings_legacy_backup') IS NULL THEN
+          EXECUTE 'ALTER TABLE public.settings RENAME TO settings_legacy_backup';
         END IF;
       END
       $$;
     `);
 
-    await client.query(`DROP VIEW IF EXISTS settings CASCADE;`);
+    // 5-2) 退避表が存在する場合、データを site_settings へ片道移行（重複は無視）
     await client.query(`
-      CREATE VIEW settings AS
-        SELECT key, value FROM site_settings;
+      DO $$
+      BEGIN
+        IF to_regclass('public.settings_legacy_backup') IS NOT NULL THEN
+          EXECUTE $mig$
+            INSERT INTO public.site_settings (key, value, description)
+            SELECT key, value, NULL
+            FROM public.settings_legacy_backup
+            ON CONFLICT (key) DO NOTHING
+          $mig$;
+        END IF;
+      END
+      $$;
     `);
 
-    await client.query(`DROP FUNCTION IF EXISTS settings_view_upsert() CASCADE;`);
+    // 5-3) 互換ビュー settings（site_settings を透過利用）
+    await client.query(`DROP VIEW IF EXISTS public.settings CASCADE;`);
     await client.query(`
-      CREATE FUNCTION settings_view_upsert()
+      CREATE VIEW public.settings AS
+        SELECT key, value FROM public.site_settings;
+    `);
+
+    // 5-4) INSTEAD OF TRIGGER で書き込みを site_settings へ転送
+    await client.query(`DROP FUNCTION IF EXISTS public.settings_view_upsert() CASCADE;`);
+    await client.query(`
+      CREATE FUNCTION public.settings_view_upsert()
       RETURNS trigger
       LANGUAGE plpgsql
       AS $$
       BEGIN
         IF (TG_OP = 'INSERT') THEN
-          INSERT INTO site_settings(key, value, updated_at)
+          INSERT INTO public.site_settings(key, value, updated_at)
           VALUES (NEW.key, NEW.value, NOW())
           ON CONFLICT (key) DO UPDATE
             SET value = EXCLUDED.value,
                 updated_at = NOW();
           RETURN NEW;
         ELSIF (TG_OP = 'UPDATE') THEN
-          UPDATE site_settings
+          UPDATE public.site_settings
              SET value = NEW.value,
                  updated_at = NOW()
            WHERE key = NEW.key;
@@ -168,15 +259,14 @@ await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (catego
       END;
       $$;
     `);
-
-    await client.query(`DROP TRIGGER IF EXISTS settings_view_upsert_trg ON settings;`);
+    await client.query(`DROP TRIGGER IF EXISTS settings_view_upsert_trg ON public.settings;`);
     await client.query(`
       CREATE TRIGGER settings_view_upsert_trg
-      INSTEAD OF INSERT OR UPDATE ON settings
-      FOR EACH ROW EXECUTE FUNCTION settings_view_upsert();
+      INSTEAD OF INSERT OR UPDATE ON public.settings
+      FOR EACH ROW EXECUTE FUNCTION public.settings_view_upsert();
     `);
 
-    // 設定項目の初期データを挿入（既存は維持）
+    // 5-5) 初期データ（既存キーは維持）
     await client.query(`
       INSERT INTO site_settings (key, value, description) VALUES
         -- 連絡先
@@ -209,114 +299,9 @@ await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (catego
         ('index_highlight_img_2_url', '', '活動ハイライト2の画像URL'),
         ('index_highlight_img_3_url', '', '活動ハイライト3の画像URL'),
         ('index_testimonial_img_1_url', '', 'トップの体験談プロフィール画像1 URL'),
-        ('index_testimonial_img_2_url', '', 'トップの体験談プロフィール画像2 URL')
-      ON CONFLICT (key) DO NOTHING;
-    `);
+        ('index_testimonial_img_2_url', '', 'トップの体験談プロフィール画像2 URL'),
 
-    // 後方互換: 既存newsにimage_urlsが無ければ追加
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_name='news' AND column_name='image_urls'
-        ) THEN
-          ALTER TABLE news ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
-        END IF;
-      END$$;
-    `);
-    // 並び順に使う created_at へインデックス
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_created_at ON news (created_at DESC);`);
-
-    // activities
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS activities (
-        id BIGSERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        category TEXT,
-        activity_date DATE,
-        image_urls JSONB DEFAULT '[]'::jsonb,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_category ON activities (category);`);
-
-    // 後方互換: 旧 image_url TEXT → image_urls JSONB へ移行
-    await client.query(`
-      DO $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name='activities' AND column_name='image_url'
-        ) THEN
-          IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name='activities' AND column_name='image_urls'
-          ) THEN
-            ALTER TABLE activities ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
-          END IF;
-
-          UPDATE activities
-             SET image_urls = CASE
-                 WHEN COALESCE(image_url, '') <> '' THEN jsonb_build_array(image_url)
-                 ELSE COALESCE(image_urls, '[]'::jsonb)
-               END
-           WHERE image_url IS NOT NULL;
-
-          ALTER TABLE activities DROP COLUMN image_url;
-        END IF;
-      END$$;
-    `);
-
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities (created_at DESC);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_activity_date ON activities (activity_date DESC NULLS LAST);`);
-
-    // --- Add unit/tags columns and indexes (idempotent) ---
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name='news' AND column_name='unit'
-        ) THEN
-          ALTER TABLE news ADD COLUMN unit TEXT;
-        END IF;
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name='news' AND column_name='tags'
-        ) THEN
-          ALTER TABLE news ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb;
-        END IF;
-      END$$;
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_unit ON news (unit);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_news_tags_gin ON news USING GIN (tags jsonb_path_ops);`);
-
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name='activities' AND column_name='unit'
-        ) THEN
-          ALTER TABLE activities ADD COLUMN unit TEXT;
-        END IF;
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name='activities' AND column_name='tags'
-        ) THEN
-          ALTER TABLE activities ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb;
-        END IF;
-      END$$;
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_unit ON activities (unit);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_tags_gin ON activities USING GIN (tags jsonb_path_ops);`);
-
-    // Seed units/tags master settings (idempotent)
-    await client.query(`
-      INSERT INTO site_settings (key, value, description) VALUES
+        -- マスタ：隊とタグ候補
         ('units_json', '[
           {"label":"ビーバー","slug":"beaver"},
           {"label":"カブ","slug":"cub"},
@@ -342,25 +327,27 @@ await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (catego
     `);
 
     await client.query('COMMIT');
+    await client.query('SELECT pg_advisory_unlock(hashtext($1))', [lockKey]);
     console.log('Tables are ready.');
-
-    // --- オプション: 初回管理者自動作成 ---
-    const adminUser = process.env.INITIAL_ADMIN_USERNAME;
-    const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
-    if (adminUser && adminPass) {
-      const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
-      if (rows.length === 0) {
-        const hash = await bcrypt.hash(adminPass, 12);
-        await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
-        console.log(`Admin user '${adminUser}' created.`);
-      }
-    }
   } catch (err) {
-    await client.query('ROLLBACK');
+    try { await client.query('ROLLBACK'); } catch {}
+    try { await client.query('SELECT pg_advisory_unlock(hashtext($1))', [lockKey]); } catch {}
     console.error('Error during database setup:', err);
     throw err;
   } finally {
     client.release();
+  }
+
+  // --- オプション: 初回管理者自動作成（トランザクション外でOK） ---
+  const adminUser = process.env.INITIAL_ADMIN_USERNAME;
+  const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
+  if (adminUser && adminPass) {
+    const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
+    if (rows.length === 0) {
+      const hash = await bcrypt.hash(adminPass, 12);
+      await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
+      console.log(`Admin user '${adminUser}' created.`);
+    }
   }
 }
 
