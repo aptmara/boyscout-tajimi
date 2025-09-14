@@ -116,7 +116,10 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-app.get('
+app.get('/api/session', (req, res) => {
+  if (req.session && req.session.user) return res.json({ loggedIn: true, user: req.session.user });
+  return res.json({ loggedIn: false });
+});
 
 
 // ===== Settings API (互換) =====
