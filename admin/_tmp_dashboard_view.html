@@ -104,18 +104,6 @@
             }
         });
 
-        // 検索フィルター（タイトル・カテゴリに対して）
-        const searchInput = document.getElementById('news-search');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const q = String(e.target.value || '').toLowerCase();
-                document.querySelectorAll('#news-list .news-item').forEach(li => {
-                    const hit = (li.dataset.search || '').includes(q);
-                    li.style.display = hit ? '' : 'none';
-                });
-            });
-        }
-
         // HTMLエスケープ関数
         function escapeHTML(str) {
             return str.replace(/[&<>"']/g, function(match) {
@@ -131,3 +119,4 @@
     </script>
 </body>
 </html>
+

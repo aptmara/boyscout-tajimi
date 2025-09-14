@@ -394,6 +394,37 @@ header#main-header.scrolled {
 /* ============================================== */
 /* ANIMATIONS                                     */
 /* ============================================== */
+
+/* Hero CTAs: animated underline on hover */
+#hero a[href="join.html"],
+#hero a[href="activity-log.html"] {
+    position: relative;
+    display: inline-block;
+    text-decoration: none; /* override global hover underline */
+}
+
+#hero a[href="join.html"]:hover,
+#hero a[href="activity-log.html"]:hover {
+    text-decoration: none; /* keep default underline off */
+}
+
+#hero a[href="join.html"]::after,
+#hero a[href="activity-log.html"]::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    height: 2px;
+    width: 0;
+    background: currentColor;
+    transform: translateX(-50%);
+    transition: width 0.25s ease;
+}
+
+#hero a[href="join.html"]:hover::after,
+#hero a[href="activity-log.html"]:hover::after {
+    width: 100%;
+}
 .fade-in-section {
     opacity: 0;
     transform: translateY(40px);
