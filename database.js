@@ -49,6 +49,28 @@ async function setupDatabase() {
     try {
         await client.query('BEGIN');
 
+        // session テーブル (connect-pg-simple 用)
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS "session" (
+            "sid" varchar NOT NULL COLLATE "default",
+            "sess" json NOT NULL,
+            "expire" timestamp(6) NOT NULL
+          )
+          WITH (OIDS=FALSE);
+        `);
+        await client.query(`
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_constraint
+              WHERE conname = 'session_pkey'
+            ) THEN
+              ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+            END IF;
+          END$$;
+        `);
+        await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
+
         // admins
         await client.query(`
       CREATE TABLE IF NOT EXISTS admins (
