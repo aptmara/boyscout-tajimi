@@ -15,23 +15,40 @@ const COMMON_SETTINGS = {
  * Alpine.jsのストアを初期化
  * - mobileMenu: モバイルメニューの開閉状態を管理
  */
-document.addEventListener('alpine:init', () => {
-  Alpine.store(COMMON_SETTINGS.mobileMenuStoreName, {
-    isOpen: false,
-    toggle() {
-      this.isOpen = !this.isOpen;
-      document.body.style.overflow = this.isOpen ? 'hidden' : '';
-      const menuButton = document.getElementById('mobile-menu-button-alpine');
-      if (menuButton) menuButton.classList.toggle('open', this.isOpen);
-    },
-    close() {
-      this.isOpen = false;
-      document.body.style.overflow = '';
-      const menuButton = document.getElementById('mobile-menu-button-alpine');
-      if (menuButton) menuButton.classList.remove('open');
-    }
-  });
-});
+// Alpineの読み込みタイミングに依存しないようにストア登録をラップ
+function registerMobileMenuStore() {
+  try {
+    if (!window.Alpine || !Alpine.store) return;
+    // 既に登録済みなら二重登録しない
+    if (Alpine.store(COMMON_SETTINGS.mobileMenuStoreName)) return;
+
+    Alpine.store(COMMON_SETTINGS.mobileMenuStoreName, {
+      isOpen: false,
+      toggle() {
+        this.isOpen = !this.isOpen;
+        document.body.style.overflow = this.isOpen ? 'hidden' : '';
+        const menuButton = document.getElementById('mobile-menu-button-alpine');
+        if (menuButton) menuButton.classList.toggle('open', this.isOpen);
+      },
+      close() {
+        this.isOpen = false;
+        document.body.style.overflow = '';
+        const menuButton = document.getElementById('mobile-menu-button-alpine');
+        if (menuButton) menuButton.classList.remove('open');
+      }
+    });
+  } catch (e) {
+    console.error('Failed to register Alpine store:', e);
+  }
+}
+
+// 1) 既にAlpineが存在するなら即時登録
+if (window.Alpine) {
+  registerMobileMenuStore();
+}
+
+// 2) Alpine初期化イベントでも登録（後読みの保険）
+document.addEventListener('alpine:init', registerMobileMenuStore);
 
 /**
  * DOMコンテンツが読み込まれた後に初期化処理を実行

@@ -1,9 +1,9 @@
 /**
- * dynamic-news.js (patched)
- * - escapeHTML 実装
- * - フィルタセクションのセレクタをIDに（副作用防止）
- * - エラーハンドリング改善
+ * dynamic-news.js
+ * - ニュース一覧/詳細の動的描画
+ * - XSS対策のための escapeHTML を使用
  */
+
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('news-list-container')) {
     loadDynamicNewsList();
@@ -23,12 +23,12 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-// --- お知らせ一覧ページ ---
+// --- ニュース一覧ページ ---
 async function loadDynamicNewsList() {
   const newsListContainer = document.getElementById('news-list-container');
   if (!newsListContainer) return;
 
-  // フィルタUI: グローバルな .bg-gray-50 を隠すのは副作用が大きいので、IDを利用
+  // フィルタUI（IDで取得）を初期状態で非表示
   const filterSection = document.querySelector('#news-filter-section');
   if (filterSection) filterSection.style.display = 'none';
 
@@ -45,27 +45,27 @@ async function loadDynamicNewsList() {
   }
 
   function renderNewsItem(news) {
-    const summary = (news.content || '').substring(0, 100).replace(/<[^>]+>/g, '') + '...';
-    const detailUrl = `news-detail-placeholder.html続きを読むid=${news.id}`;
+    const summary = (news.content || '').replace(/<[^>]+>/g, '').substring(0, 100) + '...';
+    const detailUrl = `news-detail-placeholder.html?id=${news.id}`;
+
+    const unitBadge = news.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(news.unit)}</span>` : '';
+    const catBadge = news.category ? `<span class="badge badge--category">${escapeHTML(news.category)}</span>` : '';
+    const tags = Array.isArray(news.tags) ? news.tags : [];
+    const tagHtml = tags.slice(0, 6)
+      .map(t => `<span class="badge badge--tag">#${escapeHTML(t)}</span>`)
+      .join('');
+
     return `
       <article class="news-item bg-white p-6 rounded-xl shadow-lg border-l-4 border-gray-300 flex flex-col sm:flex-row gap-6 card-hover-effect">
         <div class="sm:w-2/3">
           <a href="${detailUrl}" class="news-item-link group block">
             <div class="flex items-center justify-between mb-2">
-              <span>
-                ${news.unit 続きを読む `<span class=\"badge badge--unit mr-2\">${escapeHTML(news.unit)}</span>` : ''}
-                ${news.category 続きを読む `<span class=\"badge badge--category\">${escapeHTML(news.category)}</span>` : ''}
-              </span>
+              <span>${unitBadge}${catBadge}</span>
               <p class="text-xs text-gray-500">${formatDate(news.created_at)}</p>
             </div>
             <h3 class="text-xl font-semibold text-gray-800 mb-2 group-hover:text-green-700 transition-colors duration-300">${escapeHTML(news.title || '')}</h3>
             <p class="text-gray-600 leading-relaxed text-sm line-clamp-2">${escapeHTML(summary)}</p>
-            ${(() => {
-              const tags = Array.isArray(news.tags) 続きを読む news.tags : [];
-              if (!tags.length) return '';
-              const t = tags.slice(0,6).map(t => `#${escapeHTML(t)}`);
-              return `<div class=\"flex flex-wrap gap-2 mt-3\">${t.map(x => `<span class=\\\"badge badge--tag\\\">${x}</span>`).join('')}</div>`;
-            })()}
+            ${tagHtml ? `<div class="flex flex-wrap gap-2 mt-3">${tagHtml}</div>` : ''}
           </a>
         </div>
         <div class="sm:w-1/3 flex sm:flex-col items-end sm:items-start justify-between mt-4 sm:mt-0">
@@ -82,16 +82,16 @@ async function loadDynamicNewsList() {
       return;
     }
     let html = '<ul class="inline-flex items-center -space-x-px shadow-sm rounded-md">';
-    html += `<li><button data-page="${currentPage - 1}" aria-label="前のページへ" class="news-pagination-button pagination-button ${currentPage === 1 続きを読む 'pagination-disabled' : ''}"><span class="sr-only">前へ</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button></li>`;
+    html += `<li><button data-page="${currentPage - 1}" aria-label="前のページへ" class="news-pagination-button pagination-button ${currentPage === 1 ? 'pagination-disabled' : ''}"><span class="sr-only">前へ</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button></li>`;
     for (let i = 1; i <= totalPages; i++) {
-      html += `<li><button data-page="${i}" aria-label="${i}ページ目へ" class="news-pagination-button pagination-button ${i === currentPage 続きを読む 'pagination-active' : ''}">${i}</button></li>`;
+      html += `<li><button data-page="${i}" aria-label="${i}ページ目へ" class="news-pagination-button pagination-button ${i === currentPage ? 'pagination-active' : ''}">${i}</button></li>`;
     }
-    html += `<li><button data-page="${currentPage + 1}" aria-label="次のページへ" class="news-pagination-button pagination-button ${currentPage === totalPages 続きを読む 'pagination-disabled' : ''}"><span class="sr-only">次へ</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg></button></li>`;
+    html += `<li><button data-page="${currentPage + 1}" aria-label="次のページへ" class="news-pagination-button pagination-button ${currentPage === totalPages ? 'pagination-disabled' : ''}"><span class="sr-only">次へ</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg></button></li>`;
     html += '</ul>';
     newsPaginationContainer.innerHTML = html;
     newsPaginationContainer.querySelectorAll('.news-pagination-button').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const page = parseInt(e.currentTarget.dataset.page);
+        const page = parseInt(e.currentTarget.dataset.page, 10);
         if (page && page !== currentPage && page > 0 && page <= totalPages) {
           currentPage = page;
           displayNewsItems(allNews);
@@ -112,7 +112,9 @@ async function loadDynamicNewsList() {
     const startIndex = (currentPage - 1) * NEWS_ITEMS_PER_PAGE;
     const endIndex = startIndex + NEWS_ITEMS_PER_PAGE;
     const items = arr.slice(startIndex, endIndex);
-    items.forEach(n => newsListContainer.innerHTML += renderNewsItem(n));
+    items.forEach(n => {
+      newsListContainer.innerHTML += renderNewsItem(n);
+    });
     renderNewsPagination(arr.length, currentPage);
   }
 
@@ -129,7 +131,7 @@ async function loadDynamicNewsList() {
   }
 }
 
-// --- お知らせ詳細ページ ---
+// --- ニュース詳細ページ ---
 async function loadDynamicNewsDetail() {
   const articleContainer = document.getElementById('news-article-container');
   if (!articleContainer) return;
@@ -152,12 +154,14 @@ async function loadDynamicNewsDetail() {
     const news = await response.json();
     if (!news || !news.id) throw new Error('Not found');
     if (pageTitleElement) pageTitleElement.textContent = news.title || '';
-    const tags = Array.isArray(news.tags) 続きを読む news.tags : [];
+
+    const tags = Array.isArray(news.tags) ? news.tags : [];
     const tagBadges = tags.slice(0, 12)
-      .map(t => `<span class=\"badge badge--tag mr-2 mb-2\">#${escapeHTML(t)}</span>`) 
+      .map(t => `<span class="badge badge--tag mr-2 mb-2">#${escapeHTML(t)}</span>`)
       .join('');
-    const unitBadge = news.unit 続きを読む `<span class=\"badge badge--unit mr-2\">${escapeHTML(news.unit)}</span>` : '';
-    const catBadge  = news.category 続きを読む `<span class=\"badge badge--category\">${escapeHTML(news.category)}</span>` : '';
+    const unitBadge = news.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(news.unit)}</span>` : '';
+    const catBadge  = news.category ? `<span class="badge badge--category">${escapeHTML(news.category)}</span>` : '';
+
     articleContainer.innerHTML = `
       <article class="bg-white p-6 rounded-xl shadow-lg">
         <div class="flex items-center justify-between mb-3">
@@ -174,3 +178,4 @@ async function loadDynamicNewsDetail() {
     articleContainer.innerHTML = '';
   }
 }
+
