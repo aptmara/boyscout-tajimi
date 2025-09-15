@@ -17,6 +17,46 @@
 
   <div class="container">
     <form id="settings-form">
+      <style>
+        .tabs { display:flex; gap:8px; border-bottom:1px solid var(--admin-border); margin-bottom:14px; flex-wrap:wrap; }
+        .tab-btn { background:#fff; border:1px solid var(--admin-border); border-bottom:none; padding:8px 12px; border-top-left-radius:8px; border-top-right-radius:8px; cursor:pointer; color:var(--admin-text); }
+        .tab-btn.active { background: var(--admin-primary-50, #eef7f1); color: var(--admin-primary-700, #0b6b3a); border-color: var(--admin-primary-200, #bfe3cc); font-weight:600; }
+        .tab-panel { display:none; background:#fff; border:1px solid var(--admin-border); border-radius:0 8px 8px 8px; padding:16px; box-shadow: var(--admin-shadow); }
+        .tab-panel.active { display:block; }
+        .panel-columns { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 860px) { .panel-columns { grid-template-columns: 1fr; } }
+        .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 6px 0 10px; }
+        .toolbar .btn { background:#fff; border:1px solid var(--admin-border); padding:8px 12px; border-radius:8px; cursor:pointer; }
+        .form-group.invalid input { border-color: var(--admin-danger); }
+        .hint { color: var(--admin-text-muted); font-size: 12px; margin-top: 4px; }
+        .img-preview { border:1px dashed var(--admin-border); padding:8px; border-radius:8px; background:#fafafa; margin-top:6px; display:none; }
+        .img-preview img { max-width:100%; height:auto; display:block; }
+      </style>
+
+      <nav class="tabs" id="settings-tabs">
+        <button type="button" class="tab-btn" data-tab="contact">基本情報</button>
+        <button type="button" class="tab-btn" data-tab="privacy">プライバシー</button>
+        <button type="button" class="tab-btn" data-tab="leader_names">リーダー名</button>
+        <button type="button" class="tab-btn" data-tab="branding">ブランディング</button>
+        <button type="button" class="tab-btn" data-tab="leader_profile">リーダー写真/メッセージ</button>
+        <button type="button" class="tab-btn" data-tab="gallery">ギャラリー</button>
+        <button type="button" class="tab-btn" data-tab="top_images">トップ画像</button>
+      </nav>
+
+      <div class="toolbar">
+        <button type="button" class="btn" id="btn-save-draft">下書きを保存</button>
+        <button type="button" class="btn" id="btn-restore-draft">下書きを復元</button>
+        <button type="button" class="btn" id="btn-discard-draft">下書きを破棄</button>
+        <button type="button" class="btn" id="btn-import-task">task.txt取り込み</button>
+      </div>
+
+      <div id="tab-contact" class="tab-panel"><div class="panel-columns" data-fields="contact"></div></div>
+      <div id="tab-privacy" class="tab-panel"><div class="panel-columns" data-fields="privacy"></div></div>
+      <div id="tab-leader_names" class="tab-panel"><div class="panel-columns" data-fields="leader_names"></div></div>
+      <div id="tab-branding" class="tab-panel"><div class="panel-columns" data-fields="branding"></div></div>
+      <div id="tab-leader_profile" class="tab-panel"><div class="panel-columns" data-fields="leader_profile"></div></div>
+      <div id="tab-gallery" class="tab-panel"><div class="panel-columns" data-fields="gallery"></div></div>
+      <div id="tab-top_images" class="tab-panel"><div class="panel-columns" data-fields="top_images"></div></div>
       <h2>連絡先・共通情報</h2>
       <div class="form-group">
         <label for="contact_address">住所</label>
@@ -82,6 +122,53 @@
         <textarea id="contact_map_embed_html" name="contact_map_embed_html" rows="5" placeholder="&lt;iframe ...&gt;&lt;/iframe&gt;"></textarea>
       </div>
 
+      <h2>団章・各隊ロゴ URL</h2>
+      <div class="form-group"><label for="group_crest_url">団章（ヘッダー/フッター）</label><input type="text" id="group_crest_url" name="group_crest_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_beaver_logo_url">ビーバー隊章（ロゴ）</label><input type="text" id="unit_beaver_logo_url" name="unit_beaver_logo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_cub_logo_url">カブ隊章（ロゴ）</label><input type="text" id="unit_cub_logo_url" name="unit_cub_logo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_boy_logo_url">ボーイ隊章（ロゴ）</label><input type="text" id="unit_boy_logo_url" name="unit_boy_logo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_venture_logo_url">ベンチャー隊章（ロゴ）</label><input type="text" id="unit_venture_logo_url" name="unit_venture_logo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_rover_logo_url">ローバー隊章（ロゴ）</label><input type="text" id="unit_rover_logo_url" name="unit_rover_logo_url" placeholder="https://..."></div>
+
+      <h2>各隊 リーダー写真・メッセージ</h2>
+      <div class="form-group"><label for="unit_beaver_leader_photo_url">ビーバー リーダー写真URL</label><input type="text" id="unit_beaver_leader_photo_url" name="unit_beaver_leader_photo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_beaver_leader_message">ビーバー メッセージ</label><textarea id="unit_beaver_leader_message" name="unit_beaver_leader_message" rows="3" placeholder="メッセージ"></textarea></div>
+      <div class="form-group"><label for="unit_cub_leader_photo_url">カブ リーダー写真URL</label><input type="text" id="unit_cub_leader_photo_url" name="unit_cub_leader_photo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_cub_leader_message">カブ メッセージ</label><textarea id="unit_cub_leader_message" name="unit_cub_leader_message" rows="3" placeholder="メッセージ"></textarea></div>
+      <div class="form-group"><label for="unit_boy_leader_photo_url">ボーイ リーダー写真URL</label><input type="text" id="unit_boy_leader_photo_url" name="unit_boy_leader_photo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_boy_leader_message">ボーイ メッセージ</label><textarea id="unit_boy_leader_message" name="unit_boy_leader_message" rows="3" placeholder="メッセージ"></textarea></div>
+      <div class="form-group"><label for="unit_venture_leader_photo_url">ベンチャー リーダー写真URL</label><input type="text" id="unit_venture_leader_photo_url" name="unit_venture_leader_photo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_venture_leader_message">ベンチャー メッセージ</label><textarea id="unit_venture_leader_message" name="unit_venture_leader_message" rows="3" placeholder="メッセージ"></textarea></div>
+      <div class="form-group"><label for="unit_rover_leader_photo_url">ローバー リーダー写真URL</label><input type="text" id="unit_rover_leader_photo_url" name="unit_rover_leader_photo_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_rover_leader_message">ローバー メッセージ</label><textarea id="unit_rover_leader_message" name="unit_rover_leader_message" rows="3" placeholder="メッセージ"></textarea></div>
+
+      <h2>各隊 ギャラリー画像URL（最大4枚）</h2>
+      <h3>ビーバー</h3>
+      <div class="form-group"><label for="unit_beaver_gallery_img_1_url">画像1</label><input type="text" id="unit_beaver_gallery_img_1_url" name="unit_beaver_gallery_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_beaver_gallery_img_2_url">画像2</label><input type="text" id="unit_beaver_gallery_img_2_url" name="unit_beaver_gallery_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_beaver_gallery_img_3_url">画像3</label><input type="text" id="unit_beaver_gallery_img_3_url" name="unit_beaver_gallery_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_beaver_gallery_img_4_url">画像4</label><input type="text" id="unit_beaver_gallery_img_4_url" name="unit_beaver_gallery_img_4_url" placeholder="https://..."></div>
+      <h3>カブ</h3>
+      <div class="form-group"><label for="unit_cub_gallery_img_1_url">画像1</label><input type="text" id="unit_cub_gallery_img_1_url" name="unit_cub_gallery_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_cub_gallery_img_2_url">画像2</label><input type="text" id="unit_cub_gallery_img_2_url" name="unit_cub_gallery_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_cub_gallery_img_3_url">画像3</label><input type="text" id="unit_cub_gallery_img_3_url" name="unit_cub_gallery_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_cub_gallery_img_4_url">画像4</label><input type="text" id="unit_cub_gallery_img_4_url" name="unit_cub_gallery_img_4_url" placeholder="https://..."></div>
+      <h3>ボーイ</h3>
+      <div class="form-group"><label for="unit_boy_gallery_img_1_url">画像1</label><input type="text" id="unit_boy_gallery_img_1_url" name="unit_boy_gallery_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_boy_gallery_img_2_url">画像2</label><input type="text" id="unit_boy_gallery_img_2_url" name="unit_boy_gallery_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_boy_gallery_img_3_url">画像3</label><input type="text" id="unit_boy_gallery_img_3_url" name="unit_boy_gallery_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_boy_gallery_img_4_url">画像4</label><input type="text" id="unit_boy_gallery_img_4_url" name="unit_boy_gallery_img_4_url" placeholder="https://..."></div>
+      <h3>ベンチャー</h3>
+      <div class="form-group"><label for="unit_venture_gallery_img_1_url">画像1</label><input type="text" id="unit_venture_gallery_img_1_url" name="unit_venture_gallery_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_venture_gallery_img_2_url">画像2</label><input type="text" id="unit_venture_gallery_img_2_url" name="unit_venture_gallery_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_venture_gallery_img_3_url">画像3</label><input type="text" id="unit_venture_gallery_img_3_url" name="unit_venture_gallery_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_venture_gallery_img_4_url">画像4</label><input type="text" id="unit_venture_gallery_img_4_url" name="unit_venture_gallery_img_4_url" placeholder="https://..."></div>
+      <h3>ローバー</h3>
+      <div class="form-group"><label for="unit_rover_gallery_img_1_url">画像1</label><input type="text" id="unit_rover_gallery_img_1_url" name="unit_rover_gallery_img_1_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_rover_gallery_img_2_url">画像2</label><input type="text" id="unit_rover_gallery_img_2_url" name="unit_rover_gallery_img_2_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_rover_gallery_img_3_url">画像3</label><input type="text" id="unit_rover_gallery_img_3_url" name="unit_rover_gallery_img_3_url" placeholder="https://..."></div>
+      <div class="form-group"><label for="unit_rover_gallery_img_4_url">画像4</label><input type="text" id="unit_rover_gallery_img_4_url" name="unit_rover_gallery_img_4_url" placeholder="https://..."></div>
+
       <div class="form-actions">
         <button type="submit">保存</button>
         <a href="dashboard.html"><button type="button">キャンセル</button></a>
@@ -113,10 +200,165 @@
         if (!el) return;
         el.value = settings[k] || '';
       });
+
+      // 追加フィールドも一括反映（name/id が設定キーと同じもの）
+      document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(el => {
+        const key = el.name || el.id;
+        if (!key) return;
+        if (typeof settings[key] !== 'undefined') {
+          el.value = settings[key];
+        }
+      });
+    }
+
+    function initTabs() {
+      const tabButtons = Array.from(document.querySelectorAll('#settings-tabs .tab-btn'));
+      const panels = {
+        contact: document.querySelector('#tab-contact [data-fields]'),
+        privacy: document.querySelector('#tab-privacy [data-fields]'),
+        leader_names: document.querySelector('#tab-leader_names [data-fields]'),
+        branding: document.querySelector('#tab-branding [data-fields]'),
+        leader_profile: document.querySelector('#tab-leader_profile [data-fields]'),
+        gallery: document.querySelector('#tab-gallery [data-fields]'),
+        top_images: document.querySelector('#tab-top_images [data-fields]'),
+      };
+
+      const groups = new Map([
+        ['contact', ['contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name','contact_map_embed_html']],
+        ['privacy', ['privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date']],
+        ['leader_names', ['leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover']],
+        ['branding', ['group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
+        ['leader_profile', [
+          'unit_beaver_leader_photo_url','unit_beaver_leader_message',
+          'unit_cub_leader_photo_url','unit_cub_leader_message',
+          'unit_boy_leader_photo_url','unit_boy_leader_message',
+          'unit_venture_leader_photo_url','unit_venture_leader_message',
+          'unit_rover_leader_photo_url','unit_rover_leader_message'
+        ]],
+        ['gallery', [
+          'unit_beaver_gallery_img_1_url','unit_beaver_gallery_img_2_url','unit_beaver_gallery_img_3_url','unit_beaver_gallery_img_4_url',
+          'unit_cub_gallery_img_1_url','unit_cub_gallery_img_2_url','unit_cub_gallery_img_3_url','unit_cub_gallery_img_4_url',
+          'unit_boy_gallery_img_1_url','unit_boy_gallery_img_2_url','unit_boy_gallery_img_3_url','unit_boy_gallery_img_4_url',
+          'unit_venture_gallery_img_1_url','unit_venture_gallery_img_2_url','unit_venture_gallery_img_3_url','unit_venture_gallery_img_4_url',
+          'unit_rover_gallery_img_1_url','unit_rover_gallery_img_2_url','unit_rover_gallery_img_3_url','unit_rover_gallery_img_4_url'
+        ]],
+        ['top_images', ['index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url','index_testimonial_img_1_url','index_testimonial_img_2_url']],
+      ]);
+
+      // move groups into panels
+      groups.forEach((ids, key) => {
+        const container = panels[key];
+        if (!container) return;
+        ids.forEach(id => {
+          const input = document.getElementById(id);
+          if (!input) return;
+          const group = input.closest('.form-group') || input.parentElement;
+          if (group && !container.contains(group)) container.appendChild(group);
+        });
+      });
+
+      // hide original headings
+      document.querySelectorAll('#settings-form h2, #settings-form h3').forEach(h => {
+        if (!h.closest('.tab-panel')) h.style.display = 'none';
+      });
+
+      function activate(tab) {
+        tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+        localStorage.setItem('admin_settings_active_tab', tab);
+      }
+      const params = new URLSearchParams(location.search);
+      const initial = params.get('tab') || localStorage.getItem('admin_settings_active_tab') || 'contact';
+      activate(initial);
+      tabButtons.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
+    }
+
+    function isUrl(str){ try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } }
+    function setupUrlPreviews(){
+      const inputs = Array.from(document.querySelectorAll('#settings-form input[type="text"], #settings-form input[type="url"]'));
+      inputs.forEach(input => {
+        const key = input.name || input.id || '';
+        if (!key.endsWith('_url') && key !== 'group_crest_url') return;
+        let preview = input.parentElement.querySelector('.img-preview');
+        if (!preview){ preview = document.createElement('div'); preview.className='img-preview'; preview.innerHTML='<img alt="preview"><div class="hint"><a class="open-link" target="_blank" rel="noopener">新しいタブで開く</a></div>'; input.parentElement.appendChild(preview); }
+        const img = preview.querySelector('img');
+        const link = preview.querySelector('.open-link');
+        const update = () => {
+          const v = (input.value || '').trim();
+          if (v && isUrl(v)) { img.src = v; link.href = v; preview.style.display='block'; input.parentElement.classList.remove('invalid'); }
+          else { preview.style.display='none'; if (v) input.parentElement.classList.add('invalid'); else input.parentElement.classList.remove('invalid'); }
+        };
+        input.addEventListener('input', update);
+        update();
+      });
+    }
+
+    function applyPayloadToForm(payload){
+      Object.entries(payload || {}).forEach(([k,v]) => {
+        const el = document.querySelector(`#settings-form [name="${k}"]`) || document.getElementById(k);
+        if (el) el.value = v;
+      });
+    }
+
+    function setupDraftToolbar(){
+      const DKEY = 'admin_settings_draft';
+      const saveBtn = document.getElementById('btn-save-draft');
+      const restoreBtn = document.getElementById('btn-restore-draft');
+      const discardBtn = document.getElementById('btn-discard-draft');
+      const importBtn = document.getElementById('btn-import-task');
+
+      saveBtn?.addEventListener('click', () => {
+        const payload = {};
+        document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(el => { if (el.name) payload[el.name] = el.value; });
+        localStorage.setItem(DKEY, JSON.stringify(payload));
+        alert('下書きを保存しました');
+      });
+      restoreBtn?.addEventListener('click', () => {
+        const txt = localStorage.getItem(DKEY);
+        if (!txt) return alert('下書きがありません');
+        const data = JSON.parse(txt);
+        applyPayloadToForm(data);
+        setupUrlPreviews();
+        alert('下書きを復元しました');
+      });
+      discardBtn?.addEventListener('click', () => {
+        localStorage.removeItem(DKEY);
+        alert('下書きを破棄しました');
+      });
+      importBtn?.addEventListener('click', () => {
+        const sample = '例:\nbeaver https://...\ncub https://...\nboy https://...\nventure https://...\nrover https://...\n団章 https://...';
+        const text = prompt('task.txt の内容を貼り付けてください\n' + sample, '');
+        if (!text) return;
+        const map = {};
+        text.split(/\r?\n/).forEach(line => {
+          const t = line.trim(); if (!t || t.startsWith('#')) return;
+          const m = t.split(/\s+/, 2); if (m.length<2) return;
+          map[m[0].toLowerCase()] = m[1];
+        });
+        const setIf = (name, key) => { if (map[key]) { const el = document.getElementById(name); if (el) el.value = map[key]; } };
+        setIf('unit_beaver_logo_url','beaver');
+        setIf('unit_cub_logo_url','cub');
+        setIf('unit_boy_logo_url','boy');
+        setIf('unit_venture_logo_url','venture');
+        setIf('unit_rover_logo_url','rover');
+        setIf('group_crest_url','団章'); setIf('group_crest_url','dan'); setIf('group_crest_url','group'); setIf('group_crest_url','crest');
+        setupUrlPreviews();
+        alert('task.txtの内容を反映しました');
+      });
+    }
+
+    function setupDirtyGuard(){
+      let dirty = false;
+      const mark = () => { dirty = true; };
+      document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(el => el.addEventListener('input', mark));
+      window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+      const form = document.getElementById('settings-form');
+      form?.addEventListener('submit', () => { dirty = false; });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       await ensureLoggedIn();
+      initTabs();
       // 初期値ロード
       try {
         const res = await fetch('/api/settings/all');
@@ -127,6 +369,11 @@
       } catch (e) {
         document.getElementById('error-message').textContent = '設定の読み込みに失敗しました。';
       }
+
+      // 補助機能
+      setupUrlPreviews();
+      setupDraftToolbar();
+      setupDirtyGuard();
 
       // 保存
       document.getElementById('settings-form').addEventListener('submit', async (e) => {
@@ -167,4 +414,6 @@
   </script>
 </body>
 </html>
+
+
 
