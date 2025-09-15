@@ -659,6 +659,21 @@ app.get('/api/public-settings', async (req, res) => {
       'leader_boy',
       'leader_venture',
       'leader_rover',
+      // group crest and unit logos
+      'group_crest_url',
+      'unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url',
+      // unit leader photo and message
+      'unit_beaver_leader_photo_url','unit_beaver_leader_message',
+      'unit_cub_leader_photo_url','unit_cub_leader_message',
+      'unit_boy_leader_photo_url','unit_boy_leader_message',
+      'unit_venture_leader_photo_url','unit_venture_leader_message',
+      'unit_rover_leader_photo_url','unit_rover_leader_message',
+      // unit gallery images
+      'unit_beaver_gallery_img_1_url','unit_beaver_gallery_img_2_url','unit_beaver_gallery_img_3_url','unit_beaver_gallery_img_4_url',
+      'unit_cub_gallery_img_1_url','unit_cub_gallery_img_2_url','unit_cub_gallery_img_3_url','unit_cub_gallery_img_4_url',
+      'unit_boy_gallery_img_1_url','unit_boy_gallery_img_2_url','unit_boy_gallery_img_3_url','unit_boy_gallery_img_4_url',
+      'unit_venture_gallery_img_1_url','unit_venture_gallery_img_2_url','unit_venture_gallery_img_3_url','unit_venture_gallery_img_4_url',
+      'unit_rover_gallery_img_1_url','unit_rover_gallery_img_2_url','unit_rover_gallery_img_3_url','unit_rover_gallery_img_4_url',
       // プライバシーポリシー（サイトに表示）
       'privacy_contact_person',
       'privacy_contact_phone',

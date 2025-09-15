@@ -249,6 +249,7 @@ function applyUnitLogos() {
 // 追加: task.txt を読み取ってロゴ/隊章/団章を適用（既存処理の上から上書き）
 async function applyLogosFromTaskTxt() {
   try {
+    if (window.__brandingFromSettings) return; // すでに設定から適用済みなら何もしない
     const defaults = {
       beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
       cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
@@ -512,6 +513,75 @@ async function applySiteSettings() {
       const key = `index_testimonial_img_${i}_url`;
       if (el && settings[key]) el.src = settings[key];
     }
+
+    // 6. 団章（ヘッダー/フッター）
+    if (settings.group_crest_url) {
+      const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
+      if (headerImg) headerImg.src = settings.group_crest_url;
+      const footerImg = document.querySelector('footer img[alt*="団章"]');
+      if (footerImg) footerImg.src = settings.group_crest_url;
+    }
+
+    // 7. 各隊ロゴ（トップのカード、各隊ページの隊章）
+    const logosByUnit = {
+      beaver: settings.unit_beaver_logo_url,
+      cub: settings.unit_cub_logo_url,
+      boy: settings.unit_boy_logo_url,
+      venture: settings.unit_venture_logo_url,
+      rover: settings.unit_rover_logo_url,
+    };
+    const unitsSection2 = document.getElementById('units');
+    if (unitsSection2) {
+      const imgs = unitsSection2.querySelectorAll('.tilt-card-effect img');
+      const order = [logosByUnit.beaver, logosByUnit.cub, logosByUnit.boy, logosByUnit.venture, logosByUnit.rover];
+      for (let i = 0; i < Math.min(imgs.length, order.length); i++) {
+        if (order[i]) imgs[i].src = order[i];
+      }
+    }
+    const path = (location.pathname || '').toLowerCase();
+    const unitFromPath = Object.entries({
+      'unit-beaver.html': 'beaver',
+      'unit-cub.html': 'cub',
+      'unit-boy.html': 'boy',
+      'unit-venture.html': 'venture',
+      'unit-rover.html': 'rover',
+    }).find(([file]) => path.endsWith('/' + file) || path.endsWith(file));
+    if (unitFromPath) {
+      const unitKey = unitFromPath[1];
+      const crestImg = document.querySelector('main img[alt*="隊章"]') || document.querySelector('main img[alt*="章"]');
+      if (crestImg && logosByUnit[unitKey]) crestImg.src = logosByUnit[unitKey];
+
+      // 8. リーダー写真・メッセージ
+      const photoKey = `unit_${unitKey}_leader_photo_url`;
+      const msgKey = `unit_${unitKey}_leader_message`;
+      const leaderSection = document.querySelector('section[id^="leader-message"]') || document.getElementById('leader-message');
+      if (leaderSection) {
+        const leaderImg = leaderSection.querySelector('img');
+        if (leaderImg && settings[photoKey]) leaderImg.src = settings[photoKey];
+        // 最初の「強調された段落」をメッセージとして差し替え
+        const msgP = leaderSection.querySelector('p.italic, p.text-xl, p');
+        if (msgP && settings[msgKey]) msgP.textContent = settings[msgKey];
+      }
+
+      // 9. ギャラリー画像
+      const galleryId = `${unitKey}-gallery`;
+      const gallery = document.getElementById(galleryId);
+      if (gallery) {
+        const imgs = gallery.querySelectorAll('img');
+        for (let i = 1; i <= Math.min(4, imgs.length); i++) {
+          const key = `unit_${unitKey}_gallery_img_${i}_url`;
+          if (settings[key]) {
+            const imgEl = imgs[i - 1];
+            imgEl.src = settings[key];
+            const parentLink = imgEl.closest('a');
+            if (parentLink) parentLink.href = settings[key];
+          }
+        }
+      }
+    }
+
+    // 設定由来のブランディング適用済みフラグ（task.txt の上書きを防ぐ）
+    window.__brandingFromSettings = true;
 
   } catch (error) {
     console.error('Error applying site settings:', error);
