@@ -1,8 +1,14 @@
 {
   "ExpandedNodes": [
+<<<<<<< HEAD
     "",
     "\\admin"
   ],
   "SelectedNode": "\\testimonials.html",
+=======
+    ""
+  ],
+  "SelectedNode": "\\index.html",
+>>>>>>> 3d59f2e (活動ハイライト/各隊セクション自動生成・CTA hover・members削除・ニュース自動生成 ほか)
   "PreviewInSolutionExplorer": false
 }
