@@ -7,8 +7,8 @@
     --primary-color: #15803d; /* Tailwind green-700 (少し明るめに変更) */
     --primary-color-darker: #166534; /* Tailwind green-800 */
     --primary-color-hover: #16a34a; /* Tailwind green-600 */
-    --secondary-color: #facc15; /* Tailwind yellow-400 */
-    --secondary-color-hover: #eab308; /* Tailwind yellow-500 */
+    --secondary-color: #f59e0b; /* amber-500: 視認性改善 */
+    --secondary-color-hover: #d97706; /* amber-600 */
 
     --text-color-base: #1f2937; /* Tailwind gray-800 */
     --text-color-muted: #4b5563; /* Tailwind gray-600 */
@@ -38,6 +38,13 @@
 
     --transition-base: all 0.3s ease-in-out;
     --transition-fast: all 0.2s ease-in-out;
+    /* badges */
+    --badge-tag-bg: #ecfdf5;   /* emerald-50 */
+    --badge-tag-fg: #065f46;   /* emerald-800 */
+    --badge-unit-bg: #e0f2fe;  /* sky-100 */
+    --badge-unit-fg: #075985;  /* sky-800 */
+    --badge-cat-bg: #fef3c7;   /* amber-100 */
+    --badge-cat-fg: #92400e;   /* amber-800 */
 }
 
 /* 基本フォント設定 */
@@ -79,6 +86,13 @@ a {
 a:hover {
     color: var(--primary-color-hover);
     text-decoration: underline;
+}
+
+/* アクセシビリティ: focus-visible */
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgba(22, 163, 74, 0.35);
+    outline-offset: 2px;
+    border-radius: var(--border-radius-sm);
 }
 
 img {
@@ -309,6 +323,20 @@ header#main-header.scrolled {
 .news-item:hover h3, .activity-log-item:hover h3 {
     color: var(--primary-color-hover);
 }
+
+/* 統一バッジ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--border-radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.badge--tag { background-color: var(--badge-tag-bg); color: var(--badge-tag-fg); }
+.badge--unit { background-color: var(--badge-unit-bg); color: var(--badge-unit-fg); }
+.badge--category { background-color: var(--badge-cat-bg); color: var(--badge-cat-fg); }
 
 /* 記事メタ情報 (詳細ページ用) */
 .article-meta-info {
@@ -551,4 +579,41 @@ svg.icon {
 .gallery-image-hover:hover {
     transform: scale(1.05);
     box-shadow: var(--shadow-lg);
+}
+
+/* ============================================== */
+/* OVERRIDES (No Tailwind build at runtime)       */
+/* ============================================== */
+.form-input, .form-textarea, .form-select {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color-base);
+    box-shadow: var(--shadow-xs);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-submit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 2rem;
+    border: 1px solid transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    color: #fff;
+    background-color: var(--primary-color);
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.pagination-button {
+    padding: 0.5rem 0.75rem;
+    line-height: 1.25;
+    background-color: var(--bg-color-base);
+    border: 1px solid var(--border-color-base);
+    color: var(--text-color-muted);
+    transition: var(--transition-fast);
 }
