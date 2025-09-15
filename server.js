@@ -642,6 +642,53 @@ app.get(['/api/settings', '/api/settings/all'], authMiddleware, async (req, res)
   }
 });
 
+// 公開用の設定（認証不要）。サイト表示に必要な最低限のキーのみ返す
+app.get('/api/public-settings', async (req, res) => {
+  try {
+    const publicKeys = [
+      // 連絡先・フッター
+      'contact_address',
+      'contact_phone',
+      'contact_secondary_phone',
+      'contact_email',
+      'contact_person_name',
+      'contact_map_embed_html',
+      // 各部門リーダー名
+      'leader_beaver',
+      'leader_cub',
+      'leader_boy',
+      'leader_venture',
+      'leader_rover',
+      // プライバシーポリシー（サイトに表示）
+      'privacy_contact_person',
+      'privacy_contact_phone',
+      'privacy_contact_email',
+      'privacy_effective_date',
+      'privacy_last_updated_date',
+      // トップページ画像
+      'index_hero_image_url',
+      'index_highlight_img_1_url',
+      'index_highlight_img_2_url',
+      'index_highlight_img_3_url',
+      'index_testimonial_img_1_url',
+      'index_testimonial_img_2_url',
+    ];
+
+    const placeholders = publicKeys.map((_, i) => `$${i + 1}`).join(',');
+    const { rows } = await db.query(
+      `SELECT key, value FROM settings WHERE key IN (${placeholders})`,
+      publicKeys
+    );
+
+    const obj = {};
+    for (const r of rows) obj[r.key] = r.value ?? '';
+    return res.status(200).json(obj);
+  } catch (err) {
+    console.error('GET /api/public-settings error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /api/settings - 設定を保存
 app.post('/api/settings', authMiddleware, async (req, res) => {
   try {

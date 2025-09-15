@@ -55,6 +55,7 @@ document.addEventListener('alpine:init', registerMobileMenuStore);
  */
 document.addEventListener('DOMContentLoaded', () => {
   applySiteSettings(); // サイト設定をAPIから読み込み適用
+  applyUnitLogos(); // 各隊ロゴを適用
   initSmoothScroll();
   initFooterYear();
   initIntersectionObserver();
@@ -199,6 +200,98 @@ function initActivityDetailPage() {
 
 
 /**
+ * 各隊ロゴをタスク指定URLに差し替え
+ * - index.html のユニット紹介カード最上部の円形画像
+ * - 各 unit-*.html の冒頭「隊章」画像
+ */
+function applyUnitLogos() {
+  try {
+    const logos = {
+      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
+    };
+
+    const path = (location.pathname || '').toLowerCase();
+
+    // 1) トップのユニットカード（順番: ビーバー, カブ, ボーイ, ベンチャー, ローバー）
+    const unitsSection = document.getElementById('units');
+    if (unitsSection) {
+      const imgs = unitsSection.querySelectorAll('.tilt-card-effect img');
+      const order = [logos.beaver, logos.cub, logos.boy, logos.venture, logos.rover];
+      for (let i = 0; i < Math.min(imgs.length, order.length); i++) {
+        if (order[i]) imgs[i].src = order[i];
+      }
+    }
+
+    // 2) 各隊ページの「隊章」画像
+    const unitPathMap = {
+      'unit-beaver.html': 'beaver',
+      'unit-cub.html': 'cub',
+      'unit-boy.html': 'boy',
+      'unit-venture.html': 'venture',
+      'unit-rover.html': 'rover',
+    };
+    for (const [file, key] of Object.entries(unitPathMap)) {
+      if (path.endsWith('/' + file) || path.endsWith(file)) {
+        const img = document.querySelector('img[alt*="隊章"]');
+        if (img && logos[key]) img.src = logos[key];
+        break;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to apply unit logos:', e);
+  }
+}
+
+// 追加: ロゴ適用の改良版（ヘッダー/フッターの団章を保護しつつ、各隊ページの隊章だけ差し替え）
+function applyUnitLogosV2() {
+  try {
+    const logos = {
+      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
+    };
+
+    const path = (location.pathname || '').toLowerCase();
+    const unitPathMap = {
+      'unit-beaver.html': 'beaver',
+      'unit-cub.html': 'cub',
+      'unit-boy.html': 'boy',
+      'unit-venture.html': 'venture',
+      'unit-rover.html': 'rover',
+    };
+
+    for (const [file, key] of Object.entries(unitPathMap)) {
+      if (path.endsWith('/' + file) || path.endsWith(file)) {
+        // 各隊ページ: 「隊章」画像を差し替え（メイン領域のみ）
+        const crest = document.querySelector('main img[alt*="隊章"]') || document.querySelector('main img[alt*="章"]');
+        if (crest && logos[key]) crest.src = logos[key];
+
+        // ヘッダー/フッターの団章は指定URLに差し替え（サイト共通）
+        const danCrest = 'https://drive.usercontent.google.com/uc?export=view&id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ';
+        const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
+        if (headerImg) headerImg.src = danCrest;
+        const footerImg = document.querySelector('footer img[alt*="団章"]');
+        if (footerImg) footerImg.src = danCrest;
+        break;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to apply unit logos (V2):', e);
+  }
+}
+
+// この改良版をDOMContentLoaded後に呼び出して上書き適用
+document.addEventListener('DOMContentLoaded', () => {
+  try { applyUnitLogosV2(); } catch (e) { console.error(e); }
+});
+
+/**
  * (実装) お問い合わせフォームの初期化
  */
 function initContactForm() {
@@ -250,7 +343,7 @@ function initContactForm() {
  */
 async function applySiteSettings() {
   try {
-    const response = await fetch('/api/settings');
+    const response = await fetch('/api/public-settings');
     if (!response.ok) {
       console.error('Failed to fetch site settings: Network response was not ok');
       return;
