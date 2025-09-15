@@ -140,7 +140,7 @@ app.get('/api/session', (req, res) => {
 
 // ===== Settings API (互換) =====
 
-app.get(['/api/settings','/api/settings/all'], authMiddleware, async (req, res) => {
+app.get(['/api/settings','/api/settings/all'], async (req, res) => { // authMiddleware を削除
   try {
     const { rows } = await db.query('SELECT key, value FROM settings ORDER BY key ASC');
     if (req.path.endsWith('/all')) {
