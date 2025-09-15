@@ -246,6 +246,77 @@ function applyUnitLogos() {
   }
 }
 
+// 追加: task.txt を読み取ってロゴ/隊章/団章を適用（既存処理の上から上書き）
+async function applyLogosFromTaskTxt() {
+  try {
+    const defaults = {
+      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa',
+      dan: 'https://drive.usercontent.google.com/uc?export=view&id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ'
+    };
+
+    const res = await fetch('/task.txt', { cache: 'no-store' });
+    const text = res.ok ? await res.text() : '';
+    const logos = { ...defaults };
+    if (text) {
+      text.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        const parts = trimmed.split(/\s+/, 2);
+        if (parts.length === 2) {
+          const key = parts[0].toLowerCase();
+          const url = parts[1];
+          if (['beaver','cub','boy','venture','rover'].includes(key)) logos[key] = url;
+          if (key === '団章' || key === 'dan' || key === 'group' || key === 'crest') logos.dan = url;
+        }
+      });
+    }
+
+    const path = (location.pathname || '').toLowerCase();
+
+    // トップ「各隊の紹介」カード
+    const unitsSection = document.getElementById('units');
+    if (unitsSection) {
+      const imgs = unitsSection.querySelectorAll('.tilt-card-effect img');
+      const order = [logos.beaver, logos.cub, logos.boy, logos.venture, logos.rover];
+      for (let i = 0; i < Math.min(imgs.length, order.length); i++) {
+        if (order[i]) imgs[i].src = order[i];
+      }
+    }
+
+    // 各ユニットページの隊章
+    const unitPathMap = {
+      'unit-beaver.html': 'beaver',
+      'unit-cub.html': 'cub',
+      'unit-boy.html': 'boy',
+      'unit-venture.html': 'venture',
+      'unit-rover.html': 'rover',
+    };
+    for (const [file, key] of Object.entries(unitPathMap)) {
+      if (path.endsWith('/' + file) || path.endsWith(file)) {
+        const crest = document.querySelector('main img[alt*="隊章"]') || document.querySelector('main img[alt*="章"]');
+        if (crest && logos[key]) crest.src = logos[key];
+        break;
+      }
+    }
+
+    // 団章（ヘッダー/フッター）
+    const danCrest = logos.dan;
+    const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
+    if (headerImg && danCrest) headerImg.src = danCrest;
+    const footerImg = document.querySelector('footer img[alt*="団章"]');
+    if (footerImg && danCrest) footerImg.src = danCrest;
+  } catch (e) {
+    console.error('Failed to apply logos from task.txt:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  (async () => { try { await applyLogosFromTaskTxt(); } catch (e) { console.error(e); } })();
+});
 // 追加: ロゴ適用の改良版（ヘッダー/フッターの団章を保護しつつ、各隊ページの隊章だけ差し替え）
 function applyUnitLogosV2() {
   try {
