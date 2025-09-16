@@ -389,41 +389,146 @@ function initContactForm() {
   const form = document.getElementById('contact-form');
   if (!form) return;
 
+  form.setAttribute('novalidate', 'novalidate');
+
+  const successBox = document.getElementById('form-success-message');
+  const errorBox = document.getElementById('form-error-message');
+  const successDetail = successBox ? successBox.querySelector('[data-success-detail]') : null;
+  const errorDetail = errorBox ? errorBox.querySelector('[data-error-detail]') : null;
+  const defaultSuccessMessage = successDetail ? successDetail.textContent : '';
+  const defaultErrorMessage = errorDetail ? errorDetail.textContent : '';
+
+  const fieldErrors = {
+    name: document.getElementById('name-error'),
+    email: document.getElementById('email-error'),
+    message: document.getElementById('message-error'),
+  };
+
+  const hideAllFieldErrors = () => {
+    Object.values(fieldErrors).forEach((el) => {
+      if (el) el.classList.add('hidden');
+    });
+  };
+
+  const setFieldError = (field, message) => {
+    const el = fieldErrors[field];
+    if (!el) return;
+    if (message) {
+      el.textContent = message;
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  };
+
+  const hideFeedback = () => {
+    if (successBox) {
+      successBox.classList.add('hidden');
+      if (successDetail) successDetail.textContent = defaultSuccessMessage;
+    }
+    if (errorBox) {
+      errorBox.classList.add('hidden');
+      if (errorDetail) errorDetail.textContent = defaultErrorMessage;
+    }
+  };
+
+  const showSuccess = (message) => {
+    if (!successBox) return;
+    if (successDetail) successDetail.textContent = message || defaultSuccessMessage;
+    successBox.classList.remove('hidden');
+    successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const showError = (message) => {
+    if (!errorBox) return;
+    if (errorDetail) errorDetail.textContent = message || defaultErrorMessage;
+    errorBox.classList.remove('hidden');
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  form.addEventListener('input', (event) => {
+    const target = event.target;
+    if (target && target.name && fieldErrors[target.name]) {
+      fieldErrors[target.name].classList.add('hidden');
+    }
+  });
+
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
 
+    hideFeedback();
+    hideAllFieldErrors();
+
     const submitButton = form.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<span class="animate-spin h-5 w-5 mr-3 border-t-2 border-b-2 border-white rounded-full inline-block"></span> 送信中...';
+    const originalButtonText = submitButton ? submitButton.innerHTML : '';
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="animate-spin h-5 w-5 mr-3 border-t-2 border-b-2 border-white rounded-full inline-block"></span> 送信中...';
+    }
 
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    const payload = {
+      name: (formData.get('name') || '').toString().trim(),
+      email: (formData.get('email') || '').toString().trim(),
+      phone: (formData.get('phone') || '').toString().trim(),
+      subject: (formData.get('subject') || '').toString().trim(),
+      message: (formData.get('message') || '').toString().trim(),
+    };
+
+    const validationErrors = {};
+    if (!payload.name) {
+      validationErrors.name = 'お名前を入力してください。';
+    }
+    if (!payload.email) {
+      validationErrors.email = 'メールアドレスを入力してください。';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+      validationErrors.email = '有効なメールアドレスを入力してください。';
+    }
+    if (!payload.message) {
+      validationErrors.message = 'お問い合わせ内容を入力してください。';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      Object.entries(validationErrors).forEach(([field, message]) => setFieldError(field, message));
+      showError('入力内容を確認してください。');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+      }
+      return;
+    }
 
     try {
-      // ここで実際のAPIエンドポイントにデータを送信します
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.warn('Failed to parse contact form response JSON:', jsonError);
+      }
 
       if (response.ok) {
-        alert(result.message || 'お問い合わせありがとうございます。メッセージが正常に送信されました。');
+        showSuccess(result.message || defaultSuccessMessage);
         form.reset();
       } else {
-        throw new Error(result.message || 'サーバーでエラーが発生しました。');
+        if (result && result.details) {
+          Object.entries(result.details).forEach(([field, message]) => setFieldError(field, message));
+        }
+        showError(result && result.message ? result.message : defaultErrorMessage || '送信に失敗しました。時間をおいて再度お試しください。');
       }
     } catch (error) {
       console.error('フォーム送信エラー:', error);
-      alert('メッセージの送信に失敗しました。時間をおいて再度お試しください。');
+      showError('送信に失敗しました。時間をおいて再度お試しください。');
     } finally {
-      submitButton.disabled = false;
-      submitButton.innerHTML = originalButtonText;
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+      }
     }
   });
 }

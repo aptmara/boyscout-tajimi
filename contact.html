@@ -7,28 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary: '#15803d',
-                    "primary-dark": '#166534',
-                    secondary: '#f59e0b'
-                },
-                fontFamily: {
-                    sans: ['Noto Sans JP', 'sans-serif'],
-                    heading: ['M PLUS Rounded 1c', 'sans-serif']
-                }
-            }
-        },
-        corePlugins: {
-            preflight: false
-        }
-    };
-    </script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
     <link rel="stylesheet" href="common-styles.css">
     <script defer src="common-scripts.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -49,8 +27,7 @@
                 <a href="activity-log.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">活動内容</a>
                 <a href="join.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">入団案内</a>
                 <a href="news-list.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お知らせ</a>
-                <a href="contact.html" class="text-green-600 font-bold transition-colors duration-300">お問い合わせ</a> 
-                
+                <a href="contact.html" class="text-green-600 font-bold transition-colors duration-300">お問い合わせ</a>
             </div>
             <div class="md:hidden">
                 <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="モバイルメニューを開閉" class="text-gray-700 hover:text-green-600 focus:outline-none p-2 rounded-md">
@@ -68,12 +45,10 @@
             <a href="join.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">入団案内</a>
             <a href="news-list.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お知らせ</a>
             <a href="contact.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-green-600 bg-green-50 transition-colors duration-200 font-bold">お問い合わせ</a>
-            
         </div>
     </header>
 
     <main class="pt-8 pb-16">
-        
         <section class="bg-blue-600 text-white py-12 md:py-20 fade-in-section">
             <div class="container mx-auto px-6 text-center">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">お問い合わせ</h1>
@@ -94,7 +69,7 @@
                                     <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                     <div>
                                         <h4 class="font-semibold">所在地 (主な活動場所)</h4>
-                                        <p class="contact-address">〒507-0033 岐阜県多治見市本町１丁目１２２ (多治見市役所駅北庁舎)</p> <!-- 管理画面から更新可 -->
+                                        <p class="contact-address">〒507-0033 岐阜県多治見市本町１丁目１２２ (多治見市役所駅北庁舎)</p>
                                         <p class="text-sm text-gray-500">※活動により場所が変更になる場合があります。</p>
                                     </div>
                                 </div>
@@ -115,6 +90,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div>
                             <h3 class="text-2xl font-semibold text-green-700 mb-4">アクセスマップ</h3>
                             <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
@@ -127,33 +103,28 @@
 
                     <div class="bg-gray-50 p-8 md:p-10 rounded-xl shadow-xl card-hover-effect">
                         <h2 class="text-3xl font-bold text-green-700 mb-8">お問い合わせフォーム</h2>
-                        <form id="contact-form" action="#" method="POST" class="space-y-6">
+                        <form id="contact-form" action="#" method="POST" class="space-y-6" novalidate>
                             <div>
                                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">お名前 <span class="text-red-500">*</span></label>
-                                <input type="text" name="name" id="name" autocomplete="name" required
-                                       class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                                <input type="text" name="name" id="name" autocomplete="name" required class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
                                 <p class="text-xs text-red-500 mt-1 hidden" id="name-error">お名前を入力してください。</p>
                             </div>
                             <div>
                                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span class="text-red-500">*</span></label>
-                                <input type="email" name="email" id="email" autocomplete="email" required
-                                       class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                                <input type="email" name="email" id="email" autocomplete="email" required class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
                                 <p class="text-xs text-red-500 mt-1 hidden" id="email-error">有効なメールアドレスを入力してください。</p>
                             </div>
                             <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">電話番号 (任意)</label>
-                                <input type="tel" name="phone" id="phone" autocomplete="tel"
-                                       class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                                <input type="tel" name="phone" id="phone" autocomplete="tel" class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
                             </div>
                             <div>
                                 <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">件名</label>
-                                <input type="text" name="subject" id="subject"
-                                       class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                                <input type="text" name="subject" id="subject" class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
                             </div>
                             <div>
                                 <label for="message" class="block text-sm font-medium text-gray-700 mb-1">お問い合わせ内容 <span class="text-red-500">*</span></label>
-                                <textarea id="message" name="message" rows="5" required
-                                          class="form-textarea mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300"></textarea>
+                                <textarea id="message" name="message" rows="5" required class="form-textarea mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300"></textarea>
                                 <p class="text-xs text-red-500 mt-1 hidden" id="message-error">お問い合わせ内容を入力してください。</p>
                             </div>
                             <div class="pt-2">
@@ -161,19 +132,18 @@
                                     ご入力いただいた個人情報は、お問い合わせへの対応および連絡のためにのみ利用いたします。
                                     詳細は<a href="privacy.html" class="text-green-600 hover:underline">プライバシーポリシー</a>をご確認ください。
                                 </p>
-                                <button type="submit"
-                                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-all duration-300 ease-in-out transform hover:scale-105">
+                                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-all duration-300 ease-in-out transform hover:scale-105">
                                     送信する
                                 </button>
                             </div>
                         </form>
-                        <div id="form-success-message" class="hidden mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md">
+                        <div id="form-success-message" class="hidden mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md" role="status" aria-live="polite">
                             <p class="font-semibold">お問い合わせありがとうございます！</p>
-                            <p>メッセージが正常に送信されました。担当者より折り返しご連絡いたしますので、今しばらくお待ちください。</p>
+                            <p data-success-detail>メッセージが正常に送信されました。担当者より折り返しご連絡いたしますので、今しばらくお待ちください。</p>
                         </div>
-                        <div id="form-error-message" class="hidden mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md">
+                        <div id="form-error-message" class="hidden mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md" role="alert" aria-live="assertive">
                             <p class="font-semibold">送信に失敗しました</p>
-                            <p>恐れ入りますが、時間をおいて再度お試しいただくか、お電話にてお問い合わせください。</p>
+                            <p data-error-detail>恐れ入りますが、時間をおいて再度お試しいただくか、お電話にてお問い合わせください。</p>
                         </div>
                     </div>
                 </div>
@@ -202,7 +172,6 @@
                         <li><a href="join.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">入団案内</a></li>
                         <li><a href="news-list.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お知らせ</a></li>
                         <li><a href="contact.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お問い合わせ</a></li>
-                        
                         <li><a href="sitemap.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">サイトマップ</a></li>
                         <li><a href="privacy.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">プライバシーポリシー</a></li>
                     </ul>
@@ -229,7 +198,5 @@
             </div>
         </div>
     </footer>
-
-    
 </body>
 </html>

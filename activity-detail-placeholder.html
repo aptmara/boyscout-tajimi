@@ -7,34 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary: '#15803d',
-                    "primary-dark": '#166534',
-                    secondary: '#f59e0b'
-                },
-                fontFamily: {
-                    sans: ['Noto Sans JP', 'sans-serif'],
-                    heading: ['M PLUS Rounded 1c', 'sans-serif']
-                }
-            }
-        },
-        corePlugins: {
-            preflight: false
-        }
-    };
-    </script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
     <link rel="stylesheet" href="common-styles.css">
     <link rel="stylesheet" href="styles/lightbox.css">
     <script defer src="common-scripts.js"></script>
     <script defer src="lightbox.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    </head>
+</head>
 <body class="bg-gray-100 text-gray-800 antialiased" x-data>
 
     <header id="main-header" class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 transition-all duration-300">
@@ -48,11 +26,10 @@
             <div class="hidden md:flex items-center space-x-5 lg:space-x-7">
                 <a href="about.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">団について</a>
                 <a href="index.html#units" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">各隊の紹介</a>
-                <a href="activity-log.html" class="text-green-600 font-bold transition-colors duration-300">活動内容</a> {/* 現在のセクション */}
+                <a href="activity-log.html" class="text-green-600 font-bold transition-colors duration-300">活動内容</a> <!-- 現在のセクション -->
                 <a href="join.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">入団案内</a>
                 <a href="news-list.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お知らせ</a>
                 <a href="contact.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お問い合わせ</a>
-                
             </div>
             <div class="md:hidden">
                 <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="モバイルメニューを開閉" class="text-gray-700 hover:text-green-600 focus:outline-none p-2 rounded-md">
@@ -70,12 +47,10 @@
             <a href="join.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">入団案内</a>
             <a href="news-list.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お知らせ</a>
             <a href="contact.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お問い合わせ</a>
-            
         </div>
     </header>
 
     <main class="pt-8 pb-16">
-        
         <nav class="container mx-auto px-6 py-4 fade-in-section" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
@@ -100,9 +75,9 @@
         </nav>
 
         <article id="activity-article-container" class="container mx-auto px-4 sm:px-6 py-10 bg-white rounded-xl shadow-xl fade-in-section" style="transition-delay: 0.2s;">
-            {/* コンテンツはJavaScript (common-scripts.jsのinitActivityDetailPage) で挿入されます */}
+            <!-- コンテンツは JavaScript (common-scripts.js の initActivityDetailPage) で挿入 -->
         </article>
-        
+
         <div id="article-not-found" class="hidden container mx-auto px-6 py-20 text-center fade-in-section">
             <div class="bg-white p-12 rounded-xl shadow-xl max-w-lg mx-auto">
                 <svg class="w-24 h-24 text-red-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM10 14L14 10M10 10l4 4"></path></svg>
@@ -111,7 +86,6 @@
                 <a href="activity-log.html" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-300">活動内容</a>
             </div>
         </div>
-
     </main>
 
     <footer class="bg-gray-800 text-gray-300 py-16">
@@ -135,7 +109,6 @@
                         <li><a href="join.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">入団案内</a></li>
                         <li><a href="news-list.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お知らせ</a></li>
                         <li><a href="contact.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お問い合わせ</a></li>
-                        
                         <li><a href="sitemap.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">サイトマップ</a></li>
                         <li><a href="privacy.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">プライバシーポリシー</a></li>
                     </ul>
@@ -163,7 +136,6 @@
         </div>
     </footer>
 
-    
     <script src="dynamic-activities.v2.js" defer></script>
 </body>
 </html>
