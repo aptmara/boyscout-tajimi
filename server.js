@@ -507,7 +507,7 @@ app.get('/api/activities', async (req, res) => {
 app.get('/api/activities/:id', async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT id, title, content, category, activity_date, image_urls, created_at
+      `SELECT id, title, content, category, unit, tags, activity_date, image_urls, created_at
        FROM activities
        WHERE id = $1`,
       [req.params.id]

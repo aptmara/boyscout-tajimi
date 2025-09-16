@@ -26,7 +26,7 @@
         .panel-columns { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 860px) { .panel-columns { grid-template-columns: 1fr; } }
         .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 6px 0 10px; }
-        .toolbar .btn { background:#fff; border:1px solid var(--admin-border); padding:8px 12px; border-radius:8px; cursor:pointer; }
+        .toolbar .btn { background:#fff; color: var(--admin-text); border:1px solid var(--admin-border); padding:8px 12px; border-radius:8px; cursor:pointer; }
         .form-group.invalid input { border-color: var(--admin-danger); }
         .hint { color: var(--admin-text-muted); font-size: 12px; margin-top: 4px; }
         .img-preview { border:1px dashed var(--admin-border); padding:8px; border-radius:8px; background:#fafafa; margin-top:6px; display:none; }
@@ -41,6 +41,7 @@
         <button type="button" class="tab-btn" data-tab="leader_profile">リーダー写真/メッセージ</button>
         <button type="button" class="tab-btn" data-tab="gallery">ギャラリー</button>
         <button type="button" class="tab-btn" data-tab="top_images">トップ画像</button>
+        <button type="button" class="tab-btn" data-tab="activity">�K�ɗ���</button>
       </nav>
 
       <div class="toolbar">
@@ -57,6 +58,17 @@
       <div id="tab-leader_profile" class="tab-panel"><div class="panel-columns" data-fields="leader_profile"></div></div>
       <div id="tab-gallery" class="tab-panel"><div class="panel-columns" data-fields="gallery"></div></div>
       <div id="tab-top_images" class="tab-panel"><div class="panel-columns" data-fields="top_images"></div></div>
+      <div id="tab-activity" class="tab-panel">
+        <div class="toolbar" style="margin-top:0; display:flex; gap:8px; align-items:center;">
+          <input type="search" id="activity-search" placeholder="活動を検索..." aria-label="活動 検索" style="flex:1;min-width:220px">
+          <select id="activity-unit-filter" aria-label="隊フィルター">
+            <option value="">すべての隊</option>
+          </select>
+          <a href="activity-edit.html"><button type="button" class="btn btn-secondary">新規作成</button></a>
+        </div>
+        <ul id="activity-list" class="news-list"></ul>
+        <p id="activity-error" class="error-message"></p>
+      </div>
       <h2>連絡先・共通情報</h2>
       <div class="form-group">
         <label for="contact_address">住所</label>
@@ -266,6 +278,7 @@
         tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
         localStorage.setItem('admin_settings_active_tab', tab);
+        if (tab === 'activity') { ensureActivitiesLoaded(); }
       }
       const params = new URLSearchParams(location.search);
       const initial = params.get('tab') || localStorage.getItem('admin_settings_active_tab') || 'contact';
@@ -297,6 +310,97 @@
       Object.entries(payload || {}).forEach(([k,v]) => {
         const el = document.querySelector(`#settings-form [name="${k}"]`) || document.getElementById(k);
         if (el) el.value = v;
+      });
+    }
+
+    // ---- Activity viewer (read-only) ----
+    let activitiesLoaded = false;
+    let activitiesData = [];
+    function escapeHTML(str){
+      return String(str||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+    }
+    function formatDate(iso){ try { const d = new Date(iso); if (isNaN(d)) return ''; return d.toLocaleDateString('ja-JP'); } catch { return ''; } }
+    async function loadActivities(){
+      try {
+        const res = await fetch('/api/activities?limit=200');
+        if (!res.ok) throw new Error('failed');
+        activitiesData = await res.json();
+      } catch (e) {
+        const err = document.getElementById('activity-error');
+        if (err) err.textContent = '�K�ɗ���̓ǂݍ��݂Ɏ��s���܂����B';
+        activitiesData = [];
+      }
+    }
+    async function loadUnitsToFilter(){
+      try {
+        const r = await fetch('/api/settings/all');
+        if (!r.ok) return;
+        const rows = await r.json();
+        const map = rows.reduce((acc, it) => (acc[it.key] = it.value, acc), {});
+        const units = JSON.parse(map.units_json || '[]');
+        const sel = document.getElementById('activity-unit-filter');
+        if (sel) {
+          sel.innerHTML = '<option value="">すべての隊</option>' + (Array.isArray(units)?units.map(u=>`<option value="${(u.slug||'').toString()}">${(u.label||u.slug||'').toString()}</option>`).join(''): '');
+        }
+      } catch {}
+    }
+    function renderActivities(){
+      const list = document.getElementById('activity-list'); if (!list) return;
+      const q = String(document.getElementById('activity-search')?.value || '').toLowerCase();
+      const unit = String(document.getElementById('activity-unit-filter')?.value || '').trim().toLowerCase();
+      list.innerHTML = '';
+      const items = activitiesData.filter(a => {
+        const hay = `${(a.title||'')} ${(a.category||'')} ${(a.unit||'')} ${(Array.isArray(a.tags)?a.tags.join(' '):'')}`.toLowerCase();
+        const okQ = !q || hay.includes(q);
+        const okU = !unit || String(a.unit||'').toLowerCase() === unit;
+        return okQ && okU;
+      });
+      if (!items.length){ list.innerHTML = '<li>����������Ȃ��K�ɗ����͂���܂���</li>'; return; }
+      for (const a of items){
+        const li = document.createElement('li');
+        li.className = 'news-item';
+        const dateStr = a.activity_date ? formatDate(a.activity_date) : '';
+        const unitStr = a.unit ? escapeHTML(a.unit) : '';
+        const catStr = a.category ? escapeHTML(a.category) : '';
+        const tagsStr = Array.isArray(a.tags) && a.tags.length ? '#' + a.tags.join(' #') : '';
+        li.innerHTML = `
+          <span class="news-item-title">${escapeHTML(a.title)}</span>
+          <span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">${catStr || '������'}</span>
+          ${unitStr ? `<span class=\"inline-block text-xs px-2 py-1 rounded bg-gray-100 text-gray-700\">${unitStr}</span>` : ''}
+          ${dateStr ? `<span class=\"inline-block text-xs px-2 py-1 rounded bg-gray-100 text-gray-700\">${dateStr}</span>` : ''}
+          ${tagsStr ? `<div class=\"text-xs text-gray-500 mt-1\">${escapeHTML(tagsStr)}</div>` : ''}
+          <div class="news-item-actions">
+            <a href="/activity-log.html" target="_blank" rel="noopener"><button class="btn-ghost">公開ページ</button></a>
+            <a href="/admin/activity-edit.html?id=${a.id}"><button>編集</button></a>
+            <button class="danger" data-action="delete" data-id="${a.id}">削除</button>
+          </div>
+        `;
+        list.appendChild(li);
+      }
+    }
+    async function ensureActivitiesLoaded(){
+      if (!activitiesLoaded){ await Promise.all([loadUnitsToFilter(), loadActivities()]); activitiesLoaded = true; }
+      renderActivities();
+    }
+    function setupActivityFilters(){
+      const s = document.getElementById('activity-search');
+      const u = document.getElementById('activity-unit-filter');
+      s?.addEventListener('input', renderActivities);
+      u?.addEventListener('change', renderActivities);
+      document.getElementById('activity-list')?.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('button[data-action="delete"]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (!confirm('この活動を削除しますか？')) return;
+        try {
+          const res = await fetch(`/api/activities/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('failed');
+          activitiesData = activitiesData.filter(x => String(x.id) !== String(id));
+          renderActivities();
+        } catch {
+          alert('削除に失敗しました');
+        }
       });
     }
 
@@ -374,6 +478,7 @@
       setupUrlPreviews();
       setupDraftToolbar();
       setupDirtyGuard();
+      setupActivityFilters();
 
       // 保存
       document.getElementById('settings-form').addEventListener('submit', async (e) => {
