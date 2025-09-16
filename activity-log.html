@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="common-styles.css">
+    <link rel="stylesheet" href="styles/activity-dashboard.css">
     <script defer src="common-scripts.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script defer src="filters-dynamic.js"></script>
@@ -64,53 +65,56 @@
 
         <section class="py-10 bg-gray-50 fade-in-section" style="transition-delay: 0.2s;">
             <div class="container mx-auto px-6">
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <div class="grid md:grid-cols-4 gap-6 items-end">
+                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6" id="activity-filter-panel">
+                    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <label for="activity-category-filter" class="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                            <select id="activity-category-filter" name="activity-category-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                                <option value="all">すべてのカテゴリ</option>
-                                <option value="ビーバー隊">ビーバー隊</option>
-                                <option value="カブ隊">カブ隊</option>
-                                <option value="ボーイ隊">ボーイ隊</option>
-                                <option value="ベンチャー隊">ベンチャー隊</option>
-                                <option value="ローバー隊">ローバー隊</option>
-                                <option value="団行事">団行事</option>
-                                <option value="地域奉仕">地域奉仕</option>
-                                <option value="キャンプ">キャンプ</option>
-                                <option value="技能章">技能章</option>
-                            </select>
+                            <p class="text-lg font-semibold text-gray-800">目的の情報へ素早くアクセス</p>
+                            <p class="text-sm text-gray-500">カテゴリやタグ、キーワードを自由に組み合わせて活動を探せます。</p>
                         </div>
+                        <button type="button" id="activity-reset-filters" class="chip chip--ghost self-start md:self-center">条件をリセット</button>
+                    </div>
+
+                    <div class="space-y-6">
                         <div>
-                            <label for="activity-date-filter" class="block text-sm font-medium text-gray-700 mb-1">活動月</label>
-                            <input type="month" id="activity-date-filter" name="activity-date-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">カテゴリ</p>
+                            <div id="activity-category-chips" class="flex flex-wrap gap-2"></div>
                         </div>
+
                         <div>
-                            <label for="activity-unit-filter" class="block text-sm font-medium text-gray-700 mb-1">隊</label>
-                            <select id="activity-unit-filter" name="activity-unit-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                                <option value="">すべての隊</option>
-                            </select>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">隊</p>
+                            <div id="activity-unit-chips" class="flex flex-wrap gap-2"></div>
                         </div>
-                        <div class="md:col-span-2">
-                            <label for="activity-tags-filter" class="block text-sm font-medium text-gray-700 mb-1">タグ</label>
-                            <select id="activity-tags-filter" name="activity-tags-filter" multiple size="4" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></select>
+
+                        <div class="space-y-3">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">人気タグ</p>
+                                <button type="button" id="activity-tag-mode-toggle" class="chip chip--outline text-xs" aria-pressed="false" aria-label="タグの組み合わせ方法を切り替え">タグ条件: OR</button>
+                            </div>
+                            <div id="activity-tag-bar" class="flex gap-2 overflow-x-auto pb-2 custom-scroll" role="list"></div>
                         </div>
-                        <div class="md:col-span-2">
-                            <label for="activity-search" class="block text-sm font-medium text-gray-700 mb-1">検索</label>
-                            <input type="search" id="activity-search" name="activity-search" placeholder="キーワードで検索" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+
+                        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr,1fr,1fr]">
+                            <label class="flex flex-col gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">キーワード検索</span>
+                                <div class="relative flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.64 5.64a7.5 7.5 0 0010.61 10.61z"/></svg>
+                                    <input type="search" id="activity-search" name="activity-search" placeholder="タイトルや本文、タグから検索" class="flex-1 bg-transparent focus:outline-none text-sm text-gray-700" autocomplete="off">
+                                </div>
+                            </label>
+                            <label class="flex flex-col gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">活動月</span>
+                                <input type="month" id="activity-date-filter" name="activity-date-filter" class="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 focus:border-green-500 focus:ring-2 focus:ring-green-100 transition" />
+                            </label>
+                            <div class="flex flex-col gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">並び替え</span>
+                                <div id="activity-sort-chips" class="flex flex-wrap gap-2"></div>
+                            </div>
                         </div>
-                        <div class="md:col-span-2">
-                            <button type="button" id="activity-filter-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-md shadow-sm transition-all duration-300 ease-in-out flex items-center justify-center active:bg-green-800 active:scale-95">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                                </svg>
-                                <span id="activity-filter-button-text">絞り込む</span>
-                                <svg id="activity-filter-loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                            </button>
-                        </div>
+                    </div>
+
+                    <div id="activity-active-filter-bar" class="hidden flex flex-wrap items-center gap-2 border-t border-gray-100 pt-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">選択中:</span>
+                        <div id="activity-active-filters" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
             </div>
@@ -118,8 +122,24 @@
 
         <section class="py-12 md:py-16 fade-in-section" style="transition-delay: 0.4s;">
             <div class="container mx-auto px-6">
-                <div id="activity-log-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">活動一覧</h2>
+                        <p id="activity-results-count" class="text-sm text-gray-500">読み込み中...</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <svg class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>タグをクリックすると条件に追加できます。</span>
+                    </div>
                 </div>
+
+                <div id="activity-list-loading" class="flex items-center justify-center py-12">
+                    <span class="loading-spinner" aria-hidden="true"></span>
+                    <span class="ml-3 text-sm text-gray-500">活動を読み込んでいます...</span>
+                </div>
+
+                <div id="activity-log-container" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+
                 <div id="no-activity-results" class="hidden text-center text-gray-600 py-10">
                     <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
                         <svg class="w-20 h-20 text-yellow-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 10l4 4m0-4l-4 4"></path></svg>
@@ -128,8 +148,12 @@
                         <p class="text-sm mt-4">フィルター条件を変更するか、後日改めてご確認ください。</p>
                     </div>
                 </div>
-                <nav id="activity-pagination-container" aria-label="活動報告ページネーション" class="mt-16 flex justify-center fade-in-section" style="transition-delay: 0.6s;">
-                </nav>
+
+                <div class="flex justify-center mt-10">
+                    <button type="button" id="activity-load-more-button" class="hidden chip chip--solid px-6 py-3 text-base">もっと見る</button>
+                </div>
+                <div id="activity-list-end" class="hidden text-center text-sm text-gray-500 mt-6">すべての活動を表示しました</div>
+                <div id="activity-load-more-sentinel" class="h-px w-full"></div>
             </div>
         </section>
 
