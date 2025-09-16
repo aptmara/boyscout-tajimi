@@ -438,6 +438,7 @@ async function applySiteSettings() {
       return;
     }
     const settings = await response.json();
+    window.__SITE_PUBLIC_SETTINGS = settings;
 
     // 1. フッターや連絡先ページの共通情報を更新
     document.querySelectorAll('.contact-address').forEach(el => {
@@ -599,6 +600,8 @@ async function applySiteSettings() {
 
     // 設定由来のブランディング適用済みフラグ（task.txt の上書きを防ぐ）
     window.__brandingFromSettings = true;
+
+    document.dispatchEvent(new CustomEvent('siteSettingsApplied', { detail: settings }));
 
   } catch (error) {
     console.error('Error applying site settings:', error);

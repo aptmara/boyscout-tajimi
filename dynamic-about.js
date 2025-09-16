@@ -1,0 +1,273 @@
+// dynamic-about.js
+// about.html の各隊紹介と指導者カードをサイト設定から動的生成
+
+(function(){
+  const UNIT_CARD_CONFIGS = [
+    {
+      key: 'beaver',
+      name: 'ビーバー隊',
+      ageRange: '(年長～小学2年生)',
+      motto: 'みんなと仲良く遊ぶ',
+      description: '自然の中での遊びや集団行動を通じて、社会性を育みます。歌やゲーム、簡単な工作など、楽しい活動が中心です。',
+      detailUrl: 'unit-beaver.html',
+      buttonLabel: 'ビーバー隊の詳細',
+      logoKey: 'unit_beaver_logo_url',
+      fallbackImage: 'https://placehold.co/120x120/FFC107/FFFFFF?text=ビーバー',
+      imageBorderClass: 'border-yellow-300',
+      titleClass: 'text-yellow-600',
+      buttonClass: 'bg-yellow-500 hover:bg-yellow-600'
+    },
+    {
+      key: 'cub',
+      name: 'カブ隊',
+      ageRange: '(小学3年生～小学5年生)',
+      motto: 'いつも元気',
+      description: '組（チーム）での活動を通じて、協調性やルールを守ることの大切さを学びます。野外活動の基礎や工作、ゲームなどを行います。',
+      detailUrl: 'unit-cub.html',
+      buttonLabel: 'カブ隊の詳細',
+      logoKey: 'unit_cub_logo_url',
+      fallbackImage: 'https://placehold.co/120x120/4CAF50/FFFFFF?text=カブ',
+      imageBorderClass: 'border-green-300',
+      titleClass: 'text-green-600',
+      buttonClass: 'bg-green-500 hover:bg-green-600'
+    },
+    {
+      key: 'boy',
+      name: 'ボーイ隊',
+      ageRange: '(小学6年生～中学3年生)',
+      motto: 'そなえよつねに',
+      description: '班（パトロール）活動を基本とし、計画性、リーダーシップ、野外技能（キャンプ、ハイキング、救急法など）を本格的に学びます。',
+      detailUrl: 'unit-boy.html',
+      buttonLabel: 'ボーイ隊の詳細',
+      logoKey: 'unit_boy_logo_url',
+      fallbackImage: 'https://placehold.co/120x120/2196F3/FFFFFF?text=ボーイ',
+      imageBorderClass: 'border-blue-300',
+      titleClass: 'text-blue-600',
+      buttonClass: 'bg-blue-500 hover:bg-blue-600'
+    },
+    {
+      key: 'venture',
+      name: 'ベンチャー隊',
+      ageRange: '(高校生年代)',
+      motto: 'われらはパイオニア / 挑戦',
+      description: '自らプロジェクトを企画・実行し、より高度なスカウト活動に挑戦します。',
+      detailUrl: 'unit-venture.html',
+      buttonLabel: 'ベンチャー隊の詳細',
+      logoKey: 'unit_venture_logo_url',
+      fallbackImage: 'https://placehold.co/120x120/9C27B0/FFFFFF?text=ベンチャー',
+      imageBorderClass: 'border-purple-300',
+      titleClass: 'text-purple-600',
+      buttonClass: 'bg-purple-500 hover:bg-purple-600'
+    },
+    {
+      key: 'rover',
+      name: 'ローバー隊',
+      ageRange: '(18歳～25歳)',
+      motto: '奉仕 (Service)',
+      description: '社会への奉仕を実践し、自己の確立とより良い社会の実現を目指します。',
+      detailUrl: 'unit-rover.html',
+      buttonLabel: 'ローバー隊の詳細',
+      logoKey: 'unit_rover_logo_url',
+      fallbackImage: 'https://placehold.co/120x120/F44336/FFFFFF?text=ローバー',
+      imageBorderClass: 'border-red-300',
+      titleClass: 'text-red-600',
+      buttonClass: 'bg-red-500 hover:bg-red-600'
+    }
+  ];
+
+  const LEADER_CARD_CONFIGS = [
+    {
+      key: 'beaver',
+      nameKey: 'leader_beaver',
+      photoKey: 'unit_beaver_leader_photo_url',
+      messageKey: 'unit_beaver_leader_message',
+      defaultName: '佐藤 愛',
+      role: 'ビーバー隊 リーダー',
+      defaultMessage: '「ビーバー隊では、子どもたちが初めて出会う『冒険』を大切にしています。たくさんの『なぜ？』『おもしろい！』を見つけ、仲間と一緒に成長していく姿を、私たちリーダーも楽しみにしています。ぜひ一度、元気なビーバーたちに会いに来てください！」',
+      fallbackPhoto: 'https://placehold.co/150x150/FDBA74/FFFFFF?text=ビーバー',
+      imageBorderClass: 'border-yellow-300',
+      nameClass: 'text-yellow-700',
+      roleClass: 'text-yellow-600'
+    },
+    {
+      key: 'cub',
+      nameKey: 'leader_cub',
+      photoKey: 'unit_cub_leader_photo_url',
+      messageKey: 'unit_cub_leader_message',
+      defaultName: '鈴木 一郎',
+      role: 'カブ隊 リーダー',
+      defaultMessage: '「カブ隊では、『組』の仲間たちと力を合わせ、様々なことに挑戦します。失敗を恐れず、何度もチャレンジする中で、スカウトたちはたくましく成長していきます。元気いっぱいのカブスカウトたちと一緒に、たくさんの『できた！』を分かち合いましょう！」',
+      fallbackPhoto: 'https://placehold.co/150x150/6EE7B7/FFFFFF?text=カブ',
+      imageBorderClass: 'border-green-300',
+      nameClass: 'text-green-700',
+      roleClass: 'text-green-600'
+    },
+    {
+      key: 'boy',
+      nameKey: 'leader_boy',
+      photoKey: 'unit_boy_leader_photo_url',
+      messageKey: 'unit_boy_leader_message',
+      defaultName: '渡辺 健',
+      role: 'ボーイ隊 隊長',
+      defaultMessage: '「ボーイ隊は、スカウトたちが自らの手で活動を創り上げていく場所です。『そなえよつねに』の精神で、どんな困難にも立ち向かえるたくましさと、仲間を思いやる心を育んでほしいと願っています。挑戦と成長に満ちた日々を、私たちと一緒に送りましょう！」',
+      fallbackPhoto: 'https://placehold.co/150x150/60A5FA/FFFFFF?text=ボーイ',
+      imageBorderClass: 'border-blue-300',
+      nameClass: 'text-blue-700',
+      roleClass: 'text-blue-600'
+    },
+    {
+      key: 'venture',
+      nameKey: 'leader_venture',
+      photoKey: 'unit_venture_leader_photo_url',
+      messageKey: 'unit_venture_leader_message',
+      defaultName: '伊藤 誠',
+      role: 'ベンチャー隊 隊長',
+      defaultMessage: '「ベンチャー隊は、スカウトたちが自らの興味関心を追求し、社会への視野を広げるためのプラットフォームです。私たちは、彼らの『やってみたい！』という情熱を尊重し、その実現をサポートします。失敗を恐れず、大きな夢に挑戦してください！」',
+      fallbackPhoto: 'https://placehold.co/150x150/A855F7/FFFFFF?text=ベンチャー',
+      imageBorderClass: 'border-purple-300',
+      nameClass: 'text-purple-700',
+      roleClass: 'text-purple-600'
+    },
+    {
+      key: 'rover',
+      nameKey: 'leader_rover',
+      photoKey: 'unit_rover_leader_photo_url',
+      messageKey: 'unit_rover_leader_message',
+      defaultName: '高橋 明',
+      role: 'ローバー隊 アドバイザー',
+      defaultMessage: '「ローバー隊は、スカウトたちが自らの力で未来を切り拓くための最終ステージです。私たちは、彼らの自主的な活動を尊重し、良き相談相手として、また時には共に汗を流す仲間として、彼らの成長をサポートします。社会への第一歩を踏み出す皆さんを、心から応援しています！」',
+      fallbackPhoto: 'https://placehold.co/150x150/F87171/FFFFFF?text=ローバー',
+      imageBorderClass: 'border-red-300',
+      nameClass: 'text-red-700',
+      roleClass: 'text-red-600'
+    }
+  ];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('units-about')) return;
+    const initialSettings = window.__SITE_PUBLIC_SETTINGS || {};
+    renderAboutSections(initialSettings);
+    document.addEventListener('siteSettingsApplied', (event) => {
+      const settings = event && event.detail ? event.detail : {};
+      renderAboutSections(settings);
+    });
+  });
+
+  function renderAboutSections(settings){
+    renderUnitCards(settings || {});
+    renderLeaderCards(settings || {});
+  }
+
+  function renderUnitCards(settings){
+    const grid = document.getElementById('about-units-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    UNIT_CARD_CONFIGS.forEach(config => {
+      grid.appendChild(createUnitCard(config, settings));
+    });
+  }
+
+  function renderLeaderCards(settings){
+    const grid = document.getElementById('leader-team-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    LEADER_CARD_CONFIGS.forEach(config => {
+      grid.appendChild(createLeaderCard(config, settings));
+    });
+  }
+
+  function createUnitCard(config, settings){
+    const card = document.createElement('div');
+    card.className = 'tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect';
+
+    const image = document.createElement('img');
+    image.src = resolveImage(settings, config.logoKey, config.fallbackImage);
+    image.alt = `${config.name} ロゴ`;
+    image.className = `w-28 h-28 rounded-full mb-5 border-4 ${config.imageBorderClass} object-cover self-center`;
+    card.appendChild(image);
+
+    const title = document.createElement('h3');
+    title.className = `text-2xl font-semibold ${config.titleClass} mb-2 text-center`;
+    title.textContent = config.name;
+    card.appendChild(title);
+
+    const age = document.createElement('p');
+    age.className = 'text-gray-600 text-md mb-3 text-center font-medium';
+    age.textContent = config.ageRange;
+    card.appendChild(age);
+
+    const desc = document.createElement('p');
+    desc.className = 'text-gray-700 text-sm leading-relaxed mb-4 text-center';
+    const strong = document.createElement('strong');
+    strong.textContent = 'モットー：';
+    desc.appendChild(strong);
+    desc.appendChild(document.createTextNode(config.motto));
+    desc.appendChild(document.createElement('br'));
+    desc.appendChild(document.createTextNode(config.description));
+    card.appendChild(desc);
+
+    const link = document.createElement('a');
+    link.href = config.detailUrl;
+    link.className = `mt-auto text-center ${config.buttonClass} text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block`;
+    link.textContent = config.buttonLabel;
+    card.appendChild(link);
+
+    return card;
+  }
+
+  function createLeaderCard(config, settings){
+    const name = getSetting(settings, config.nameKey, config.defaultName);
+    const card = document.createElement('div');
+    card.className = 'tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect';
+
+    const image = document.createElement('img');
+    image.src = resolveImage(settings, config.photoKey, config.fallbackPhoto);
+    image.alt = `${name} の写真`;
+    image.className = `w-32 h-32 rounded-full mx-auto mb-6 border-4 ${config.imageBorderClass} shadow-md object-cover`;
+    card.appendChild(image);
+
+    const heading = document.createElement('h3');
+    heading.className = `text-2xl font-semibold ${config.nameClass} mb-1`;
+    heading.textContent = name;
+    card.appendChild(heading);
+
+    const role = document.createElement('p');
+    role.className = `${config.roleClass} font-medium mb-2`;
+    role.textContent = config.role;
+    card.appendChild(role);
+
+    const message = document.createElement('p');
+    message.className = 'text-gray-600 text-sm leading-relaxed italic';
+    setTextWithLineBreaks(message, getSetting(settings, config.messageKey, config.defaultMessage));
+    card.appendChild(message);
+
+    return card;
+  }
+
+  function getSetting(settings, key, fallback = ''){
+    const value = settings && typeof settings[key] === 'string' ? settings[key].trim() : '';
+    return value || fallback;
+  }
+
+  function resolveImage(settings, key, fallback){
+    const value = getSetting(settings, key, '');
+    if (!value) return fallback;
+    if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('//') || value.startsWith('/') || value.startsWith('data:image')) {
+      return value;
+    }
+    return fallback;
+  }
+
+  function setTextWithLineBreaks(element, text){
+    element.innerHTML = '';
+    const content = typeof text === 'string' ? text : '';
+    if (!content) return;
+    const parts = content.split(/\r?\n/);
+    parts.forEach((part, index) => {
+      element.appendChild(document.createTextNode(part));
+      if (index < parts.length - 1) {
+        element.appendChild(document.createElement('br'));
+      }
+    });
+  }
+})();
