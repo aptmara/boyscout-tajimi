@@ -9,6 +9,7 @@ const COMMON_SETTINGS = {
   mobileMenuStoreName: 'mobileMenu',
   smoothScrollSelector: 'a[href^="#"]:not([href="#"])',
   scrollToTopSelector: 'a[href="#"]',
+  backToTopId: 'back-to-top-button',
 };
 
 /**
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTiltEffect();
   initSimpleLightboxPlaceholder();
   initLazyLoadImages(); // 画像の遅延読み込みを初期化
+  initBackToTopButton();
 
   // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
@@ -651,6 +653,40 @@ function initSmoothScroll() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
+}
+
+function initBackToTopButton() {
+  if (!document.body) return;
+  if (document.getElementById(COMMON_SETTINGS.backToTopId)) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = COMMON_SETTINGS.backToTopId;
+  button.className = 'back-to-top';
+  button.setAttribute('aria-label', 'ページ上部へ戻る');
+  button.innerHTML = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+    '<path d="M12 19V5" />',
+    '<path d="M5 12l7-7 7 7" />',
+    '</svg>',
+    '<span class="sr-only">ページトップに戻る</span>'
+  ].join('');
+
+  document.body.appendChild(button);
+
+  const toggleVisibility = () => {
+    const shouldShow = window.scrollY > 480;
+    button.classList.toggle('is-visible', shouldShow);
+  };
+
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', toggleVisibility, { passive: true });
+  window.addEventListener('resize', toggleVisibility, { passive: true });
+  toggleVisibility();
 }
 
 /**
