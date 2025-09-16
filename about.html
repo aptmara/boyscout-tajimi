@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="common-styles.css">
     <script defer src="common-scripts.js"></script>
+    <script defer src="dynamic-about.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased" x-data>
@@ -103,37 +104,8 @@
         <section id="units-about" class="py-16 md:py-24 bg-gray-50 fade-in-section" style="transition-delay: 0.4s;">
             <div class="container mx-auto px-6">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-green-700 mb-16">年齢に応じたプログラム：各隊の紹介</h2>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
-                        <img src="https://placehold.co/120x120/FFC107/FFFFFF?text=ビーバー" alt="ビーバースカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-yellow-300 object-cover self-center">
-                        <h3 class="text-2xl font-semibold text-yellow-600 mb-2 text-center">ビーバー隊</h3>
-                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(年長～小学2年生)</p>
-                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
-                            <strong>モットー：</strong>「みんなと仲良く遊ぶ」<br>
-                            自然の中での遊びや集団行動を通じて、社会性を育みます。歌やゲーム、簡単な工作など、楽しい活動が中心です。
-                        </p>
-                        <a href="unit-beaver.html" class="mt-auto text-center bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">ビーバー隊の詳細</a>
-                    </div>
-                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
-                        <img src="https://placehold.co/120x120/4CAF50/FFFFFF?text=カブ" alt="カブスカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-green-300 object-cover self-center">
-                        <h3 class="text-2xl font-semibold text-green-600 mb-2 text-center">カブ隊</h3>
-                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(小学3年生～小学5年生)</p>
-                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
-                            <strong>モットー：</strong>「いつも元気」<br>
-                            組（チーム）での活動を通じて、協調性やルールを守ることの大切さを学びます。野外活動の基礎や工作、ゲームなどを行います。
-                        </p>
-                        <a href="unit-cub.html" class="mt-auto text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">カブ隊の詳細</a>
-                    </div>
-                    <div class="tilt-card-effect flex flex-col p-8 bg-white rounded-xl shadow-lg card-hover-effect">
-                        <img src="https://placehold.co/120x120/2196F3/FFFFFF?text=ボーイ" alt="ボーイスカウト" class="w-28 h-28 rounded-full mb-5 border-4 border-blue-300 object-cover self-center">
-                        <h3 class="text-2xl font-semibold text-blue-600 mb-2 text-center">ボーイ隊</h3>
-                        <p class="text-gray-600 text-md mb-3 text-center font-medium">(小学6年生～中学3年生)</p>
-                        <p class="text-gray-700 text-sm leading-relaxed mb-4">
-                            <strong>モットー：</strong>「そなえよつねに」<br>
-                            班（パトロール）活動を基本とし、計画性、リーダーシップ、野外技能（キャンプ、ハイキング、救急法など）を本格的に学びます。
-                        </p>
-                        <a href="unit-boy.html" class="mt-auto text-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-lg text-sm transition-colors duration-300 block">ボーイ隊の詳細</a>
-                    </div>
+                <div id="about-units-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+                    <p class="col-span-full text-center text-gray-500">読み込み中です…</p>
                 </div>
             </div>
         </section>
@@ -141,31 +113,8 @@
         <section id="leaders" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.6s;">
             <div class="container mx-auto px-6">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-green-700 mb-16">私たちの指導者チーム</h2>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
-                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者A" alt="指導者 田中 太郎" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
-                        <h3 class="text-2xl font-semibold text-green-700 mb-1">田中 太郎</h3>
-                        <p class="text-green-600 font-medium mb-2">団委員長 / ボーイ隊隊長</p>
-                        <p class="text-gray-600 text-sm leading-relaxed italic">
-                            「子どもたちの無限の可能性を信じ、成長をサポートできることに喜びを感じています。一緒に多くの冒険をしましょう！」
-                        </p>
-                    </div>
-                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
-                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者B" alt="指導者 山田 花子" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
-                        <h3 class="text-2xl font-semibold text-green-700 mb-1">山田 花子</h3>
-                        <p class="text-green-600 font-medium mb-2">カブ隊副長</p>
-                        <p class="text-gray-600 text-sm leading-relaxed italic">
-                            「スカウト活動を通じて、子どもたちが笑顔で、元気に、そしてたくましく成長していく姿を見るのが私のやりがいです。」
-                        </p>
-                    </div>
-                    <div class="tilt-card-effect bg-gray-50 rounded-xl shadow-lg p-8 text-center card-hover-effect">
-                        <img src="https://placehold.co/150x150/78909C/FFFFFF?text=指導者C" alt="指導者 鈴木 次郎" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-md">
-                        <h3 class="text-2xl font-semibold text-green-700 mb-1">鈴木 次郎</h3>
-                        <p class="text-green-600 font-medium mb-2">ビーバー隊リーダー</p>
-                        <p class="text-gray-600 text-sm leading-relaxed italic">
-                            「小さなスカウトたちの初めての体験に寄り添い、好奇心を育むお手伝いをしています。毎週の活動が楽しみです！」
-                        </p>
-                    </div>
+                <div id="leader-team-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-10">
+                    <p class="col-span-full text-center text-gray-500">指導者情報を読み込んでいます…</p>
                 </div>
                  <div class="text-center mt-12">
                     <a href="leaders-all.html" class="text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">
