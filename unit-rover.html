@@ -7,6 +7,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#15803d',
+                    "primary-dark": '#166534',
+                    secondary: '#f59e0b'
+                },
+                fontFamily: {
+                    sans: ['Noto Sans JP', 'sans-serif'],
+                    heading: ['M PLUS Rounded 1c', 'sans-serif']
+                }
+            }
+        },
+        corePlugins: {
+            preflight: false
+        }
+    };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
     <link rel="stylesheet" href="common-styles.css">
     <script defer src="common-scripts.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

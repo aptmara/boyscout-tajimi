@@ -30,7 +30,6 @@
                 <a href="join.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">入団案内</a>
                 <a href="news-list.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お知らせ</a>
                 <a href="contact.html" class="text-gray-700 hover:text-green-600 font-medium transition-colors duration-300">お問い合わせ</a>
-                
             </div>
             <div class="md:hidden">
                 <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="モバイルメニューを開閉" class="text-gray-700 hover:text-green-600 focus:outline-none p-2 rounded-md">
@@ -48,12 +47,10 @@
             <a href="join.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">入団案内</a>
             <a href="news-list.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お知らせ</a>
             <a href="contact.html" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お問い合わせ</a>
-            
         </div>
     </header>
 
     <main class="pt-8 pb-16">
-
         <section class="bg-green-600 text-white py-12 md:py-20 fade-in-section">
             <div class="container mx-auto px-6 text-center">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">活動報告</h1>
@@ -63,6 +60,7 @@
             </div>
         </section>
 
+        <!-- 高機能フィルターパネル（main側を採用） -->
         <section class="py-10 bg-gray-50 fade-in-section" style="transition-delay: 0.2s;">
             <div class="container mx-auto px-6">
                 <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6" id="activity-filter-panel">
@@ -156,7 +154,6 @@
                 <div id="activity-load-more-sentinel" class="h-px w-full"></div>
             </div>
         </section>
-
     </main>
 
     <footer class="bg-gray-800 text-gray-300 py-16">
@@ -180,7 +177,6 @@
                         <li><a href="join.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">入団案内</a></li>
                         <li><a href="news-list.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お知らせ</a></li>
                         <li><a href="contact.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">お問い合わせ</a></li>
-                        
                         <li><a href="sitemap.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">サイトマップ</a></li>
                         <li><a href="privacy.html" class="text-gray-400 hover:text-yellow-400 transition duration-300">プライバシーポリシー</a></li>
                     </ul>
@@ -208,7 +204,6 @@
         </div>
     </footer>
 
-    
     <script src="dynamic-activities.v2.js" defer></script>
     <script src="enhance-activities.js" defer></script>
 </body>
