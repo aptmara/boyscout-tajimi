@@ -42,6 +42,16 @@
 - `PORT`（任意）未設定時は 10000
 - `HOST`（任意）未設定時は `0.0.0.0`
 - `HMAC_TOLERANCE_SEC`（任意）デフォルト 300 秒
+- `SMTP_HOST`（必須）お問い合わせフォームで使用するSMTPサーバーホスト名
+- `SMTP_PORT`（任意）デフォルトは 587
+- `SMTP_SECURE`（任意）`true` の場合は SMTPS (既定ポート 465) を利用
+- `SMTP_STARTTLS`（任意）`false` で STARTTLS を無効化（デフォルトは `SMTP_SECURE=false` のとき自動的に STARTTLS を試行）
+- `SMTP_REQUIRE_TLS`（任意）`true` で STARTTLS の利用を必須化
+- `SMTP_TLS_REJECT_UNAUTHORIZED`（任意）`false` で自己署名証明書を許容
+- `SMTP_USER` / `SMTP_PASS`（任意）SMTP 認証が必要な場合の資格情報
+- `SMTP_FROM`（必須）送信メールの From ヘッダ（例: `"多治見第一団" <noreply@example.jp>`）
+- `CONTACT_FORM_FROM`（任意）From ヘッダを個別指定したい場合に設定（未設定時は `SMTP_FROM` を使用）
+- `DEFAULT_CONTACT_EMAIL`（任意）管理画面でメールアドレス未設定時の送信先フォールバック
 
 3) DB 初期化
 - `npm run db:setup`

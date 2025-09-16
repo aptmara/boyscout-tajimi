@@ -105,7 +105,7 @@
 
                     <div class="bg-gray-50 p-8 md:p-10 rounded-xl shadow-xl card-hover-effect">
                         <h2 class="text-3xl font-bold text-green-700 mb-8">お問い合わせフォーム</h2>
-                        <form id="contact-form" action="#" method="POST" class="space-y-6">
+                        <form id="contact-form" action="#" method="POST" class="space-y-6" novalidate>
                             <div>
                                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">お名前 <span class="text-red-500">*</span></label>
                                 <input type="text" name="name" id="name" autocomplete="name" required
@@ -145,13 +145,13 @@
                                 </button>
                             </div>
                         </form>
-                        <div id="form-success-message" class="hidden mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md">
+                        <div id="form-success-message" class="hidden mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md" role="status" aria-live="polite">
                             <p class="font-semibold">お問い合わせありがとうございます！</p>
-                            <p>メッセージが正常に送信されました。担当者より折り返しご連絡いたしますので、今しばらくお待ちください。</p>
+                            <p data-success-detail>メッセージが正常に送信されました。担当者より折り返しご連絡いたしますので、今しばらくお待ちください。</p>
                         </div>
-                        <div id="form-error-message" class="hidden mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md">
+                        <div id="form-error-message" class="hidden mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md" role="alert" aria-live="assertive">
                             <p class="font-semibold">送信に失敗しました</p>
-                            <p>恐れ入りますが、時間をおいて再度お試しいただくか、お電話にてお問い合わせください。</p>
+                            <p data-error-detail>恐れ入りますが、時間をおいて再度お試しいただくか、お電話にてお問い合わせください。</p>
                         </div>
                     </div>
                 </div>
