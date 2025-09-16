@@ -762,7 +762,8 @@
 
         try {
           const res = await fetch('/api/settings', {
-            method: 'PUT',
+            // ここを 'PUT' から 'POST' に変更します
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
             body: JSON.stringify(payload)
@@ -772,15 +773,25 @@
             throw new Error(data.error || '保存に失敗しました');
           }
           okEl.style.display = 'block';
-          setTimeout(() => okEl.style.display = 'none', 2000); if (window.AdminUI) { AdminUI.showResult({ ok:true, message: '設定を保存しました', actions:[{ label:'閉じる', variant:'primary' }] }); }
-        } catch (e) { errEl.textContent = e.message || '保存に失敗しました。'; if (window.AdminUI) { AdminUI.showResult({ ok:false, message: '設定の保存に失敗しました', detail: e.message }); } }});
-
-      // ログアウト
-      document.getElementById('logout-button').addEventListener('click', async () => {
-        try { await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }); window.location.href = '/admin/login.html'; }
-        catch { AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" }); }
+          setTimeout(() => okEl.style.display = 'none', 2000); 
+          if (window.AdminUI) { 
+            AdminUI.showResult({ 
+              ok:true, 
+              message: '設定を保存しました', 
+              actions:[{ label:'閉じる', variant:'primary' }] 
+            }); 
+          }
+        } catch (e) { 
+          errEl.textContent = e.message || '保存に失敗しました。'; 
+          if (window.AdminUI) { 
+            AdminUI.showResult({ 
+              ok:false, 
+              message: '設定の保存に失敗しました', 
+              detail: e.message 
+            }); 
+          } 
+        }
       });
-    });
   </script>
 </body>
 </html>
