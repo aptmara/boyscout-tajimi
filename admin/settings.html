@@ -687,6 +687,36 @@
       setupDirtyGuard();
       setupActivityFilters();
 
+      // 文字化け対策：表示テキストを明示的に上書き
+      try {
+        const byId = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        byId('btn-save-draft', '下書き保存');
+        byId('btn-restore-draft', '下書きを復元');
+        byId('btn-discard-draft', '下書きを破棄');
+        byId('btn-import-task', 'task.txt から取り込み');
+
+        const aside = document.querySelector('.side-menu');
+        if (aside) aside.setAttribute('aria-label', '設定カテゴリ');
+        const asideTitle = document.querySelector('.side-menu h3');
+        if (asideTitle) asideTitle.textContent = '大枠の設定';
+
+        // 旧タブUIの文言（非表示だが念のため）
+        document.querySelectorAll('#settings-tabs [data-tab]').forEach(btn => {
+          const map = {
+            contact: '連絡先', privacy: 'プライバシー', leader_names: 'リーダー名', branding: 'ブランディング',
+            leader_profile: 'リーダー写真/メッセージ', gallery: 'ギャラリー', top_images: 'トップ画像', activity: '活動管理'
+          };
+          const key = btn.getAttribute('data-tab');
+          if (map[key]) btn.textContent = map[key];
+        });
+
+        // 活動検索UI
+        const kw = document.getElementById('activity-search'); if (kw) kw.placeholder = 'キーワードで検索...';
+        const sel = document.getElementById('activity-unit-filter'); if (sel) sel.setAttribute('aria-label', '隊フィルター');
+        const firstOpt = document.querySelector('#activity-unit-filter option'); if (firstOpt) firstOpt.textContent = 'すべての隊';
+        const newBtn = document.querySelector('#tab-activity .btn.btn-secondary'); if (newBtn) newBtn.textContent = '新規作成';
+      } catch {}
+
       // 保存
       document.getElementById('settings-form').addEventListener('submit', async (e) => {
         e.preventDefault();

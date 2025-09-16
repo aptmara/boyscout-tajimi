@@ -37,6 +37,15 @@
             }
         });
 
+        // 文字化け対策：タイトルとラベルを明示
+        try {
+            document.title = '管理者ログイン';
+            const h1 = document.querySelector('.login-container h1'); if (h1) h1.textContent = '管理者ログイン';
+            const u = document.querySelector('label[for="username"]'); if (u) u.textContent = 'ユーザー名';
+            const p = document.querySelector('label[for="password"]'); if (p) p.textContent = 'パスワード';
+            const btn = document.querySelector('button[type="submit"]'); if (btn) btn.textContent = 'ログイン';
+        } catch {}
+
         const form = document.getElementById('login-form');
         const errorMessage = document.getElementById('error-message');
 
