@@ -116,6 +116,18 @@ button.danger:hover, .btn-danger:hover { background-color: var(--admin-danger-70
 /* Empty state */
 .empty-state { text-align: center; color: var(--admin-text-muted); padding: 24px; border: 1px dashed var(--admin-border); border-radius: var(--admin-radius-sm); background: #fff; }
 
+/* Form actions: 常に見える位置に固定（利便性向上） */
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid var(--admin-border);
+  padding: 12px 0 0;
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+}
+
 /* Modal (confirm) */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.4); display: none; align-items: center; justify-content: center; z-index: 50; }
 .modal-backdrop.open { display: flex; }

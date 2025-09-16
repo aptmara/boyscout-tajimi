@@ -253,68 +253,7 @@
       });
     }
 
-    function initTabs() {
-      const tabButtons = Array.from(document.querySelectorAll('#settings-tabs .tab-btn'));
-      const panels = {
-        contact: document.querySelector('#tab-contact [data-fields]'),
-        privacy: document.querySelector('#tab-privacy [data-fields]'),
-        leader_names: document.querySelector('#tab-leader_names [data-fields]'),
-        branding: document.querySelector('#tab-branding [data-fields]'),
-        leader_profile: document.querySelector('#tab-leader_profile [data-fields]'),
-        gallery: document.querySelector('#tab-gallery [data-fields]'),
-        top_images: document.querySelector('#tab-top_images [data-fields]'),
-      };
-
-      const groups = new Map([
-        ['contact', ['contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name','contact_map_embed_html']],
-        ['privacy', ['privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date']],
-        ['leader_names', ['leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover']],
-        ['branding', ['group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
-        ['leader_profile', [
-          'unit_beaver_leader_photo_url','unit_beaver_leader_message',
-          'unit_cub_leader_photo_url','unit_cub_leader_message',
-          'unit_boy_leader_photo_url','unit_boy_leader_message',
-          'unit_venture_leader_photo_url','unit_venture_leader_message',
-          'unit_rover_leader_photo_url','unit_rover_leader_message'
-        ]],
-        ['gallery', [
-          'unit_beaver_gallery_img_1_url','unit_beaver_gallery_img_2_url','unit_beaver_gallery_img_3_url','unit_beaver_gallery_img_4_url',
-          'unit_cub_gallery_img_1_url','unit_cub_gallery_img_2_url','unit_cub_gallery_img_3_url','unit_cub_gallery_img_4_url',
-          'unit_boy_gallery_img_1_url','unit_boy_gallery_img_2_url','unit_boy_gallery_img_3_url','unit_boy_gallery_img_4_url',
-          'unit_venture_gallery_img_1_url','unit_venture_gallery_img_2_url','unit_venture_gallery_img_3_url','unit_venture_gallery_img_4_url',
-          'unit_rover_gallery_img_1_url','unit_rover_gallery_img_2_url','unit_rover_gallery_img_3_url','unit_rover_gallery_img_4_url'
-        ]],
-        ['top_images', ['index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url','index_testimonial_img_1_url','index_testimonial_img_2_url']],
-      ]);
-
-      // move groups into panels
-      groups.forEach((ids, key) => {
-        const container = panels[key];
-        if (!container) return;
-        ids.forEach(id => {
-          const input = document.getElementById(id);
-          if (!input) return;
-          const group = input.closest('.form-group') || input.parentElement;
-          if (group && !container.contains(group)) container.appendChild(group);
-        });
-      });
-
-      // hide original headings
-      document.querySelectorAll('#settings-form h2, #settings-form h3').forEach(h => {
-        if (!h.closest('.tab-panel')) h.style.display = 'none';
-      });
-
-      function activate(tab) {
-        tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
-        localStorage.setItem('admin_settings_active_tab', tab);
-        if (tab === 'activity') { ensureActivitiesLoaded(); }
-      }
-      const params = new URLSearchParams(location.search);
-      const initial = params.get('tab') || localStorage.getItem('admin_settings_active_tab') || 'contact';
-      activate(initial);
-      tabButtons.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
-    }
+    /* legacy tabs removed */
 
     // --- Side menu rendering for clarity-first UI ---
     function initSideMenu() {
@@ -715,7 +654,27 @@
         const sel = document.getElementById('activity-unit-filter'); if (sel) sel.setAttribute('aria-label', '隊フィルター');
         const firstOpt = document.querySelector('#activity-unit-filter option'); if (firstOpt) firstOpt.textContent = 'すべての隊';
         const newBtn = document.querySelector('#tab-activity .btn.btn-secondary'); if (newBtn) newBtn.textContent = '新規作成';
+
+        // ヘッダー/タイトル
+        document.title = 'サイト設定 - 管理';
+        const h1 = document.querySelector('.header h1'); if (h1) h1.textContent = 'サイト設定';
+        const backBtn = document.querySelector('.header a[href="dashboard.html"] button'); if (backBtn) backBtn.textContent = 'ダッシュボードへ戻る';
+        const logoutBtn = document.getElementById('logout-button'); if (logoutBtn) logoutBtn.textContent = 'ログアウト';
+
+        // フォームアクション
+        const submitBtn = document.querySelector('.form-actions button[type="submit"]'); if (submitBtn) submitBtn.textContent = '保存';
+        const cancelBtn = document.querySelector('.form-actions a button[type="button"]'); if (cancelBtn) cancelBtn.textContent = 'キャンセル';
+        const okMsg = document.getElementById('save-message'); if (okMsg) okMsg.textContent = '保存しました。';
       } catch {}
+
+      // UX向上: Ctrl/Cmd + S で保存
+      const form = document.getElementById('settings-form');
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+          e.preventDefault();
+          form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      });
 
       // 保存
       document.getElementById('settings-form').addEventListener('submit', async (e) => {
