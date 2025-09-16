@@ -27,10 +27,10 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // 既にログイン済みかチェックし、ログイン済みならダッシュボードへ
             try {
-                const sessionRes = await fetch('/api/session');
+                const sessionRes = await fetch('/api/session', { credentials: 'same-origin' });
                 const sessionData = await sessionRes.json();
                 if (sessionData.loggedIn) {
-                    window.location.href = '/admin/dashboard.html';
+                    window.location.href = '/admin/app.html';
                 }
             } catch (error) {
                 console.error('Session check failed:', error);
@@ -53,13 +53,14 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ username, password }),
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    window.location.href = '/admin/dashboard.html';
+                    window.location.href = '/admin/app.html';
                 } else {
                     errorMessage.textContent = data.error || 'ログインに失敗しました。';
                 }

@@ -1,0 +1,38 @@
+/* app.html 専用: レイアウトとクイックUI */
+:root { --zoom: 1; }
+html { font-size: calc(16px * var(--zoom)); }
+
+.app-shell { display: grid; grid-template-columns: 1fr 280px; height: 100vh; }
+.app-main { background: var(--admin-bg); }
+.app-main .frame-wrap { height: 100%; padding: 16px; }
+.app-main iframe { width: 100%; height: calc(100% - 0px); background:#fff; border:1px solid var(--admin-border); border-radius: var(--admin-radius); box-shadow: var(--admin-shadow); }
+.app-nav { border-left: 1px solid var(--admin-border); background: #fff; display: flex; flex-direction: column; }
+.app-nav .brand { padding: 16px; border-bottom: 1px solid var(--admin-border); }
+.app-nav .brand h1 { font-size: 16px; margin: 0; }
+.app-nav .links { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.app-nav .links button { width: 100%; text-align: left; background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); }
+.app-nav .links button.active { background: #f1f5f9; border-color: #cbd5e1; }
+.app-nav .footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--admin-border); display:flex; gap:8px; }
+
+.app-toolbar { position: sticky; top: 0; z-index: 5; padding: 10px 14px; background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border-bottom: 1px solid var(--admin-border); display:flex; align-items:center; gap:12px; }
+.app-toolbar h2 { font-size: 14px; margin: 0; color: var(--admin-text-muted); }
+.app-toolbar .toolbar-actions { display:flex; align-items:center; gap:8px; margin-left: auto; }
+.app-toolbar .toolbar-actions input[type="search"]{ width: 260px; }
+.app-toolbar .zoom { display:flex; gap: 4px; margin-left: 4px; }
+
+/* コマンドパレット */
+.cmdp-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.35); display: none; align-items: flex-start; justify-content: center; padding-top: 12vh; z-index: 50; }
+.cmdp-backdrop.open { display: flex; }
+.cmdp { width: min(720px, 92vw); background: #fff; border:1px solid var(--admin-border); border-radius: 12px; box-shadow: var(--admin-shadow); overflow: hidden; }
+.cmdp-head { padding: 10px; border-bottom:1px solid var(--admin-border); }
+.cmdp-head input { width: 100%; padding: 10px 12px; border:1px solid var(--admin-border); border-radius: 8px; }
+.cmdp-list { max-height: 52vh; overflow:auto; }
+.cmdp-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid #f1f5f9; cursor:pointer; }
+.cmdp-item:hover, .cmdp-item.active { background:#eef2ff; }
+.cmdp-item .sub { color: var(--admin-text-muted); font-size: 12px; }
+
+@media (max-width: 940px){
+  .app-shell { grid-template-columns: 1fr; }
+  .app-nav { position: fixed; right: 0; top: 0; bottom: 0; width: 76%; max-width: 320px; transform: translateX(100%); transition: transform .25s ease; box-shadow: var(--admin-shadow); }
+  .app-nav.open { transform: translateX(0); }
+}

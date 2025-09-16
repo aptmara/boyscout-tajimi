@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理ダッシュボード</title>
     <link rel="stylesheet" href="admin-styles.css">
+    <script src="admin-ui.js"></script>
 </head>
 <body>
     <div class="header">
@@ -26,7 +27,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // ログイン状態の確認
             try {
-                const sessionRes = await fetch('/api/session');
+                const sessionRes = await fetch('/api/session', { credentials: 'same-origin' });
                 const sessionData = await sessionRes.json();
                 if (!sessionData.loggedIn) {
                     window.location.href = '/admin/login.html';
@@ -41,7 +42,7 @@
             // お知らせ一覧の取得と表示
             const newsList = document.getElementById('news-list');
             try {
-                const newsRes = await fetch('/api/news');
+                const newsRes = await fetch('/api/news', { credentials: 'same-origin' });
                 const newsItems = await newsRes.json();
 
                 if (newsItems.length === 0) {
@@ -74,7 +75,7 @@
         // ログアウト処理
         document.getElementById('logout-button').addEventListener('click', async () => {
             try {
-                await fetch('/api/logout', { method: 'POST' });
+                await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
                 window.location.href = '/admin/login.html';
             } catch (error) {
                 console.error('Logout failed:', error);
@@ -88,13 +89,13 @@
                 const id = event.target.dataset.id;
                 if (confirm('本当にこの記事を削除しますか？')) {
                     try {
-                        const response = await fetch(`/api/news/${id}`, { method: 'DELETE' });
+                        const response = await fetch(`/api/news/${id}`, { method: 'DELETE', credentials: 'same-origin' });
                         if (response.ok) {
                             // 画面から要素を削除
-                            event.target.closest('.news-item').remove();
+                            event.target.closest('.news-item').remove(); if (window.AdminUI) { AdminUI.showResult({ ok:true, message:'ニュースを削除しました', actions:[{ label:'閉じる', variant:'primary' }] }); }
                         } else {
                             const data = await response.json();
-                            alert(data.error || '削除に失敗しました。');
+                            if (window.AdminUI) { AdminUI.showResult({ ok:false, message: 'ニュースの削除に失敗しました', detail:  }); }
                         }
                     } catch (error) {
                         console.error('Delete failed:', error);

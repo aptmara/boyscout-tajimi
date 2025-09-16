@@ -30,6 +30,10 @@ async function loadDynamicActivityList() {
   let allItems = [];
 
   const fmtDate = (d) => new Date(d).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  const getThumb = (item) => {
+    const urls = Array.isArray(item.image_urls) ? item.image_urls : [];
+    return urls.length ? urls[0] : `https://placehold.co/600x360/4A934A/FFFFFF?text=${encodeURIComponent(item.category || '活動')}`;
+  };
 
   const renderCard = (item) => {
     const summary = (item.content || '').replace(/<[^>]+>/g, '').substring(0, 120) + '...';
@@ -40,7 +44,7 @@ async function loadDynamicActivityList() {
     const unitBadge = item.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(item.unit)}</span>` : '';
     const catBadge  = item.category ? `<span class="badge badge--category">${escapeHTML(item.category)}</span>` : '';
     return `
-      <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
+      <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group" data-activity-id="${item.id}">
         <div class="relative">
           <img src="https://placehold.co/600x360/4A934A/FFFFFF?text=${escapeHTML(item.category || '活動')}" alt="${escapeHTML(item.title || '')}" class="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
           <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -99,6 +103,20 @@ async function loadDynamicActivityList() {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const items = arr.slice(start, start + ITEMS_PER_PAGE);
     container.innerHTML = items.map(renderCard).join('');
+    try {
+      (function fixThumbs(arr){
+        const cards = container.querySelectorAll('[data-activity-id]');
+        cards.forEach(card=>{
+          const id = Number(card.getAttribute('data-activity-id'));
+          const it = arr.find(x=>Number(x.id)===id);
+          if (!it) return;
+          const urls = Array.isArray(it.image_urls)?it.image_urls:[];
+          if (!urls.length) return;
+          const img = card.querySelector('img');
+          if (img) img.src = urls[0];
+        });
+      })(items);
+    } catch {}
     renderPagination(arr.length, currentPage);
   };
 
@@ -182,6 +200,41 @@ async function loadDynamicActivityDetail() {
         <div class="mb-4 flex flex-wrap">${tagBadges}</div>
         <div class="prose max-w-none">${a.content || ''}</div>
       </article>`;
+
+    // 画像ギャラリー（image_urls）を本文の前に追加
+    try {
+      const imgs = Array.isArray(a.image_urls) ? a.image_urls : [];
+      if (imgs.length) {
+        const toEmbed = (u) => {
+          try {
+            const url = new URL(u, location.origin);
+            if (url.hostname.includes('drive.google.com')) {
+              const m = url.pathname.match(/\/file\/d\/([^/]+)\/view/);
+              if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+              const id = url.searchParams.get('id');
+              if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+            }
+            return url.href;
+          } catch { return u; }
+        };
+        const galleryHtml = `
+          <div class="space-y-4">
+            <div>
+              <img class="w-full max-h-[60vh] object-cover rounded-xl shadow" src="${toEmbed(imgs[0])}" alt="${escapeHTML(a.title||'')}">
+            </div>
+            ${imgs.length>1 ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${imgs.slice(1,7).map(src=>`
+              <a href="${toEmbed(src)}" target="_blank" rel="noopener" class="block">
+                <img src="${toEmbed(src)}" alt="${escapeHTML(a.title||'')}" class="w-full h-32 sm:h-36 object-cover rounded-lg border" loading="lazy">
+              </a>
+            `).join('')}</div>` : ''}
+          </div>`;
+        const articleEl = container.querySelector('article');
+        const proseEl = articleEl?.querySelector('.prose');
+        if (proseEl) proseEl.insertAdjacentHTML('beforebegin', galleryHtml);
+        // 戻るリンク
+        proseEl?.insertAdjacentHTML('afterend', '<div class="mt-8"><a href="activity-log.html" class="text-green-700 hover:text-green-900 font-semibold">← 活動一覧へ戻る</a></div>');
+      }
+    } catch {}
   } catch (err) {
     console.error('Failed to fetch activity detail:', err);
     if (notFound) notFound.classList.remove('hidden');

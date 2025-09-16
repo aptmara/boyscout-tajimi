@@ -1,0 +1,15 @@
+/* シンプルなライトボックス */
+.lb-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.8); display: none; align-items: center; justify-content: center; z-index: 70; }
+.lb-backdrop.open { display: flex; }
+.lb-frame { position: relative; max-width: 92vw; max-height: 90vh; }
+.lb-img { max-width: 92vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.lb-close, .lb-prev, .lb-next { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.85); color: #0f172a; border: 0; border-radius: 999px; width: 42px; height: 42px; display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+.lb-close { top: -56px; right: 0; transform: none; }
+.lb-prev { left: -56px; }
+.lb-next { right: -56px; }
+.lb-caption { position: absolute; left: 0; right: 0; bottom: -40px; color: #e5e7eb; text-align: center; font-size: 14px; }
+@media (max-width: 640px){
+  .lb-prev { left: 8px; top: auto; bottom: -56px; transform: none; }
+  .lb-next { right: 8px; top: auto; bottom: -56px; transform: none; }
+  .lb-close { top: -48px; }
+}

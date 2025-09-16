@@ -21,7 +21,9 @@
             background-position: center;
             background-attachment: fixed; /* パララックス風効果 */
         }
-    </style>
+      .fade-hidden { opacity: 0; transform: translateY(6px); transition: opacity .6s ease, transform .6s ease; }
+  .fade-show { opacity: 1 !important; transform: none !important; }
+</style>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased" x-data>
 
@@ -80,7 +82,7 @@
                 <p id="hero-subtitle" class="hero-title-char text-lg md:text-xl lg:text-2xl mb-10 text-gray-100 leading-relaxed" style="transition-delay: 0.6s;">
                     ボーイスカウト多治見第一団で、自然体験、仲間との協力、そして自己成長の機会を見つけよう。
                 </p>
-                <div class="space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-6">
+                <div id="hero-ctas" class="space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-6">
                     <a href="join.html" class="hero-title-char w-full sm:w-auto inline-block" style="transition-delay: 0.9s;">入団案内</a>
                     <a href="activity-log.html" class="hero-title-char w-full sm:w-auto inline-block" style="transition-delay: 1.1s;">活動内容</a>
                 </div>

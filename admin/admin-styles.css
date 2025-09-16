@@ -126,3 +126,15 @@ button.danger:hover, .btn-danger:hover { background-color: var(--admin-danger-70
 .modal h3 { margin: 0 0 8px; font-size: 1.1rem; }
 .modal p { margin: 0 0 16px; color: var(--admin-text-muted); }
 .modal .actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Bottom Sheet (action result) */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.25); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 60; }
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: -100%; background: #fff; border-top-left-radius: 14px; border-top-right-radius: 14px; box-shadow: 0 -12px 40px rgba(15,23,42,.18); border: 1px solid var(--admin-border); max-width: 860px; margin: 0 auto; transform: translateY(0); transition: bottom .28s ease; z-index: 61; }
+.sheet.open { bottom: 0; }
+.sheet .sheet-inner { padding: 14px; }
+.sheet .sheet-header { display:flex; align-items:center; justify-content: space-between; gap: 8px; padding: 4px 2px 8px; border-bottom: 1px solid var(--admin-border); }
+.sheet .sheet-title { font-weight: 700; margin: 0; font-size: 1rem; }
+.sheet .sheet-body { padding: 10px 2px; color: var(--admin-text); }
+.sheet .sheet-actions { display:flex; justify-content:flex-end; gap: 8px; padding-top: 8px; }
+.sheet .close-x { background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); }

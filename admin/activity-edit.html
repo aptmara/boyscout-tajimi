@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>活動の作成/編集</title>
   <link rel="stylesheet" href="admin-styles.css">
+  <script src="admin-ui.js"></script>
 </head>
 <body>
   <div class="container">
@@ -57,14 +58,14 @@
     let settingsCache = null;
 
     async function ensureLoggedIn(){
-      try { const r = await fetch('/api/session'); const d = await r.json(); if (!d.loggedIn) location.href='/admin/login.html'; }
+      try { const r = await fetch('/api/session', { credentials: 'same-origin' }); const d = await r.json(); if (!d.loggedIn) location.href='/admin/login.html'; }
       catch { location.href='/admin/login.html'; }
     }
 
     async function loadSettings(){
       try {
-        const r = await fetch('/api/settings/all');
-        if (!r.ok) throw new Error('settings');
+        const r = await fetch('/api/settings/all', { credentials: 'same-origin' });
+        if (!r.ok) { let msg = '保存に失敗しました'; try { const data = await r.json(); if (data && (data.error||data.detail)) msg = data.error || data.detail; } catch {} throw new Error(msg); }
         const rows = await r.json();
         settingsCache = rows.reduce((acc, it) => (acc[it.key]=it.value, acc), {});
       } catch { settingsCache = {}; }
@@ -101,8 +102,8 @@
       titleEl.textContent = '活動の編集';
       document.getElementById('activity-id').value = id;
       try {
-        const r = await fetch(`/api/activities/${id}`);
-        if (!r.ok) throw new Error('load');
+        const r = await fetch(`/api/activities/${id}`, { credentials: 'same-origin' });
+        if (!r.ok) { let msg = '保存に失敗しました'; try { const data = await r.json(); if (data && (data.error||data.detail)) msg = data.error || data.detail; } catch {} throw new Error(msg); }
         const a = await r.json();
         document.getElementById('title').value = a.title || '';
         document.getElementById('content').value = a.content || '';
@@ -148,11 +149,19 @@
         const url = id ? `/api/activities/${id}` : '/api/activities';
         const method = id ? 'PUT' : 'POST';
         try {
-          const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          if (!r.ok) throw new Error('保存に失敗しました');
-          location.href = '/admin/settings.html?tab=activity';
+          const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(payload) });
+          if (!r.ok) { let msg = '保存に失敗しました'; try { const data = await r.json(); if (data && (data.error||data.detail)) msg = data.error || data.detail; } catch {} throw new Error(msg); }
+          AdminUI.showResult({
+            ok: true,
+            message: '活動を保存しました',
+            actions: [
+              { label: '一覧へ戻る', variant: 'primary', onClick: ()=> { location.href = '/admin/settings.html?tab=activity'; } },
+              { label: 'このまま続ける', variant: 'ghost' }
+            ]
+          });
         } catch (e) {
           errorEl.textContent = e.message || 'エラーが発生しました';
+          AdminUI.showResult({ ok:false, message: '活動の保存に失敗しました', detail: e.message });
         }
       });
     });

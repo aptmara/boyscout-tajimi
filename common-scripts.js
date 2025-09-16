@@ -66,11 +66,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
-    // タイピング風アニメーションの呼び出し
-    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation('#hero-title', 300, 120);
-    if (typeof initHeroTextAnimation === 'function') initHeroTextAnimation('#hero-subtitle', 4000, 50);
-    if (typeof initCounterAnimation === 'function') initCounterAnimation();
+  // タイトルアニメはセッション内で1回。サブタイトル/CTAは完了後にふわっと表示。
+  let played = false;
+  try { played = sessionStorage.getItem('heroAnimPlayed') === '1'; } catch {}
+  const subtitle = document.getElementById('hero-subtitle');
+  const ctas = document.getElementById('hero-ctas');
+  if (!played) {
+    try { sessionStorage.setItem('heroAnimPlayed', '1'); } catch {}
+    if (subtitle) subtitle.classList.add('fade-hidden');
+    if (ctas) ctas.classList.add('fade-hidden');
+    if (typeof initHeroTextAnimation === 'function') {
+      initHeroTextAnimation('#hero-title', 300, 120, () => {
+        if (subtitle) { subtitle.classList.remove('fade-hidden'); subtitle.classList.add('fade-show'); }
+        if (ctas) { ctas.classList.remove('fade-hidden'); ctas.classList.add('fade-show'); }
+      });
+    }
+  } else {
+    if (subtitle) subtitle.classList.add('fade-show');
+    if (ctas) ctas.classList.add('fade-show');
   }
+  if (typeof initCounterAnimation === 'function') initCounterAnimation();
+}
   if (document.getElementById('activity-log-container')) {
     if (typeof initActivityLogPage === 'function') initActivityLogPage();
   }
@@ -93,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * @param {number} initialDelay - アニメーション開始までの遅延時間(ミリ秒)
  * @param {number} typingSpeed - 一文字あたりのタイピング速度(ミリ秒)
  */
-function initHeroTextAnimation(targetSelector, initialDelay = 0, typingSpeed = 100) {
+function initHeroTextAnimation(targetSelector, initialDelay = 0, typingSpeed = 100, onComplete) {
   const target = document.querySelector(targetSelector);
   if (!target) return;
 
@@ -114,6 +130,7 @@ function initHeroTextAnimation(targetSelector, initialDelay = 0, typingSpeed = 1
       setTimeout(type, typingSpeed);
     } else {
       target.classList.remove('typing-container');
+      try { if (typeof onComplete === 'function') onComplete(); } catch {}
     }
   };
 
@@ -746,3 +763,4 @@ function initLazyLoadImages() {
     });
   }
 }
+

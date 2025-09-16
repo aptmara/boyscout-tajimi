@@ -162,6 +162,34 @@ async function loadDynamicNewsDetail() {
     const unitBadge = news.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(news.unit)}</span>` : '';
     const catBadge  = news.category ? `<span class="badge badge--category">${escapeHTML(news.category)}</span>` : '';
 
+    // 画像ギャラリーを構築（image_urls がある場合）
+    const imgs = Array.isArray(news.image_urls) ? news.image_urls : [];
+    const toEmbed = (u) => {
+      try {
+        const url = new URL(u, location.origin);
+        if (url.hostname.includes('drive.google.com')) {
+          // パターン1: /file/d/{id}/view  → uc?export=view&id={id}
+          const m = url.pathname.match(/\/file\/d\/([^/]+)\/view/);
+          if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+          // パターン2: open?id=xxx → uc?export=view&id=xxx
+          const id = url.searchParams.get('id');
+          if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+        }
+        return url.href;
+      } catch { return u; }
+    };
+    const gallery = imgs.length ? `
+      <div class="space-y-4">
+        <div>
+          <img class="w-full max-h-[60vh] object-cover rounded-xl shadow" src="${toEmbed(imgs[0])}" alt="${escapeHTML(news.title||'')}">
+        </div>
+        ${imgs.length>1 ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${imgs.slice(1, 7).map(src=>`
+          <a href="${toEmbed(src)}" target="_blank" rel="noopener" class="block">
+            <img src="${toEmbed(src)}" alt="${escapeHTML(news.title||'')}" class="w-full h-32 sm:h-36 object-cover rounded-lg border" loading="lazy">
+          </a>
+        `).join('')}</div>` : ''}
+      </div>` : '';
+
     articleContainer.innerHTML = `
       <article class="bg-white p-6 rounded-xl shadow-lg">
         <div class="flex items-center justify-between mb-3">
@@ -170,7 +198,11 @@ async function loadDynamicNewsDetail() {
         </div>
         <h1 class="text-2xl font-bold mb-4">${escapeHTML(news.title || '')}</h1>
         <div class="mb-4 flex flex-wrap">${tagBadges}</div>
-        <div class="prose max-w-none">${news.content || ''}</div>
+        ${gallery}
+        <div class="prose max-w-none mt-6">${news.content || ''}</div>
+        <div class="mt-8">
+          <a href="news-list.html" class="text-green-700 hover:text-green-900 font-semibold">← お知らせ一覧へ戻る</a>
+        </div>
       </article>`;
   } catch (err) {
     console.error('Failed to fetch news detail:', err);

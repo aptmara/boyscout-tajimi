@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>サイト設定 - 管理</title>
   <link rel="stylesheet" href="admin-styles.css">
+  <script src="admin-ui.js"></script>
 </head>
 <body>
   <div class="header">
@@ -193,7 +194,7 @@
   <script>
     async function ensureLoggedIn() {
       try {
-        const r = await fetch('/api/session');
+        const r = await fetch('/api/session', { credentials: 'same-origin' });
         const d = await r.json();
         if (!d.loggedIn) { window.location.href = '/admin/login.html'; }
       } catch { window.location.href = '/admin/login.html'; }
@@ -322,7 +323,7 @@
     function formatDate(iso){ try { const d = new Date(iso); if (isNaN(d)) return ''; return d.toLocaleDateString('ja-JP'); } catch { return ''; } }
     async function loadActivities(){
       try {
-        const res = await fetch('/api/activities?limit=200');
+        const res = await fetch('/api/activities?limit=200', { credentials: 'same-origin' });
         if (!res.ok) throw new Error('failed');
         activitiesData = await res.json();
       } catch (e) {
@@ -333,7 +334,7 @@
     }
     async function loadUnitsToFilter(){
       try {
-        const r = await fetch('/api/settings/all');
+        const r = await fetch('/api/settings/all', { credentials: 'same-origin' });
         if (!r.ok) return;
         const rows = await r.json();
         const map = rows.reduce((acc, it) => (acc[it.key] = it.value, acc), {});
@@ -394,12 +395,12 @@
         if (!id) return;
         if (!confirm('この活動を削除しますか？')) return;
         try {
-          const res = await fetch(`/api/activities/${id}`, { method: 'DELETE' });
+          const res = await fetch(`/api/activities/${id}`, { method: 'DELETE', credentials: 'same-origin' });
           if (!res.ok) throw new Error('failed');
           activitiesData = activitiesData.filter(x => String(x.id) !== String(id));
           renderActivities();
         } catch {
-          alert('削除に失敗しました');
+          AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
         }
       });
     }
@@ -415,19 +416,19 @@
         const payload = {};
         document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(el => { if (el.name) payload[el.name] = el.value; });
         localStorage.setItem(DKEY, JSON.stringify(payload));
-        alert('下書きを保存しました');
+        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
       });
       restoreBtn?.addEventListener('click', () => {
         const txt = localStorage.getItem(DKEY);
-        if (!txt) return alert('下書きがありません');
+        if (!txt) return AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
         const data = JSON.parse(txt);
         applyPayloadToForm(data);
         setupUrlPreviews();
-        alert('下書きを復元しました');
+        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
       });
       discardBtn?.addEventListener('click', () => {
         localStorage.removeItem(DKEY);
-        alert('下書きを破棄しました');
+        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
       });
       importBtn?.addEventListener('click', () => {
         const sample = '例:\nbeaver https://...\ncub https://...\nboy https://...\nventure https://...\nrover https://...\n団章 https://...';
@@ -447,7 +448,7 @@
         setIf('unit_rover_logo_url','rover');
         setIf('group_crest_url','団章'); setIf('group_crest_url','dan'); setIf('group_crest_url','group'); setIf('group_crest_url','crest');
         setupUrlPreviews();
-        alert('task.txtの内容を反映しました');
+        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
       });
     }
 
@@ -465,7 +466,7 @@
       initTabs();
       // 初期値ロード
       try {
-        const res = await fetch('/api/settings/all');
+        const res = await fetch('/api/settings/all', { credentials: 'same-origin' });
         if (!res.ok) throw new Error('fetch settings failed');
         const rows = await res.json();
         const settings = rows.reduce((acc, r) => { acc[r.key] = r.value; return acc; }, {});
@@ -497,6 +498,7 @@
           const res = await fetch('/api/settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify(payload)
           });
           if (!res.ok) {
@@ -504,16 +506,13 @@
             throw new Error(data.error || '保存に失敗しました');
           }
           okEl.style.display = 'block';
-          setTimeout(() => okEl.style.display = 'none', 2000);
-        } catch (e) {
-          errEl.textContent = e.message || '保存に失敗しました。';
-        }
-      });
+          setTimeout(() => okEl.style.display = 'none', 2000); if (window.AdminUI) { AdminUI.showResult({ ok:true, message: '設定を保存しました', actions:[{ label:'閉じる', variant:'primary' }] }); }
+        } catch (e) { errEl.textContent = e.message || '保存に失敗しました。'; if (window.AdminUI) { AdminUI.showResult({ ok:false, message: '設定の保存に失敗しました', detail: e.message }); } }});
 
       // ログアウト
       document.getElementById('logout-button').addEventListener('click', async () => {
-        try { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/admin/login.html'; }
-        catch { alert('ログアウトに失敗しました。'); }
+        try { await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }); window.location.href = '/admin/login.html'; }
+        catch { AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" }); }
       });
     });
   </script>
