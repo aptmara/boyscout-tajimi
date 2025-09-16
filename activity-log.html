@@ -64,7 +64,7 @@
         <section class="py-10 bg-gray-50 fade-in-section" style="transition-delay: 0.2s;">
             <div class="container mx-auto px-6">
                 <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <div class="grid md:grid-cols-3 gap-6 items-end">
+                    <div class="grid md:grid-cols-4 gap-6 items-end">
                         <div>
                             <label for="activity-category-filter" class="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
                             <select id="activity-category-filter" name="activity-category-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
@@ -85,6 +85,20 @@
                             <input type="month" id="activity-date-filter" name="activity-date-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                         </div>
                         <div>
+                            <label for="activity-unit-filter" class="block text-sm font-medium text-gray-700 mb-1">隊</label>
+                            <select id="activity-unit-filter" name="activity-unit-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                <option value="">すべての隊</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="activity-tags-filter" class="block text-sm font-medium text-gray-700 mb-1">タグ</label>
+                            <select id="activity-tags-filter" name="activity-tags-filter" multiple size="4" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="activity-search" class="block text-sm font-medium text-gray-700 mb-1">検索</label>
+                            <input type="search" id="activity-search" name="activity-search" placeholder="キーワードで検索" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        </div>
+                        <div class="md:col-span-2">
                             <button type="button" id="activity-filter-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-md shadow-sm transition-all duration-300 ease-in-out flex items-center justify-center active:bg-green-800 active:scale-95">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
@@ -93,7 +107,7 @@
                                 <svg id="activity-filter-loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                  </svg>
                             </button>
                         </div>
                     </div>
@@ -171,5 +185,6 @@
 
     
     <script src="dynamic-activities.v2.js" defer></script>
+    <script src="enhance-activities.js" defer></script>
 </body>
 </html>
