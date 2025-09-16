@@ -381,35 +381,45 @@ app.post('/api/news', async (req, res) => {
 
 app.put('/api/news/:id', async (req, res) => {
   try {
-    const { title, content, images = null, category = null, unit = null, tags = null } = req.body || {};
-    if (!title || !content)
+    const { title, content, images, category, unit, tags } = req.body || {};
+    if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
-
-    let clause = '';
-    const params = [title, content, category, unit ? normalizeSlug(unit) : null, req.params.id];
-    if (Array.isArray(images)) {
-      clause += ', image_urls = $3';
-      params.splice(2, 0, JSON.stringify(images));
-    }
-    if (tags) {
-      clause += ', tags = $' + (clause ? 4 : 3);
-      // adjust index if images was present
-      const idx = images ? 4 : 3;
-      params.splice(idx - 1, 0, JSON.stringify(normalizeTags(tags)));
     }
 
-    const { rowCount } = await db.query(
-      `UPDATE news
-       SET title = $1,
-           content = $2,
-           category = $3,
-           unit = $4
-           ${clause}
-       WHERE id = $${clause ? (images ? 6 : 5) : 5}`,
-      params
-    );
+    const updates = {
+      title: title,
+      content: content,
+      category: category,
+      unit: unit ? normalizeSlug(unit) : null,
+    };
+    // images や tags がリクエストに含まれている場合のみ更新対象に加える
+    if (images !== undefined) {
+      updates.image_urls = JSON.stringify(Array.isArray(images) ? images : []);
+    }
+    if (tags !== undefined) {
+      updates.tags = JSON.stringify(normalizeTags(tags));
+    }
 
-    if (rowCount === 0) return res.status(404).json({ error: 'News not found' });
+    const setClauses = [];
+    const params = [];
+    let i = 1;
+    for (const [key, value] of Object.entries(updates)) {
+      setClauses.push(`${key} = $${i++}`);
+      params.push(value);
+    }
+
+    if (setClauses.length === 0) {
+        return res.status(400).json({ error: 'No update fields provided' });
+    }
+
+    params.push(req.params.id);
+    const sql = `UPDATE news SET ${setClauses.join(', ')} WHERE id = $${i}`;
+
+    const { rowCount } = await db.query(sql, params);
+
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'News not found' });
+    }
     res.json({ id: req.params.id, message: 'Updated' });
   } catch (err) {
     console.error('PUT /api/news/:id error:', err);
@@ -547,36 +557,46 @@ app.post('/api/activities', async (req, res) => {
 
 app.put('/api/activities/:id', async (req, res) => {
   try {
-    const { title, content, category = null, unit = null, tags = null, activity_date = null, images = null } = req.body || {};
-    if (!title || !content)
+    const { title, content, category, unit, tags, activity_date, images } = req.body || {};
+    if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
-
-    let imageClause = '';
-    let tagsClause = '';
-    const params = [title, content, category, unit ? normalizeSlug(unit) : null, activity_date, req.params.id];
-    if (Array.isArray(images)) {
-      imageClause = ', image_urls = $6';
-      params.splice(5, 0, JSON.stringify(images));
     }
-    if (tags) {
-      tagsClause = ', tags = $' + (imageClause ? 7 : 6);
-      params.splice(imageClause ? 6 : 5, 0, JSON.stringify(normalizeTags(tags)));
+    
+    const updates = {
+      title: title,
+      content: content,
+      category: category,
+      unit: unit ? normalizeSlug(unit) : null,
+      activity_date: activity_date,
+    };
+
+    if (images !== undefined) {
+      updates.image_urls = JSON.stringify(Array.isArray(images) ? images : []);
+    }
+    if (tags !== undefined) {
+      updates.tags = JSON.stringify(normalizeTags(tags));
     }
 
-    const { rowCount } = await db.query(
-      `UPDATE activities
-       SET title = $1,
-           content = $2,
-           category = $3,
-           unit = $4,
-           activity_date = $5
-           ${imageClause}
-           ${tagsClause}
-       WHERE id = $${imageClause ? (tagsClause ? 8 : 7) : (tagsClause ? 7 : 6)}`,
-      params
-    );
+    const setClauses = [];
+    const params = [];
+    let i = 1;
+    for (const [key, value] of Object.entries(updates)) {
+      setClauses.push(`${key} = $${i++}`);
+      params.push(value);
+    }
+    
+    if (setClauses.length === 0) {
+      return res.status(400).json({ error: 'No update fields provided' });
+    }
 
-    if (rowCount === 0) return res.status(404).json({ error: 'Activity not found' });
+    params.push(req.params.id);
+    const sql = `UPDATE activities SET ${setClauses.join(', ')} WHERE id = $${i}`;
+
+    const { rowCount } = await db.query(sql, params);
+
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Activity not found' });
+    }
     res.json({ id: req.params.id, message: 'Updated' });
   } catch (err) {
     console.error('PUT /api/activities/:id error:', err);
@@ -763,7 +783,7 @@ app.post('/api/contact', async (req, res) => {
       console.error('contact_email is not configured');
       return res.status(500).json({
         error: 'contact_email_not_configured',
-        message: '送信先が設定されていないためお問い合わせを送信できませんでした。恐れ入りますが、時間をおいて再度お試しください。',
+        message: '送信先が設定されていないためお問い合わせを送信できませんでした。恐れりますが、時間をおいて再度お試しください。',
       });
     }
 
@@ -831,37 +851,51 @@ app.post('/api/contact', async (req, res) => {
 // POST /api/settings - 設定を保存
 app.post('/api/settings', authMiddleware, async (req, res) => {
   try {
-    const { site_title, contact_email } = req.body;
-    if (typeof site_title === 'undefined' || typeof contact_email === 'undefined') {
-      return res.status(400).json({ error: 'site_title and contact_email are required.' });
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'invalid_payload' });
     }
 
-    const client = await db.pool.connect();
+    const client = await db.getClient();
     try {
       await client.query('BEGIN');
-      await client.query(
-        `INSERT INTO settings (key, value) VALUES ('site_title', $1)
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-        [site_title]
-      );
-      await client.query(
-        `INSERT INTO settings (key, value) VALUES ('contact_email', $1)
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-        [contact_email]
-      );
+
+      for (const [k, v] of Object.entries(body)) {
+        if (typeof k !== 'string' || !k.length) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ error: 'invalid_key' });
+        }
+        const val = (v === null || v === undefined) ? '' : String(v);
+
+        // ビュー(settings)には ON CONFLICT を使わず、トリガーに任せる
+        const upd = await client.query(
+          `UPDATE settings SET value = $2 WHERE key = $1`,
+          [k, val]
+        );
+
+        if (upd.rowCount === 0) {
+          await client.query(
+            `INSERT INTO settings(key, value) VALUES ($1, $2)`,
+            [k, val]
+          );
+        }
+      }
+
       await client.query('COMMIT');
-      res.json({ message: 'Settings updated successfully' });
+      return res.status(200).json({ ok: true, message: 'Settings updated successfully' });
     } catch (e) {
       await client.query('ROLLBACK');
-      throw e;
+      console.error('POST /api/settings (rewritten) error:', e);
+      return res.status(500).json({ error: 'failed_to_update_settings', detail: e.message });
     } finally {
       client.release();
     }
   } catch (err) {
-    console.error('POST /api/settings error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('POST /api/settings (outer) error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // ------------------------------
 // /json-api を mount（最後でOK）
