@@ -1,81 +1,57 @@
-# ボーイスカウト 多治見第一団公式ウェブサイト
+# ボーイスカウト 多治見第一団 公式ウェブサイト
 
-## 概要
+このリポジトリは、ボーイスカウト多治見第一団の公式サイトのソースです。静的HTMLをベースに、Node.js + Express + PostgreSQL による管理画面・APIでニュース/活動記録/サイト設定を更新できます。
 
-このリポジトリは、ボーイスカウト 多治見第一団 の公式ウェブサイトのソースコードです。
-私たちの団の活動、各部門の紹介、最新ニュース、入団案内など、様々な情報を提供することを目的としています。
+## 主要機能
 
-## サイト構成と主なコンテンツ
+- 公開サイト: トップ/団紹介/各隊ページ/活動記録/お知らせ/入団案内/お問い合わせ など
+- 管理画面: ニュース・活動記録の作成/編集/削除、サイト共通設定の一括更新
+- API: ニュース/活動記録の公開取得、管理用CRUD、サイト公開設定の取得
+- Webhook取り込み: 署名付きJSONを受け取り、ニュース/活動記録を自動登録
+- 画像はURL参照方式（ファイルは保持せず、外部ストレージ/CDNのURLを保存）
 
-本ウェブサイトは以下の主要なページで構成されています。
+## 技術スタック
 
-* **トップページ (`index.html`)**: ウェブサイトの顔となるメインページです。
-* **私たちについて (`about.html`)**: 団の紹介、理念、活動方針などを掲載します。
-* **各部門紹介**:
-    * ビーバースカウト (`unit-beaver.html`)
-    * カブスカウト (`unit-cub.html`)
-    * ボーイスカウト (`unit-boy.html`)
-    * ベンチャースカウト (`unit-venture.html`)
-    * ローバースカウト (`unit-rover.html`)
-* **活動記録 (`activity-log.html`)**: 定期的な集会や特別なイベントの様子をお伝えします。
-    * 活動詳細 (例: `activity-detail-placeholder.html` - 今後拡充予定)
-* **お知らせ (`news-list.html`)**: 団からの最新情報や告知事項を掲載します。
-    * お知らせ詳細 (例: `news-detail-placeholder.html` - 今後拡充予定)
-* **入団案内 (`join.html`)**: 新しくボーイスカウト活動に参加したい方への情報を提供します。
-* **お問い合わせ (`contact.html`)**: ご質問や見学希望などの連絡先です。
-* **その他**:
-    * メンバー紹介 (プレースホルダー: `members-placeholder.html` - 今後拡充予定)
-    * お客様の声・体験談 (`testimonials.html`)
-    * プライバシーポリシー (`privacy.html`)
-    * サイトマップ (`sitemap.html`)
+- フロント: HTML/CSS（Tailwind・`common-styles.css`）/ Vanilla JS
+- サーバ: Node.js 18+ / Express 5
+- DB: PostgreSQL（`pg`）/ セッションは `connect-pg-simple` でPostgresに保存
+- 補助: `.env` 読込（`dotenv`）、CSSビルド（`tailwindcss`）
 
-## 使用技術
+## ディレクトリ（要点のみ）
 
-- フロント: HTML5 / CSS3（`common-styles.css`）/ JavaScript（`common-scripts.js`）
-- バックエンド: Node.js 18+ / Express 5
-- データベース: PostgreSQL（`pg`）
-- セッション: `express-session` + `connect-pg-simple`（Postgresに保存）
-- Webhook 署名: HMAC-SHA256（`WEBHOOK_SECRET`）
+- `server.js`: エントリ。静的配信・セッション・DB連携API・Webhook・`/json-api` ルータのマウント・`/uploads` の公開
+- `server-json.js`: JSONファイル保存ベースの実験用API（`/json-api` 配下にマウント、本番非推奨）
+- `database.js`: Postgres接続/初期化（テーブル作成・VIEW/TRIGGER・初回管理者作成）
+- `admin/`: 管理UI（ログイン・ダッシュボード・編集・設定・ブランディング）
+- `dynamic-*.js`: 公開ページ側の動的読込（ニュース/活動の一覧・詳細、トップの最新表示など）
+- `styles/` + `tailwind.config.js`: CSSビルド入力。出力は `common-styles.css`
 
-## セットアップ（ローカル・本番共通）
+## セットアップ
 
-当初は静的サイトでしたが、現在は管理機能とAPIのため Node.js + PostgreSQL が必要です。
+前提: Node.js 18+ / PostgreSQL / npm または yarn
 
-### 必要なもの
-- Node.js 18 以上（グローバル `fetch` を使用）
-- npm または yarn
-- PostgreSQL（クラウドDB可）
+1) 依存関係のインストール
+- `npm install`
 
-### 環境変数（.env）
+2) 環境変数（.env）
+- `DATABASE_URL`（必須）例: `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
+- `SESSION_SECRET`（必須）十分に長いランダム文字列
+- `WEBHOOK_SECRET`（任意/使う場合は必須）Webhook署名検証用の秘密鍵
+- `INITIAL_ADMIN_USERNAME`・`INITIAL_ADMIN_PASSWORD`（任意）初回管理者を自動作成
+- `NODE_ENV`（任意）`production` 推奨
+- `PORT`（任意）未設定時は 10000
+- `HOST`（任意）未設定時は `0.0.0.0`
+- `HMAC_TOLERANCE_SEC`（任意）デフォルト 300 秒
 
-必須（本番想定）
-- `DATABASE_URL`（Postgres接続文字列）
-  - 例: `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
-  - SSLパラメータが無くても、コード側で `ssl: { rejectUnauthorized: false }` を指定しています。
-- `SESSION_SECRET`（十分に長いランダム文字列）
-- `WEBHOOK_SECRET`（Webhook用HMACの秘密鍵）
-- `INITIAL_ADMIN_USERNAME`（初回管理者作成に使用・任意）
-- `INITIAL_ADMIN_PASSWORD`（初回管理者作成に使用・任意）
-- `NODE_ENV`（`production` 推奨）
-- `PORT`（任意。未設定時は 3000）
-- `HMAC_TOLERANCE_SEC`（任意。署名のタイムスタンプ許容秒、既定 300）
+3) DB 初期化
+- `npm run db:setup`
 
-### インストールと初期化
-```bash
-# 依存関係インストール
-npm install
+4) 起動
+- `npm start`
+- アクセス: `http://localhost:10000`
+- 管理画面: `http://localhost:10000/admin/login.html`
 
-# DB 初期化（テーブル作成・サイト設定の初期投入・初回管理者作成）
-npm run db:setup
-
-# 起動
-npm start
-```
-アクセス: `http://localhost:3000`
-
-管理画面: `http://localhost:3000/admin/login.html`
-
-セッションは Postgres に保存します（`connect-pg-simple`）。環境やバージョンによりセッションテーブルが自動作成されない場合は、以下のようなスキーマを作成してください。
+補足: セッションテーブルが自動作成されない場合、以下のDDLを実行してください。
 ```sql
 CREATE TABLE IF NOT EXISTS "session" (
   sid varchar PRIMARY KEY,
@@ -85,84 +61,61 @@ CREATE TABLE IF NOT EXISTS "session" (
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
 ```
 
-## 本番運用のポイント
+## 管理画面
 
-- Node 18+ / `NODE_ENV=production` / 強力な `SESSION_SECRET` を設定
-- `DATABASE_URL` はクラウドDB（Render/Supabase 等）に接続可
-- ポートは `PORT` で指定（PaaSの要件に従う）
-- 画像はURLを保持（サーバ側でファイル保存しない設計）
-- ログ/デバッグ出力は本番では抑制（`NODE_ENV` により一部制御済み）
+- ログイン: `/admin/login.html`（DBの `admins` テーブルのユーザー）
+- ダッシュボード: `/admin/app.html`（ニュース・活動・設定・ブランディングに遷移）
+- 記事編集: `/admin/edit.html`（ニュース）/ `/admin/activity-edit.html`（活動）
+- サイト設定: `/admin/settings.html`（住所/連絡先/各隊情報/プライバシー/トップ画像など）
 
-## 管理機能とサイト設定
+## API（要点）
 
-### ログイン/ダッシュボード
-- ログイン: `/admin/login.html`
-- 記事管理（お知らせ）: `/admin/dashboard.html`（一覧/削除、`edit.html` で作成・編集）
+- セッション: `POST /api/login`, `POST /api/logout`, `GET /api/session`
+- 公開取得:
+  - `GET /api/news`, `GET /api/news/:id`
+  - `GET /api/activities`, `GET /api/activities/:id`
+  - `GET /api/public-settings`（公開して良い範囲の設定のみ）
+- 管理（要ログイン）:
+  - `POST|PUT|DELETE /api/news/*`, `POST|PUT|DELETE /api/activities/*`
+  - `PUT /api/settings`
+- Webhook（HMAC署名必須／本文はJSON）:
+  - `POST /api/news-webhook`
+  - `POST /api/activity-webhook`
 
-### サイト設定（一括更新）
-- ページ: `/admin/settings.html`
-- API: `GET /api/settings`（公開）/ `GET /api/settings/all`（要ログイン）/ `PUT /api/settings`（要ログイン）
-- 主な項目:
-  - フッター/共通: 住所、電話（代表/サブ）、メール、問い合わせ担当者名
-  - 各隊リーダー名: ビーバー/カブ/ボーイ/ベンチャー/ローバー
-  - プライバシーポリシー: 制定日、最終更新日、窓口担当/電話/メール
-  - お問い合わせ: Googleマップ埋め込みHTML
-  - トップ画像: ヒーロー背景、活動ハイライト（3枚）、プロフィール（2枚）
+署名仕様（共通）
+- ヘッダ: `X-Timestamp`（UNIX秒）, `X-Signature`（`sha256=<hex>` も可）
+- 許容ずれ: 300 秒（`HMAC_TOLERANCE_SEC` で変更可）
+- 計算式: `HMAC-SHA256(secret, "<timestamp>.<raw-body>" )`
 
-反映先（例）:
-- 共通連絡先: `.contact-address`, `.contact-phone`, `.contact-email`
-- 各隊の指導者名: `.leader-*-name`（各隊ページ）
-- プライバシー: `#enactment-date`, `#last-updated-date`, `.privacy-contact-*`
-- お問い合わせ: `.contact-person-name`, `.contact-phone-secondary`, `#contact-map-embed`
-- トップ画像: `.hero-bg`, `#index-activity-img-1..3`, `#index-testimonial-img-1..2`
-
-（注）各隊ページのギャラリー等の画像は静的HTMLのままです。管理から差し替えたい場合は、同様のID/クラス付与と設定キー追加で拡張可能です。
-
-## API 概要
-
-### ニュース（News）
-- 公開: `GET /api/news`, `GET /api/news/:id`
-- 管理: `POST /api/news`, `PUT /api/news/:id`, `DELETE /api/news/:id`（要ログイン）
-- Webhook: `POST /api/news-webhook`（HMAC 署名必須／本文は JSON）
-
-### 活動記録（Activities）
-- 公開: `GET /api/activities`, `GET /api/activities/:id`
-- 管理: `POST /api/activities`, `PUT /api/activities/:id`, `DELETE /api/activities/:id`（要ログイン）
-- Webhook: `POST /api/activity-webhook`（HMAC 署名必須／本文は JSON）
-
-### Webhook 署名仕様（共通）
-- ヘッダ: `X-Timestamp`（UNIX秒）, `X-Signature`（`sha256=<hex>` または `<hex>` のみ）
-- 許容ずれ: 既定 300 秒（環境変数 `HMAC_TOLERANCE_SEC` で変更可）
-- 署名計算: `HMAC-SHA256(secret, "<timestamp>.<rawBody>")`
-- 注意: `rawBody` はUTF-8バイト列。JSONの空白や改行差は別計算になるため、送信側はサーバに送る文字列そのものを用いて署名を計算してください。
-
-curl（例）
+サンプル
 ```bash
 export WEBHOOK_SECRET=your-secret
 ts=$(date +%s)
 body='{"title":"テスト","content":"本文","images":["https://example.com/a.jpg"]}'
 sig=$(node -e "const c=require('crypto');const s=process.env.WEBHOOK_SECRET;const ts=process.argv[1];const b=process.argv[2];console.log('sha256='+c.createHmac('sha256',s).update(ts+'.'+b,'utf8').digest('hex'));" $ts "$body")
-curl -X POST http://localhost:3000/api/news-webhook \
+curl -X POST http://localhost:10000/api/news-webhook \
   -H 'Content-Type: application/json' \
   -H "X-Timestamp: $ts" \
   -H "X-Signature: $sig" \
   --data "$body"
 ```
 
-## 今後の展望 (TODO)
+## 開発メモ
 
-* **コンテンツ拡充**:
-    * `activity-detail-placeholder.html` および `news-detail-placeholder.html` のテンプレートを元に、実際の活動記録やお知らせ記事を作成・追加。
-    * `members-placeholder.html` に指導者や団委員の情報を掲載。
-* **デザイン改善**:
-    * 全体的なデザインのブラッシュアップ。
-    * モバイルフレンドリーなレスポンシブデザインの強化。
-* **機能追加**:
-    * 活動記録やお知らせの簡単な更新システムの導入検討（例: 静的サイトジェネレータの活用）。
-    * お問い合わせフォームの動作確認と改善。
-* **アクセシビリティ**: WCAG (Web Content Accessibility Guidelines) に基づいたアクセシビリティの向上。
+- CSS ビルド（Tailwind）: `npm run build:css`（入力: `styles/input.css` → 出力: `common-styles.css`）
+- 実験用JSON API: `/json-api` 配下（本番では未使用想定）。画像は `/uploads` に保存・`/uploads` で公開
+- 画像はURLで管理（Google Drive 等のURLやCDNを想定）
 
-## 既知の注意点
+## 今後の展望
 
-- 一部の文言に文字化けが残存（`dynamic-activities.js` の表示テキストなど）。本番公開時は修正推奨。
-- 画像アップロードは行わず、画像URLをDBに保持する運用です（外部ストレージ/CDNを想定）。
+- 詳細ページの実装強化: `activity-detail-placeholder.html` / `news-detail-placeholder.html` の本格対応
+- 画像まわり: アップロード機能 or 画像CDN連携（Drive直リンクの安全な埋め込み/サイズ最適化）
+- 認証/運用強化: パスワードリセット、レート制限、CSRF対策、`helmet` 等のヘッダ強化
+- Webhook堅牢化: リプレイ防止（nonce/一意ID）と署名検証ログの整備
+- 設定/APIの整理: 重複ルートや権限制御の統一、公開/非公開キーの明確化
+- 国際化/表示: 一部の文字化けの解消、UI文言の統一、アクセシビリティ改善（WCAG準拠）
+- 開発体験: CI/テスト導入、型/静的検査、Docker化、環境差分のドキュメント整備
+
+## ライセンス
+
+- ISC（`package.json` 参照）
