@@ -32,7 +32,36 @@
         .hint { color: var(--admin-text-muted); font-size: 12px; margin-top: 4px; }
         .img-preview { border:1px dashed var(--admin-border); padding:8px; border-radius:8px; background:#fafafa; margin-top:6px; display:none; }
         .img-preview img { max-width:100%; height:auto; display:block; }
+        /* --- New side layout --- */
+        .settings-layout { display:grid; grid-template-columns: 1fr 260px; gap: 16px; align-items:start; }
+        .content-pane { background:#fff; border:1px solid var(--admin-border); border-radius:8px; padding:16px; box-shadow: var(--admin-shadow); min-height: 480px; }
+        .side-menu { position:sticky; top:12px; align-self:start; background:#fff; border:1px solid var(--admin-border); border-radius:8px; padding:8px; box-shadow: var(--admin-shadow); }
+        .side-menu h3 { margin:8px 8px 6px; font-size:14px; color: var(--admin-text-muted); }
+        .menu-list { display:flex; flex-direction:column; gap:4px; }
+        .menu-btn { width:100%; text-align:left; padding:10px 12px; border:none; background:#fff; border-radius:6px; cursor:pointer; color:var(--admin-text); }
+        .menu-btn.active { background: var(--admin-primary-50, #eef7f1); color: var(--admin-primary-800, #0b6b3a); font-weight:600; }
+        .panel-columns { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 980px) { .settings-layout { grid-template-columns: 1fr; } .side-menu { position:static; } }
+        /* Hide legacy tabs */
+        .tabs, .tab-panel { display:none !important; }
       </style>
+
+      <!-- New 2-pane layout: left content, right menu -->
+      <div class="settings-layout">
+        <div class="content-pane">
+          <div class="toolbar">
+            <button type="button" class="btn" id="btn-save-draft">下書き保存</button>
+            <button type="button" class="btn" id="btn-restore-draft">下書きを復元</button>
+            <button type="button" class="btn" id="btn-discard-draft">下書きを破棄</button>
+            <button type="button" class="btn" id="btn-import-task">task.txt から取り込み</button>
+          </div>
+          <div id="content-area"></div>
+        </div>
+        <aside class="side-menu" aria-label="設定カテゴリ">
+          <h3>大枠の設定</h3>
+          <div class="menu-list" id="menu-list"></div>
+        </aside>
+      </div>
 
       <nav class="tabs" id="settings-tabs">
         <button type="button" class="tab-btn" data-tab="contact">基本情報</button>
@@ -287,6 +316,182 @@
       tabButtons.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
     }
 
+    // --- Side menu rendering for clarity-first UI ---
+    function initSideMenu() {
+      const content = document.getElementById('content-area');
+      const menu = document.getElementById('menu-list');
+
+      const CATEGORY_LABELS = {
+        contact: '連絡先',
+        privacy: 'プライバシー',
+        leader_names: 'リーダー名',
+        branding: 'ブランディング',
+        leader_profile: 'リーダープロフィール',
+        gallery: 'ギャラリー',
+        top_images: 'トップ画像',
+        activity: '活動管理'
+      };
+
+      const GROUPS = new Map([
+        ['contact', ['contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name','contact_map_embed_html']],
+        ['privacy', ['privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date']],
+        ['leader_names', ['leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover']],
+        ['branding', ['group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
+        ['leader_profile', [
+          'unit_beaver_leader_photo_url','unit_beaver_leader_message',
+          'unit_cub_leader_photo_url','unit_cub_leader_message',
+          'unit_boy_leader_photo_url','unit_boy_leader_message',
+          'unit_venture_leader_photo_url','unit_venture_leader_message',
+          'unit_rover_leader_photo_url','unit_rover_leader_message'
+        ]],
+        ['gallery', [
+          'unit_beaver_gallery_img_1_url','unit_beaver_gallery_img_2_url','unit_beaver_gallery_img_3_url','unit_beaver_gallery_img_4_url',
+          'unit_cub_gallery_img_1_url','unit_cub_gallery_img_2_url','unit_cub_gallery_img_3_url','unit_cub_gallery_img_4_url',
+          'unit_boy_gallery_img_1_url','unit_boy_gallery_img_2_url','unit_boy_gallery_img_3_url','unit_boy_gallery_img_4_url',
+          'unit_venture_gallery_img_1_url','unit_venture_gallery_img_2_url','unit_venture_gallery_img_3_url','unit_venture_gallery_img_4_url',
+          'unit_rover_gallery_img_1_url','unit_rover_gallery_img_2_url','unit_rover_gallery_img_3_url','unit_rover_gallery_img_4_url'
+        ]],
+        ['top_images', ['index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url','index_testimonial_img_1_url','index_testimonial_img_2_url']],
+      ]);
+
+      const FIELD_META = {
+        contact_address: { label: '住所', placeholder: '〒XXX-XXXX 多治見市XX町X-X-X' },
+        contact_phone: { label: '電話番号（代表）', placeholder: '0572-XX-XXXX' },
+        contact_secondary_phone: { label: '電話番号（サブ）', placeholder: '0572-00-0000 など' },
+        contact_email: { label: 'メールアドレス', placeholder: 'info@example.jp' },
+        contact_person_name: { label: '担当者名', placeholder: '例）山田 太郎' },
+        contact_map_embed_html: { label: '地図埋め込みHTML', textarea: true, placeholder: '<iframe ...></iframe>' },
+        privacy_contact_person: { label: '問い合わせ窓口（氏名）' },
+        privacy_contact_phone: { label: '問い合わせ窓口（電話）' },
+        privacy_contact_email: { label: '問い合わせ窓口（メール）' },
+        privacy_effective_date: { label: '施行日', placeholder: 'YYYY-MM-DD' },
+        privacy_last_updated_date: { label: '最終更新日', placeholder: 'YYYY-MM-DD' },
+        leader_beaver: { label: 'ビーバー隊長名' },
+        leader_cub: { label: 'カブ隊長名' },
+        leader_boy: { label: 'ボーイ隊長名' },
+        leader_venture: { label: 'ベンチャー隊長名' },
+        leader_rover: { label: 'ローバー隊長名' },
+        group_crest_url: { label: '団章画像URL', placeholder: 'https://...' },
+        unit_beaver_logo_url: { label: 'ビーバー隊ロゴURL', placeholder: 'https://...' },
+        unit_cub_logo_url: { label: 'カブ隊ロゴURL', placeholder: 'https://...' },
+        unit_boy_logo_url: { label: 'ボーイ隊ロゴURL', placeholder: 'https://...' },
+        unit_venture_logo_url: { label: 'ベンチャー隊ロゴURL', placeholder: 'https://...' },
+        unit_rover_logo_url: { label: 'ローバー隊ロゴURL', placeholder: 'https://...' },
+        unit_beaver_leader_photo_url: { label: 'ビーバー リーダー写真URL', placeholder: 'https://...' },
+        unit_beaver_leader_message: { label: 'ビーバー リーダーメッセージ', textarea: true },
+        unit_cub_leader_photo_url: { label: 'カブ リーダー写真URL', placeholder: 'https://...' },
+        unit_cub_leader_message: { label: 'カブ リーダーメッセージ', textarea: true },
+        unit_boy_leader_photo_url: { label: 'ボーイ リーダー写真URL', placeholder: 'https://...' },
+        unit_boy_leader_message: { label: 'ボーイ リーダーメッセージ', textarea: true },
+        unit_venture_leader_photo_url: { label: 'ベンチャー リーダー写真URL', placeholder: 'https://...' },
+        unit_venture_leader_message: { label: 'ベンチャー リーダーメッセージ', textarea: true },
+        unit_rover_leader_photo_url: { label: 'ローバー リーダー写真URL', placeholder: 'https://...' },
+        unit_rover_leader_message: { label: 'ローバー リーダーメッセージ', textarea: true },
+        unit_beaver_gallery_img_1_url: { label: 'ビーバー 画像1', placeholder: 'https://...' },
+        unit_beaver_gallery_img_2_url: { label: 'ビーバー 画像2', placeholder: 'https://...' },
+        unit_beaver_gallery_img_3_url: { label: 'ビーバー 画像3', placeholder: 'https://...' },
+        unit_beaver_gallery_img_4_url: { label: 'ビーバー 画像4', placeholder: 'https://...' },
+        unit_cub_gallery_img_1_url: { label: 'カブ 画像1', placeholder: 'https://...' },
+        unit_cub_gallery_img_2_url: { label: 'カブ 画像2', placeholder: 'https://...' },
+        unit_cub_gallery_img_3_url: { label: 'カブ 画像3', placeholder: 'https://...' },
+        unit_cub_gallery_img_4_url: { label: 'カブ 画像4', placeholder: 'https://...' },
+        unit_boy_gallery_img_1_url: { label: 'ボーイ 画像1', placeholder: 'https://...' },
+        unit_boy_gallery_img_2_url: { label: 'ボーイ 画像2', placeholder: 'https://...' },
+        unit_boy_gallery_img_3_url: { label: 'ボーイ 画像3', placeholder: 'https://...' },
+        unit_boy_gallery_img_4_url: { label: 'ボーイ 画像4', placeholder: 'https://...' },
+        unit_venture_gallery_img_1_url: { label: 'ベンチャー 画像1', placeholder: 'https://...' },
+        unit_venture_gallery_img_2_url: { label: 'ベンチャー 画像2', placeholder: 'https://...' },
+        unit_venture_gallery_img_3_url: { label: 'ベンチャー 画像3', placeholder: 'https://...' },
+        unit_venture_gallery_img_4_url: { label: 'ベンチャー 画像4', placeholder: 'https://...' },
+        unit_rover_gallery_img_1_url: { label: 'ローバー 画像1', placeholder: 'https://...' },
+        unit_rover_gallery_img_2_url: { label: 'ローバー 画像2', placeholder: 'https://...' },
+        unit_rover_gallery_img_3_url: { label: 'ローバー 画像3', placeholder: 'https://...' },
+        unit_rover_gallery_img_4_url: { label: 'ローバー 画像4', placeholder: 'https://...' },
+        index_hero_image_url: { label: 'ヒーロー画像URL', placeholder: 'https://...' },
+        index_highlight_img_1_url: { label: 'ハイライト画像1 URL', placeholder: 'https://...' },
+        index_highlight_img_2_url: { label: 'ハイライト画像2 URL', placeholder: 'https://...' },
+        index_highlight_img_3_url: { label: 'ハイライト画像3 URL', placeholder: 'https://...' },
+        index_testimonial_img_1_url: { label: '体験談画像1 URL', placeholder: 'https://...' },
+        index_testimonial_img_2_url: { label: '体験談画像2 URL', placeholder: 'https://...' }
+      };
+
+      const UNIT_TITLES = { beaver: 'ビーバー', cub: 'カブ', boy: 'ボーイ', venture: 'ベンチャー', rover: 'ローバー' };
+
+      function createField(id){
+        const meta = FIELD_META[id] || { label: id };
+        const wrap = document.createElement('div');
+        wrap.className = 'form-group';
+        const label = document.createElement('label');
+        label.setAttribute('for', id);
+        label.textContent = meta.label || id;
+        wrap.appendChild(label);
+        let input;
+        if (meta.textarea) { input = document.createElement('textarea'); input.rows = 4; }
+        else { input = document.createElement('input'); input.type = 'text'; }
+        input.id = id; input.name = id; if (meta.placeholder) input.placeholder = meta.placeholder;
+        wrap.appendChild(input);
+        return wrap;
+      }
+
+      function renderFields(category){
+        content.innerHTML = '';
+        const title = document.createElement('h2'); title.className = 'section-title'; title.textContent = CATEGORY_LABELS[category] || category; content.appendChild(title);
+        const ids = GROUPS.get(category) || [];
+        if (category === 'leader_profile'){
+          ['beaver','cub','boy','venture','rover'].forEach(unit => {
+            const h = document.createElement('div'); h.className='subsection-title'; h.textContent = UNIT_TITLES[unit]; content.appendChild(h);
+            const grid = document.createElement('div'); grid.className='panel-columns'; content.appendChild(grid);
+            [ `unit_${unit}_leader_photo_url`, `unit_${unit}_leader_message` ].forEach(fid => { grid.appendChild(createField(fid)); });
+          });
+          return;
+        }
+        if (category === 'gallery'){
+          ['beaver','cub','boy','venture','rover'].forEach(unit => {
+            const h = document.createElement('div'); h.className='subsection-title'; h.textContent = UNIT_TITLES[unit]; content.appendChild(h);
+            const grid = document.createElement('div'); grid.className='panel-columns'; content.appendChild(grid);
+            [1,2,3,4].forEach(n => { grid.appendChild(createField(`unit_${unit}_gallery_img_${n}_url`)); });
+          });
+          return;
+        }
+        const grid = document.createElement('div'); grid.className = 'panel-columns'; content.appendChild(grid);
+        ids.forEach(id => grid.appendChild(createField(id)));
+      }
+
+      function renderActivity(){
+        content.innerHTML = '';
+        const title = document.createElement('h2'); title.className='section-title'; title.textContent = '活動管理'; content.appendChild(title);
+        const bar = document.createElement('div'); bar.className='toolbar'; bar.style.marginTop = '0'; bar.style.alignItems='center';
+        bar.innerHTML = '<input type="search" id="activity-search" placeholder="キーワードで検索..." aria-label="活動 検索" style="flex:1;min-width:220px">\
+          <select id="activity-unit-filter" aria-label="隊フィルター"><option value="">すべての隊</option></select>\
+          <a href="activity-edit.html"><button type="button" class="btn btn-secondary">新規作成</button></a>';
+        content.appendChild(bar);
+        const ul = document.createElement('ul'); ul.id='activity-list'; ul.className='news-list'; content.appendChild(ul);
+        const p = document.createElement('p'); p.id='activity-error'; p.className='error-message'; content.appendChild(p);
+        ensureActivitiesLoaded();
+      }
+
+      function activate(category){
+        Array.from(menu.querySelectorAll('.menu-btn')).forEach(btn => btn.classList.toggle('active', btn.dataset.category === category));
+        localStorage.setItem('admin_settings_active_tab', category);
+        if (category === 'activity') renderActivity(); else renderFields(category);
+      }
+
+      // メニュー描画
+      Object.keys(CATEGORY_LABELS).forEach(key => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'menu-btn'; btn.dataset.category = key; btn.textContent = CATEGORY_LABELS[key];
+        btn.addEventListener('click', () => activate(key));
+        menu.appendChild(btn);
+      });
+
+      const params = new URLSearchParams(location.search);
+      const initial = params.get('tab') || localStorage.getItem('admin_settings_active_tab') || 'contact';
+      activate(initial);
+
+      // 旧コンテンツ（静的フィールド群やタブ）は非表示にする
+      document.querySelectorAll('#settings-form > .form-group, #settings-form > h2, #settings-form > h3, .tab-panel, .tabs').forEach(el => { el.style.display = 'none'; });
+    }
+
     function isUrl(str){ try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } }
     function setupUrlPreviews(){
       const inputs = Array.from(document.querySelectorAll('#settings-form input[type="text"], #settings-form input[type="url"]'));
@@ -463,7 +668,8 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       await ensureLoggedIn();
-      initTabs();
+      // 旧タブは非表示。新しい右メニュー/左ペインUIを初期化
+      initSideMenu();
       // 初期値ロード
       try {
         const res = await fetch('/api/settings/all', { credentials: 'same-origin' });

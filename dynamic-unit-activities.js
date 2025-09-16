@@ -1,0 +1,71 @@
+// dynamic-unit-activities.js
+// 各隊ページの「各隊の活動の様子」を data-unit に基づき動的生成
+
+document.addEventListener('DOMContentLoaded', () => {
+  const section = document.getElementById('unit-activities');
+  if (!section) return;
+  const unit = (section.getAttribute('data-unit') || '').trim();
+  if (!unit) return;
+  const grid = section.querySelector('#unit-activity-cards');
+  if (!grid) return;
+  loadUnitActivities(unit, grid);
+});
+
+function escapeHTML(str){
+  if (typeof str !== 'string') return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatDateJP(dateString){
+  const d = new Date(dateString);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+}
+
+function firstImage(imageUrls, fallbackText){
+  if (Array.isArray(imageUrls) && imageUrls.length && typeof imageUrls[0] === 'string' && imageUrls[0].trim()) {
+    return imageUrls[0];
+  }
+  const t = encodeURIComponent((fallbackText || '活動').slice(0, 12));
+  return `https://placehold.co/600x400/4A934A/FFFFFF?text=${t}`;
+}
+
+async function loadUnitActivities(unit, grid){
+  try {
+    grid.innerHTML = '';
+    const res = await fetch(`/api/activities?unit=${encodeURIComponent(unit)}&limit=4`);
+    if (!res.ok) throw new Error('failed');
+    const items = await res.json();
+    if (!Array.isArray(items) || !items.length){
+      // セクションごと非表示
+      const section = document.getElementById('unit-activities');
+      if (section) section.style.display = 'none';
+      return;
+    }
+    const html = items.map(a => {
+      const img = firstImage(a.image_urls, a.category || a.title || unit);
+      const dateStr = a.activity_date ? formatDateJP(a.activity_date) : (a.created_at ? formatDateJP(a.created_at) : '');
+      const detailUrl = `activity-detail-placeholder.html?id=${a.id}`;
+      const summary = String(a.content || '').replace(/<[^>]+>/g, '').slice(0, 80) + (a.content && a.content.length > 80 ? '…' : '');
+      return `
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover-effect group">
+        <div class="relative">
+          <img src="${img}" alt="${escapeHTML(a.title || '')}" class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+        </div>
+        <div class="p-5">
+          ${dateStr ? `<p class=\"text-xs text-gray-500 mb-1\">${dateStr}</p>` : ''}
+          <h3 class="text-lg font-semibold mb-2">
+            <a href="${detailUrl}" class="hover:text-green-700 transition-colors">${escapeHTML(a.title || '')}</a>
+          </h3>
+          <p class="text-gray-700 text-sm leading-relaxed line-clamp-3">${escapeHTML(summary)}</p>
+        </div>
+      </div>`;
+    }).join('');
+    grid.innerHTML = html;
+  } catch (e) {
+    console.error('loadUnitActivities error:', e);
+    grid.innerHTML = '<p class="col-span-full text-center text-red-500">活動の読み込みに失敗しました</p>';
+  }
+}
+

@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="common-styles.css">
 
     <script defer src="common-scripts.js"></script>
+    <script defer src="dynamic-index.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
@@ -169,7 +170,7 @@
         <section id="activities" class="py-16 md:py-24 bg-gray-50 fade-in-section"> <!-- 背景色変更 -->
             <div class="container mx-auto px-6">
                 <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">活動ハイライト</h2>
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div id="index-activities" class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                     <!-- 活動ハイライトカード - 画像を実際の活動写真に差し替え推奨 -->
                     <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
                         <div class="relative">
@@ -260,7 +261,7 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
                     お知らせ
                 </h2>
-                <div class="space-y-8 max-w-3xl mx-auto">
+                <div id="index-news-list" class="space-y-8 max-w-3xl mx-auto">
                     <!-- お知らせアイテム - JSで動的に読み込む場合はここは空でも良い -->
                     <article class="bg-gray-50 p-6 sm:p-8 rounded-xl shadow-lg card-hover-effect border-l-4 border-blue-500">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3">
