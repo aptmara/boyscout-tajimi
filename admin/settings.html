@@ -41,7 +41,14 @@
         .menu-btn { width:100%; text-align:left; padding:10px 12px; border:none; background:#fff; border-radius:6px; cursor:pointer; color:var(--admin-text); }
         .menu-btn.active { background: var(--admin-primary-50, #eef7f1); color: var(--admin-primary-800, #0b6b3a); font-weight:600; }
         .panel-columns { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media (max-width: 980px) { .settings-layout { grid-template-columns: 1fr; } .side-menu { position:static; } }
+        @media (max-width: 980px) {
+          .settings-layout { grid-template-columns: 1fr; }
+          /* モバイルではサイドメニューをドロワー化 */
+          .side-menu { position: fixed; right: 0; top: 0; bottom: 0; width: min(86vw, 320px); transform: translateX(100%); transition: transform .25s ease; z-index: 60; }
+          .side-menu.open { transform: translateX(0); }
+        }
+        .side-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.35); display: none; z-index: 59; }
+        .side-backdrop.open { display: block; }
         /* Hide legacy tabs */
         .tabs, .tab-panel { display:none !important; }
       </style>
@@ -49,18 +56,30 @@
       <!-- New 2-pane layout: left content, right menu -->
       <div class="settings-layout">
         <div class="content-pane">
-          <div class="toolbar">
-            <button type="button" class="btn" id="btn-save-draft">下書き保存</button>
-            <button type="button" class="btn" id="btn-restore-draft">下書きを復元</button>
-            <button type="button" class="btn" id="btn-discard-draft">下書きを破棄</button>
-            <button type="button" class="btn" id="btn-import-task">task.txt から取り込み</button>
+          <div class="toolbar" style="display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:wrap;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn" id="btn-save-draft">下書き保存</button>
+              <button type="button" class="btn" id="btn-restore-draft">下書きを復元</button>
+              <button type="button" class="btn" id="btn-discard-draft">下書きを破棄</button>
+              <button type="button" class="btn" id="btn-import-task">task.txt から取り込み</button>
+            </div>
+            <div class="toolbar-actions" style="display:flex; gap:8px; align-items:center;">
+              <button type="button" class="btn btn-ghost" id="menu-toggle" aria-label="メニューを開く">メニュー</button>
+              <button type="button" class="btn btn-secondary" id="btn-save-top">保存</button>
+              <a href="dashboard.html"><button type="button" class="btn btn-ghost" id="btn-cancel-top">キャンセル</button></a>
+              <button type="button" class="btn btn-ghost" id="btn-help" title="ヘルプ" aria-label="ヘルプ">?</button>
+            </div>
           </div>
           <div id="content-area"></div>
         </div>
         <aside class="side-menu" aria-label="設定カテゴリ">
           <h3>大枠の設定</h3>
+          <div style="padding:6px 8px 8px;">
+            <input id="menu-search" type="search" placeholder="カテゴリを検索..." aria-label="カテゴリ検索" style="width:100%;padding:8px 10px;border:1px solid var(--admin-border);border-radius:8px;">
+          </div>
           <div class="menu-list" id="menu-list"></div>
         </aside>
+        <div class="side-backdrop" id="side-backdrop" aria-hidden="true"></div>
       </div>
 
       <nav class="tabs" id="settings-tabs">
@@ -212,8 +231,8 @@
       <div class="form-group"><label for="unit_rover_gallery_img_4_url">画像4</label><input type="text" id="unit_rover_gallery_img_4_url" name="unit_rover_gallery_img_4_url" placeholder="https://..."></div>
 
       <div class="form-actions">
-        <button type="submit">保存</button>
-        <a href="dashboard.html"><button type="button">キャンセル</button></a>
+        <button type="submit" id="btn-save-bottom">保存</button>
+        <a href="dashboard.html"><button type="button" id="btn-cancel-bottom">キャンセル</button></a>
       </div>
       <p id="save-message" class="success-message" style="display:none;">保存しました。</p>
       <p id="error-message" class="error-message"></p>
@@ -674,6 +693,58 @@
           e.preventDefault();
           form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         }
+      });
+
+      // 上部ツールバーの保存/キャンセルを連携
+      document.getElementById('btn-save-top')?.addEventListener('click', () => {
+        form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      });
+
+      // ヘルプモーダル
+      const helpBtn = document.getElementById('btn-help');
+      const helpBackdrop = document.createElement('div');
+      helpBackdrop.className = 'modal-backdrop';
+      helpBackdrop.id = 'help-backdrop';
+      helpBackdrop.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+          <div class="modal-header"><h3 id="help-title">ヘルプ</h3></div>
+          <div class="modal-body">
+            <p>操作のコツ:</p>
+            <ul>
+              <li>Ctrl/Cmd + S で保存</li>
+              <li>右メニューでカテゴリ切替、左で項目を編集</li>
+              <li>URL欄は画像プレビューが表示されます</li>
+            </ul>
+          </div>
+          <div class="actions"><button class="btn" id="help-close">閉じる</button></div>
+        </div>`;
+      document.body.appendChild(helpBackdrop);
+      helpBtn?.addEventListener('click', () => { helpBackdrop.classList.add('open'); });
+      helpBackdrop?.addEventListener('click', (e) => {
+        if (e.target === helpBackdrop || (e.target && e.target.id === 'help-close')) helpBackdrop.classList.remove('open');
+      });
+
+      // サイドメニュー（モバイル）開閉 + バックドロップ
+      const sideMenu = document.querySelector('.side-menu');
+      const sideBackdrop = document.getElementById('side-backdrop');
+      const menuToggle = document.getElementById('menu-toggle');
+      const openMenu = () => { sideMenu?.classList.add('open'); sideBackdrop?.classList.add('open'); };
+      const closeMenu = () => { sideMenu?.classList.remove('open'); sideBackdrop?.classList.remove('open'); };
+      menuToggle?.addEventListener('click', openMenu);
+      sideBackdrop?.addEventListener('click', closeMenu);
+      // メニュー項目クリックで閉じる（モバイル）
+      document.getElementById('menu-list')?.addEventListener('click', (e) => {
+        if (window.matchMedia('(max-width: 980px)').matches && e.target.closest('.menu-btn')) closeMenu();
+      });
+
+      // メニュー検索
+      const menuSearch = document.getElementById('menu-search');
+      menuSearch?.addEventListener('input', () => {
+        const q = (menuSearch.value || '').toLowerCase();
+        document.querySelectorAll('#menu-list .menu-btn').forEach(btn => {
+          const hit = (btn.textContent || '').toLowerCase().includes(q);
+          btn.style.display = hit ? '' : 'none';
+        });
       });
 
       // 保存
