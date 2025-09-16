@@ -2,7 +2,7 @@
 (function(){
   const routes = {
     news:         { title: 'お知らせ管理',     src: '/admin/dashboard.html' },
-    activities:   { title: '活動管理',         src: '/admin/settings.html?tab=activity' },
+    activities:   { title: '活動管理',         src: '/admin/dashboard.html?type=activity' },
     settings:     { title: 'サイト設定',       src: '/admin/settings.html' },
     branding:     { title: 'ブランディング',   src: '/admin/branding.html' },
     news_new:     { title: 'お知らせ 新規作成', src: '/admin/edit.html' },
@@ -26,7 +26,8 @@
     btns.forEach(b => b.classList.toggle('active', b.dataset.nav === key));
     const route = routes[key] || routes.news;
     if (titleEl) titleEl.textContent = route.title;
-    if (iframe && iframe.src !== route.src) iframe.src = route.src;
+    // URLが同じでも常にsrcを再設定してページをリロードさせる
+    if (iframe) iframe.src = route.src;
     localStorage.setItem('admin.active', key);
     document.querySelector('.app-nav')?.classList.remove('open');
   }
@@ -167,7 +168,7 @@
   function localizeAndShortcuts(){
     try {
       document.title = '管理コンソール';
-      const vt = document.getElementById('view-title'); if (vt && /�|読/.test(vt.textContent||'')) vt.textContent = '読み込み中...';
+      const vt = document.getElementById('view-title'); if (vt && /|読/.test(vt.textContent||'')) vt.textContent = '読み込み中...';
       const map = { news: '📰 お知らせ', activities: '🧭 活動', settings: '⚙️ 設定', branding: '🎨 ブランディング' };
       document.querySelectorAll('.links [data-nav]').forEach(btn => { const k = btn.getAttribute('data-nav'); if (map[k]) btn.textContent = map[k]; });
       const brand = document.querySelector('.app-nav .brand h1'); if (brand) brand.textContent = '管理メニュー';
@@ -217,5 +218,17 @@
     const initial = new URLSearchParams(location.search).get('view') || localStorage.getItem('admin.active') || 'news';
     setActive(initial in routes ? initial : 'news');
   });
-})();
 
+  /**
+   * iframe 内からメインコンテンツフレームをリロードするためのグローバル関数
+   */
+  window.appShell = {
+    reloadMainFrame: () => {
+      const iframe = document.getElementById('main-frame');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.location.reload(true); // trueでキャッシュをバイパス
+      }
+    },
+    // 必要に応じて他の関数を追加
+  };
+})();
