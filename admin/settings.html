@@ -32,6 +32,22 @@
         .hint { color: var(--admin-text-muted); font-size: 12px; margin-top: 4px; }
         .img-preview { border:1px dashed var(--admin-border); padding:8px; border-radius:8px; background:#fafafa; margin-top:6px; display:none; }
         .img-preview img { max-width:100%; height:auto; display:block; }
+        .form-group { position: relative; }
+        .form-group .field-state { display:none; margin-left:8px; font-size:11px; color:#b45309; background:rgba(217,119,6,.16); border-radius:999px; padding:2px 8px; font-weight:500; }
+        .form-group.is-empty { background:rgba(254,243,199,.45); box-shadow: inset 0 0 0 1px rgba(217,119,6,.28); border-radius:10px; transition:background .2s ease; }
+        .form-group.is-empty .field-state { display:inline-flex; align-items:center; }
+        .field-meta { display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px; color:var(--admin-text-muted); line-height:1.4; flex-wrap:wrap; }
+        .field-meta code { background:rgba(15,23,42,.08); padding:3px 6px; border-radius:6px; font-size:12px; }
+        .field-meta button { border:none; background:rgba(15,23,42,.08); color:var(--admin-text); border-radius:6px; padding:4px 10px; cursor:pointer; transition:background .2s ease, color .2s ease; }
+        .field-meta button:hover { background:rgba(15,118,110,.18); color:#065f46; }
+        .field-meta button.copied { background:rgba(34,197,94,.18); color:#047857; }
+        .field-filter-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:12px 0 20px; }
+        .field-filter-bar .filter-search { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--admin-border); border-radius:8px; background:#fff; min-width:220px; }
+        .field-filter-bar .filter-search input { border:none; outline:none; min-width:180px; }
+        .field-filter-bar label { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--admin-text-muted); }
+        .field-filter-reset { border:1px solid var(--admin-border); background:#fff; color:var(--admin-text); border-radius:8px; padding:6px 12px; cursor:pointer; }
+        .field-filter-result { margin-left:auto; font-size:12px; color:var(--admin-text-muted); }
+        .section-note { margin:8px 0 4px; font-size:13px; color:var(--admin-text-muted); line-height:1.6; }
         /* --- New side layout --- */
         .settings-layout { display:grid; grid-template-columns: 1fr 260px; gap: 16px; align-items:start; }
         .content-pane { background:#fff; border:1px solid var(--admin-border); border-radius:8px; padding:16px; box-shadow: var(--admin-shadow); min-height: 480px; }
@@ -248,13 +264,18 @@
       } catch { window.location.href = '/admin/login.html'; }
     }
 
+    let currentSettings = {};
+    let currentCategory = null;
+
     function fillForm(settings) {
+      currentSettings = { ...(settings || {}) };
       const fields = [
         'contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name',
         'privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date',
         'leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover',
         'index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url',
-        'index_testimonial_img_1_url','index_testimonial_img_2_url','contact_map_embed_html'
+        'index_testimonial_img_1_url','index_testimonial_img_2_url','contact_map_embed_html',
+        'site_title','site_tagline','site_meta_description','site_theme_color','site_favicon_url','site_apple_touch_icon_url'
       ];
       fields.forEach(k => {
         const el = document.getElementById(k);
@@ -269,7 +290,11 @@
         if (typeof settings[key] !== 'undefined') {
           el.value = settings[key];
         }
+        if (key) currentSettings[key] = el.value;
       });
+
+      updateFieldStates(document.getElementById('settings-form'));
+      window.__settingsUI?.refreshCurrent?.();
     }
 
     /* legacy tabs removed */
@@ -283,19 +308,28 @@
         contact: '連絡先',
         privacy: 'プライバシー',
         leader_names: 'リーダー名',
-        branding: 'ブランディング',
-        about_page: '団紹介ページ',
+        site_meta: 'サイト基本情報',
+        branding: 'ブランド',
+        about_page: '団について',
         leader_profile: 'リーダープロフィール',
         gallery: 'ギャラリー',
         top_images: 'トップ画像',
         activity: '活動管理'
       };
 
+      const CATEGORY_HELP = {
+        site_meta: 'サイトタイトルやメタディスクリプションなど、サイト全体で共通する基本情報です。',
+        branding: '団章や各隊のロゴ、ファビコンなどビジュアル資産を設定します。',
+        gallery: '各隊ページに掲載するギャラリー画像（最大4枚）を設定します。',
+        activity: '公開済みの活動ログを検索・確認できます。必要に応じて削除も行えます。'
+      };
+
       const GROUPS = new Map([
         ['contact', ['contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name','contact_map_embed_html']],
         ['privacy', ['privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date']],
         ['leader_names', ['leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover']],
-        ['branding', ['site_favicon_url','group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
+        ['site_meta', ['site_title','site_tagline','site_meta_description','site_theme_color','site_favicon_url','site_apple_touch_icon_url']],
+        ['branding', ['group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
         ['leader_profile', [
           'unit_beaver_leader_photo_url','unit_beaver_leader_message',
           'unit_cub_leader_photo_url','unit_cub_leader_message',
@@ -378,24 +412,92 @@
         about_safety_image_url: { label: '団紹介：安全セクション画像URL', placeholder: 'https://...' }
       };
 
+      Object.assign(FIELD_META, {
+        site_title: { label: 'サイトタイトル', placeholder: 'ボーイスカウト多治見第一団', note: 'ブラウザのタブや検索結果などで表示されます。' },
+        site_tagline: { label: 'サイトタグライン', placeholder: '地域や活動のキャッチコピー', note: 'ヘッダーなど共通エリアで使う短い紹介文です。' },
+        site_meta_description: { label: 'メタディスクリプション', textarea: true, rows: 3, maxLength: 180, note: '検索結果で表示される説明文です。120〜160文字程度が目安です。' },
+        site_theme_color: { label: 'テーマカラー (HEX)', placeholder: '#166534', note: '#から始まる6桁の16進数色コードを入力してください。', pattern: '^#([0-9a-fA-F]{6})$' },
+        site_apple_touch_icon_url: { label: 'Apple Touch Icon URL', placeholder: 'https://.../apple-touch-icon.png', note: 'iOSホーム画面用アイコン。PNG 180x180px を推奨します。' }
+      });
+
+      Object.assign(FIELD_META.site_favicon_url, { note: 'ブラウザのタブや検索結果で表示されるアイコンです。ICO/PNG/SVGなどのURLを指定してください。', type: 'url' });
+      Object.assign(FIELD_META.group_crest_url, { type: 'url' });
+      Object.assign(FIELD_META.contact_phone, { type: 'tel' });
+      Object.assign(FIELD_META.contact_secondary_phone, { type: 'tel' });
+      Object.assign(FIELD_META.contact_email, { type: 'email' });
+      Object.assign(FIELD_META.privacy_contact_phone, { type: 'tel' });
+      Object.assign(FIELD_META.privacy_contact_email, { type: 'email' });
       const UNIT_TITLES = { beaver: 'ビーバー', cub: 'カブ', boy: 'ボーイ', venture: 'ベンチャー', rover: 'ローバー' };
 
       function createField(id){
         const meta = FIELD_META[id] || { label: id };
         const wrap = document.createElement('div');
         wrap.className = 'form-group';
+        wrap.dataset.key = id;
         const label = document.createElement('label');
         label.setAttribute('for', id);
         label.textContent = meta.label || id;
+        const badge = document.createElement('span');
+        badge.className = 'field-state';
+        badge.textContent = '未設定';
+        label.appendChild(badge);
         wrap.appendChild(label);
+
         let input;
-        if (meta.textarea) { input = document.createElement('textarea'); input.rows = 4; }
-        else { input = document.createElement('input'); input.type = 'text'; }
-        input.id = id; input.name = id; if (meta.placeholder) input.placeholder = meta.placeholder;
+        if (meta.textarea) {
+          input = document.createElement('textarea');
+          input.rows = meta.rows || 4;
+        } else {
+          input = document.createElement('input');
+          let inferredType = meta.type || '';
+          if (!inferredType) {
+            if (id.endsWith('_url')) inferredType = 'url';
+            else if (/email/i.test(id)) inferredType = 'email';
+            else if (/phone|tel/i.test(id)) inferredType = 'tel';
+            else inferredType = 'text';
+          }
+          input.type = inferredType;
+        }
+
+        input.id = id;
+        input.name = id;
+        if (meta.placeholder) input.placeholder = meta.placeholder;
+        if (typeof meta.maxLength === 'number') input.maxLength = meta.maxLength;
+        if (meta.pattern) input.pattern = meta.pattern;
+        if (meta.autocomplete) input.autocomplete = meta.autocomplete;
+
+        const currentValue = Object.prototype.hasOwnProperty.call(currentSettings, id)
+          ? (currentSettings[id] ?? '')
+          : '';
+        input.value = currentValue;
         wrap.appendChild(input);
+
+        wrap.dataset.label = (meta.label || id).toLowerCase();
+        wrap.dataset.keywords = [id, meta.label || '', meta.note || ''].join(' ').toLowerCase();
+
+        if (meta.note) {
+          const note = document.createElement('p');
+          note.className = 'hint';
+          note.textContent = meta.note;
+          wrap.appendChild(note);
+        }
+
+        const metaRow = document.createElement('div');
+        metaRow.className = 'field-meta';
+        metaRow.innerHTML = `<code>${id}</code><button type="button" class="copy-key" data-key="${id}">キーをコピー</button>`;
+        wrap.appendChild(metaRow);
+
+        const updateState = () => {
+          const val = input.value ?? '';
+          currentSettings[id] = val;
+          updateSingleFieldState(wrap, val);
+        };
+
+        input.addEventListener('input', updateState);
+        updateSingleFieldState(wrap, currentValue);
+
         return wrap;
       }
-
       function renderFields(category){
         content.innerHTML = '';
         const title = document.createElement('h2'); title.className = 'section-title'; title.textContent = CATEGORY_LABELS[category] || category; content.appendChild(title);
