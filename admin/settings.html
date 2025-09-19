@@ -284,6 +284,7 @@
         privacy: 'プライバシー',
         leader_names: 'リーダー名',
         branding: 'ブランディング',
+        about_page: '団紹介ページ',
         leader_profile: 'リーダープロフィール',
         gallery: 'ギャラリー',
         top_images: 'トップ画像',
@@ -294,7 +295,7 @@
         ['contact', ['contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name','contact_map_embed_html']],
         ['privacy', ['privacy_contact_person','privacy_contact_phone','privacy_contact_email','privacy_effective_date','privacy_last_updated_date']],
         ['leader_names', ['leader_beaver','leader_cub','leader_boy','leader_venture','leader_rover']],
-        ['branding', ['group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
+        ['branding', ['site_favicon_url','group_crest_url','unit_beaver_logo_url','unit_cub_logo_url','unit_boy_logo_url','unit_venture_logo_url','unit_rover_logo_url']],
         ['leader_profile', [
           'unit_beaver_leader_photo_url','unit_beaver_leader_message',
           'unit_cub_leader_photo_url','unit_cub_leader_message',
@@ -310,6 +311,7 @@
           'unit_rover_gallery_img_1_url','unit_rover_gallery_img_2_url','unit_rover_gallery_img_3_url','unit_rover_gallery_img_4_url'
         ]],
         ['top_images', ['index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url','index_testimonial_img_1_url','index_testimonial_img_2_url']],
+        ['about_page', ['about_mission_image_url','about_safety_image_url']],
       ]);
 
       const FIELD_META = {
@@ -329,6 +331,7 @@
         leader_boy: { label: 'ボーイ隊長名' },
         leader_venture: { label: 'ベンチャー隊長名' },
         leader_rover: { label: 'ローバー隊長名' },
+        site_favicon_url: { label: 'ファビコンURL', placeholder: 'https://.../favicon.ico' },
         group_crest_url: { label: '団章画像URL', placeholder: 'https://...' },
         unit_beaver_logo_url: { label: 'ビーバー隊ロゴURL', placeholder: 'https://...' },
         unit_cub_logo_url: { label: 'カブ隊ロゴURL', placeholder: 'https://...' },
@@ -370,7 +373,9 @@
         index_highlight_img_2_url: { label: 'ハイライト画像2 URL', placeholder: 'https://...' },
         index_highlight_img_3_url: { label: 'ハイライト画像3 URL', placeholder: 'https://...' },
         index_testimonial_img_1_url: { label: '体験談画像1 URL', placeholder: 'https://...' },
-        index_testimonial_img_2_url: { label: '体験談画像2 URL', placeholder: 'https://...' }
+        index_testimonial_img_2_url: { label: '体験談画像2 URL', placeholder: 'https://...' },
+        about_mission_image_url: { label: '団紹介：理念セクション画像URL', placeholder: 'https://...' },
+        about_safety_image_url: { label: '団紹介：安全セクション画像URL', placeholder: 'https://...' }
       };
 
       const UNIT_TITLES = { beaver: 'ビーバー', cub: 'カブ', boy: 'ボーイ', venture: 'ベンチャー', rover: 'ローバー' };
@@ -563,7 +568,7 @@
           activitiesData = activitiesData.filter(x => String(x.id) !== String(id));
           renderActivities();
         } catch {
-          AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+          AdminUI.showResult({ ok: true, message: "task.txt の値を反映しました。" });
         }
       });
     }
@@ -579,19 +584,19 @@
         const payload = {};
         document.querySelectorAll('#settings-form input, #settings-form textarea').forEach(el => { if (el.name) payload[el.name] = el.value; });
         localStorage.setItem(DKEY, JSON.stringify(payload));
-        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+        AdminUI.showResult({ ok: true, message: "下書きを保存しました。" });
       });
       restoreBtn?.addEventListener('click', () => {
         const txt = localStorage.getItem(DKEY);
-        if (!txt) return AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+        if (!txt) return AdminUI.showResult({ ok: false, message: "復元できる下書きが見つかりません。" });
         const data = JSON.parse(txt);
         applyPayloadToForm(data);
         setupUrlPreviews();
-        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+        AdminUI.showResult({ ok: true, message: "下書きを復元しました。" });
       });
       discardBtn?.addEventListener('click', () => {
         localStorage.removeItem(DKEY);
-        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+        AdminUI.showResult({ ok: true, message: "下書きを破棄しました。" });
       });
       importBtn?.addEventListener('click', () => {
         const sample = '例:\nbeaver https://...\ncub https://...\nboy https://...\nventure https://...\nrover https://...\n団章 https://...';
@@ -611,7 +616,7 @@
         setIf('unit_rover_logo_url','rover');
         setIf('group_crest_url','団章'); setIf('group_crest_url','dan'); setIf('group_crest_url','group'); setIf('group_crest_url','crest');
         setupUrlPreviews();
-        AdminUI.showResult({ ok:false, message: "活動の削除に失敗しました" });
+        AdminUI.showResult({ ok: true, message: "task.txt の値を反映しました。" });
       });
     }
 

@@ -674,6 +674,8 @@ app.get('/api/public-settings', async (req, res) => {
       'contact_email',
       'contact_person_name',
       'contact_map_embed_html',
+      // 全ページ共通
+      'site_favicon_url',
       // 各部門リーダー名
       'leader_beaver',
       'leader_cub',
@@ -708,6 +710,9 @@ app.get('/api/public-settings', async (req, res) => {
       'index_highlight_img_3_url',
       'index_testimonial_img_1_url',
       'index_testimonial_img_2_url',
+      // 団紹介ページ（about.html）
+      'about_mission_image_url',
+      'about_safety_image_url',
     ];
 
     const placeholders = publicKeys.map((_, i) => `$${i + 1}`).join(',');
@@ -724,6 +729,94 @@ app.get('/api/public-settings', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/admin/summary', authMiddleware, async (req, res) => {
+  try {
+    const [
+      newsCountRes,
+      newsRecentRes,
+      newsRecent30Res,
+      activitiesCountRes,
+      activitiesRecentRes,
+      activitiesRecent30Res,
+      settingsRowsRes
+    ] = await Promise.all([
+      db.query("SELECT COUNT(*)::int AS count FROM news"),
+      db.query(`SELECT id, title, category, unit, created_at
+                 FROM news
+                 ORDER BY created_at DESC
+                 LIMIT 5`),
+      db.query("SELECT COUNT(*)::int AS count FROM news WHERE created_at >= now() - interval '30 days'"),
+      db.query("SELECT COUNT(*)::int AS count FROM activities"),
+      db.query(`SELECT id, title, category, unit, activity_date, created_at
+                 FROM activities
+                 ORDER BY COALESCE(activity_date, created_at) DESC
+                 LIMIT 5`),
+      db.query("SELECT COUNT(*)::int AS count FROM activities WHERE COALESCE(activity_date, created_at) >= now() - interval '30 days'"),
+      db.query('SELECT key, value FROM settings')
+    ]);
+
+    const toNumber = (row) => Number(row?.count || 0);
+    const newsTotal = toNumber(newsCountRes.rows[0]);
+    const newsRecent30 = toNumber(newsRecent30Res.rows[0]);
+    const activitiesTotal = toNumber(activitiesCountRes.rows[0]);
+    const activitiesRecent30 = toNumber(activitiesRecent30Res.rows[0]);
+
+    const settingsMap = Object.create(null);
+    for (const row of settingsRowsRes.rows) {
+      settingsMap[row.key] = row.value || '';
+    }
+
+    const importantKeys = [
+      { key: 'site_favicon_url', label: 'ファビコンURL' },
+      { key: 'group_crest_url', label: '団章画像URL' },
+      { key: 'contact_address', label: '代表住所' },
+      { key: 'contact_phone', label: '代表電話番号' },
+      { key: 'contact_email', label: '代表メールアドレス' },
+      { key: 'index_hero_image_url', label: 'トップページヒーロー画像' },
+      { key: 'about_mission_image_url', label: '団紹介：理念セクション画像' },
+      { key: 'about_safety_image_url', label: '団紹介：安全セクション画像' }
+    ];
+
+    const isPresent = (value) => Boolean(String(value || '').trim());
+    const missingKeys = importantKeys.filter(({ key }) => !isPresent(settingsMap[key]));
+
+    res.json({
+      news: {
+        total: newsTotal,
+        trendLabel: `直近30日: ${newsRecent30}件`,
+        recent: newsRecentRes.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          category: row.category,
+          unit: row.unit,
+          created_at: row.created_at,
+        })),
+      },
+      activities: {
+        total: activitiesTotal,
+        trendLabel: `直近30日: ${activitiesRecent30}件`,
+        recent: activitiesRecentRes.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          category: row.category,
+          unit: row.unit,
+          activity_date: row.activity_date,
+          created_at: row.created_at,
+        })),
+      },
+      settings: {
+        missingKeys,
+        faviconConfigured: isPresent(settingsMap.site_favicon_url),
+        heroConfigured: isPresent(settingsMap.index_hero_image_url),
+      },
+    });
+  } catch (err) {
+    console.error('GET /api/admin/summary error:', err);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, subject, message } = req.body || {};

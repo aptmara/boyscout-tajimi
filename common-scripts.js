@@ -532,6 +532,36 @@ function initContactForm() {
 }
 
 
+function ensureFaviconLink(rel) {
+  const head = document.head || document.getElementsByTagName('head')[0];
+  if (!head) return null;
+  const selector = `link[rel="${rel}"]`;
+  let link = head.querySelector(selector);
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = rel;
+    head.appendChild(link);
+  }
+  return link;
+}
+
+function updateFavicon(url) {
+  if (!url) return;
+  const rels = ['icon', 'shortcut icon'];
+  rels.forEach(rel => {
+    const link = ensureFaviconLink(rel);
+    if (!link) return;
+    link.href = url;
+    if (!link.type) {
+      const ext = url.split(/[?#]/)[0].split('.').pop().toLowerCase();
+      if (ext === 'png') link.type = 'image/png';
+      else if (ext === 'svg') link.type = 'image/svg+xml';
+      else if (ext === 'jpg' || ext === 'jpeg') link.type = 'image/jpeg';
+      else if (ext === 'ico') link.type = 'image/x-icon';
+    }
+  });
+}
+
 /**
  * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる
  */
@@ -544,6 +574,10 @@ async function applySiteSettings() {
     }
     const settings = await response.json();
     window.__SITE_PUBLIC_SETTINGS = settings;
+
+    if (settings.site_favicon_url) {
+      updateFavicon(settings.site_favicon_url);
+    }
 
     // 1. フッターや連絡先ページの共通情報を更新
     document.querySelectorAll('.contact-address').forEach(el => {
@@ -635,6 +669,15 @@ async function applySiteSettings() {
       const el = document.getElementById(`index-testimonial-img-${i}`);
       const key = `index_testimonial_img_${i}_url`;
       if (el && settings[key]) el.src = settings[key];
+    }
+
+    const aboutMissionImage = document.getElementById('about-mission-image');
+    if (aboutMissionImage && settings.about_mission_image_url) {
+      aboutMissionImage.src = settings.about_mission_image_url;
+    }
+    const aboutSafetyImage = document.getElementById('about-safety-image');
+    if (aboutSafetyImage && settings.about_safety_image_url) {
+      aboutSafetyImage.src = settings.about_safety_image_url;
     }
 
     // 6. 団章（ヘッダー/フッター）
