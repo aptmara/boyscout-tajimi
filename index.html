@@ -261,35 +261,59 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
                     お知らせ
                 </h2>
-                <div id="index-news-list" class="space-y-8 max-w-3xl mx-auto">
-                    <!-- お知らせアイテム - JSで動的に読み込む場合はここは空でも良い -->
-                    <article class="bg-gray-50 p-6 sm:p-8 rounded-xl shadow-lg card-hover-effect border-l-4 border-blue-500">
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3">
-                            <p class="text-sm text-gray-500 mb-1 sm:mb-0">2025年5月10日</p>
-                            <span class="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full self-start sm:self-center">イベント</span>
+                <div id="index-news-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <!-- お知らせカード (JS 有効時に置き換え) -->
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
+                        <div class="relative">
+                            <img src="https://placehold.co/600x400/3B82F6/FFFFFF?text=NEWS" alt="夏のキャンプ大会 参加者募集開始！" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                         </div>
-                        <h3 class="text-xl md:text-2xl font-semibold text-gray-800 mb-3 hover:text-blue-600 transition-colors duration-300">
-                            <a href="news-detail-placeholder.html">夏のキャンプ大会 参加者募集開始！</a>
-                        </h3>
-                        <p class="text-gray-700 leading-relaxed line-clamp-3">
-                            今年の夏も恒例のキャンプ大会を開催します。豊かな自然の中で新しい発見と友情を育みましょう。詳細は近日公開予定です。お楽しみに！
-                        </p>
-                    </article>
-                    <article class="bg-gray-50 p-6 sm:p-8 rounded-xl shadow-lg card-hover-effect border-l-4 border-red-500">
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3">
-                            <p class="text-sm text-gray-500 mb-1 sm:mb-0">2025年4月28日</p>
-                            <span class="bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full self-start sm:self-center">重要</span>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between gap-3 mb-2">
+                                <p class="text-sm text-gray-500">2025年5月10日</p>
+                                <span class="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">イベント</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3">
+                                <a href="news-detail-placeholder.html" class="hover:text-green-700 transition-colors">夏のキャンプ大会 参加者募集開始！</a>
+                            </h3>
+                            <p class="text-gray-700 mb-4 leading-relaxed line-clamp-3">団内で実施するサマーキャンプの参加者募集が始まりました。テント設営や火おこしなど、外での活動が初めてでも安心して参加できます。</p>
+                            <a href="news-detail-placeholder.html" class="inline-block text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">詳しく読む <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span></a>
                         </div>
-                        <h3 class="text-xl md:text-2xl font-semibold text-gray-800 mb-3 hover:text-red-600 transition-colors duration-300">
-                            <a href="news-detail-placeholder.html">団総会の開催について</a>
-                        </h3>
-                        <p class="text-gray-700 leading-relaxed line-clamp-3">
-                            次回の団総会を6月15日に開催いたします。団の運営に関する重要な議題がございますので、保護者の皆様は万障お繰り合わせの上ご参加ください。
-                        </p>
-                    </article>
-                </div>
-                <div class="text-center mt-16">
-                    <a href="news-list.html" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg hover:shadow-xl">お知らせ</a>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
+                        <div class="relative">
+                            <img src="https://placehold.co/600x400/F97316/FFFFFF?text=INFO" alt="団総会の開催について" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between gap-3 mb-2">
+                                <p class="text-sm text-gray-500">2025年4月28日</p>
+                                <span class="bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">重要</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3">
+                                <a href="news-detail-placeholder.html" class="hover:text-green-700 transition-colors">団総会の開催について</a>
+                            </h3>
+                            <p class="text-gray-700 mb-4 leading-relaxed line-clamp-3">年に一度の総会を6月15日に開催します。保護者・指導者の皆さまには今後の方針共有と意見交換の場としてぜひご参加ください。</p>
+                            <a href="news-detail-placeholder.html" class="inline-block text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">詳しく読む <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span></a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
+                        <div class="relative">
+                            <img src="https://placehold.co/600x400/10B981/FFFFFF?text=UPDATE" alt="地区表彰を受賞しました" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between gap-3 mb-2">
+                                <p class="text-sm text-gray-500">2025年4月10日</p>
+                                <span class="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">トピックス</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3">
+                                <a href="news-detail-placeholder.html" class="hover:text-green-700 transition-colors">地区表彰を受賞しました</a>
+                            </h3>
+                            <p class="text-gray-700 mb-4 leading-relaxed line-clamp-3">地域の奉仕活動に対する取り組みが評価され、今年度の地区表彰を受賞しました。これも皆さんの日頃の協力のおかげです。</p>
+                            <a href="news-detail-placeholder.html" class="inline-block text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">詳しく読む <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span></a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
