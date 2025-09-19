@@ -54,8 +54,12 @@
         .side-menu { position:sticky; top:12px; align-self:start; background:#fff; border:1px solid var(--admin-border); border-radius:8px; padding:8px; box-shadow: var(--admin-shadow); }
         .side-menu h3 { margin:8px 8px 6px; font-size:14px; color: var(--admin-text-muted); }
         .menu-list { display:flex; flex-direction:column; gap:4px; }
-        .menu-btn { width:100%; text-align:left; padding:10px 12px; border:none; background:#fff; border-radius:6px; cursor:pointer; color:var(--admin-text); }
+        .menu-btn { width:100%; text-align:left; padding:10px 12px; border:none; background:#fff; border-radius:6px; cursor:pointer; color:var(--admin-text); display:flex; align-items:center; gap:10px; }
+        .menu-btn .menu-label { flex:1; }
         .menu-btn.active { background: var(--admin-primary-50, #eef7f1); color: var(--admin-primary-800, #0b6b3a); font-weight:600; }
+        .menu-btn.has-missing { border:1px solid var(--admin-primary-200, #bfe3cc); }
+        .menu-badge { display:none; align-items:center; justify-content:center; min-width:1.75em; height:1.75em; padding:0 6px; border-radius:999px; font-size:12px; font-weight:600; color:#047857; background:rgba(16, 185, 129, 0.16); }
+        .menu-badge.active { display:inline-flex; }
         .panel-columns { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 980px) {
           .settings-layout { grid-template-columns: 1fr; }
@@ -67,6 +71,19 @@
         .side-backdrop.open { display: block; }
         /* Hide legacy tabs */
         .tabs, .tab-panel { display:none !important; }
+        .status-callout { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.24); border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+        .status-callout.is-hidden { display:none; }
+        .status-summary-main { flex:1; min-width:220px; }
+        .status-summary-title { margin:0 0 6px; font-size:15px; font-weight:600; color:#064e3b; }
+        .status-summary-description { margin:0 0 10px; font-size:13px; color:var(--admin-text-muted); }
+        .status-summary-list { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:6px; }
+        .status-summary-list li { margin:0; }
+        .status-link { border:1px solid rgba(5, 150, 105, 0.4); background:rgba(240, 253, 244, 0.9); color:#047857; border-radius:999px; padding:6px 12px; font-size:12px; cursor:pointer; transition:background .2s ease, transform .2s ease; }
+        .status-link:hover { background:rgba(220, 252, 231, 1); transform:translateY(-1px); }
+        .status-summary-actions { display:flex; flex-direction:column; gap:8px; min-width:160px; }
+        .focus-highlight { position:relative; animation: focusPulse 1.4s ease-out 1; box-shadow:0 0 0 2px rgba(34, 197, 94, 0.35); }
+        @keyframes focusPulse { 0% { box-shadow:0 0 0 0 rgba(34, 197, 94, 0.45); } 70% { box-shadow:0 0 0 6px rgba(34, 197, 94, 0); } 100% { box-shadow:0 0 0 0 rgba(34, 197, 94, 0); } }
+        .missing-empty { margin-top:12px; font-size:13px; color:var(--admin-text-muted); }
       </style>
 
       <!-- New 2-pane layout: left content, right menu -->
@@ -83,11 +100,22 @@
               <button type="button" class="btn btn-ghost" id="menu-toggle" aria-label="メニューを開く">メニュー</button>
               <button type="button" class="btn btn-secondary" id="btn-save-top">保存</button>
               <a href="dashboard.html"><button type="button" class="btn btn-ghost" id="btn-cancel-top">キャンセル</button></a>
-              <button type="button" class="btn btn-ghost" id="btn-help" title="ヘルプ" aria-label="ヘルプ">?</button>
-            </div>
-          </div>
-          <div id="content-area"></div>
+          <button type="button" class="btn btn-ghost" id="btn-help" title="ヘルプ" aria-label="ヘルプ">?</button>
         </div>
+      </div>
+      <div id="status-summary" class="status-callout is-hidden" role="status" aria-live="polite">
+        <div class="status-summary-main">
+          <p id="status-summary-title" class="status-summary-title"></p>
+          <p id="status-summary-description" class="status-summary-description"></p>
+          <ul id="status-summary-list" class="status-summary-list"></ul>
+        </div>
+        <div class="status-summary-actions">
+          <button type="button" class="btn btn-secondary" id="show-missing-fields">未設定だけ表示</button>
+          <button type="button" class="btn btn-ghost" id="clear-missing-filter" hidden>すべて表示</button>
+        </div>
+      </div>
+      <div id="content-area"></div>
+    </div>
         <aside class="side-menu" aria-label="設定カテゴリ">
           <h3>大枠の設定</h3>
           <div style="padding:6px 8px 8px;">
@@ -265,9 +293,146 @@
     }
 
     let currentSettings = {};
-    let currentCategory = null;
+    
+let currentCategory = null;
+    const IMPORTANT_SETTINGS = [
+      { key: 'site_favicon_url', label: 'ファビコンURL', category: 'site_meta' },
+      { key: 'group_crest_url', label: '団章画像URL', category: 'branding' },
+      { key: 'contact_address', label: '所在地', category: 'contact' },
+      { key: 'contact_phone', label: '連絡用電話番号', category: 'contact' },
+      { key: 'contact_email', label: '連絡用メールアドレス', category: 'contact' },
+      { key: 'index_hero_image_url', label: 'トップヒーロー画像', category: 'top_images' },
+      { key: 'about_mission_image_url', label: '団紹介（ミッション）画像', category: 'about_page' },
+      { key: 'about_safety_image_url', label: '団紹介（安全）画像', category: 'about_page' },
+    ];
+    const FIELD_CATEGORY = new Map();
+    const menuState = { nodes: new Map() };
+    const MISSING_FILTER_KEY = 'admin_settings_missing_only';
+    let showMissingOnly = false;
+    let focusFieldExternal = () => {};
 
-    function fillForm(settings) {
+    function isEmptyValue(value) {
+      return !String(value ?? '').trim();
+    }
+
+    function updateSingleFieldState(wrap, value) {
+      if (!wrap) return;
+      wrap.classList.toggle('is-empty', isEmptyValue(value));
+    }
+
+    function updateFieldStates(root) {
+      if (!root) return;
+      root.querySelectorAll('.form-group[data-key]').forEach((wrap) => {
+        const key = wrap.dataset.key;
+        const val = key ? currentSettings[key] ?? '' : '';
+        updateSingleFieldState(wrap, val);
+      });
+      notifyFieldChange();
+    }
+
+    function notifyFieldChange() {
+      refreshCategoryBadges();
+      refreshStatusCallout();
+      applyMissingFilter();
+    }
+
+    function refreshCategoryBadges() {
+      if (!menuState.nodes.size) return;
+      const stats = new Map();
+      FIELD_CATEGORY.forEach((category, key) => {
+        let entry = stats.get(category);
+        if (!entry) {
+          entry = { missing: 0 };
+          stats.set(category, entry);
+        }
+        if (isEmptyValue(currentSettings[key])) entry.missing += 1;
+      });
+      menuState.nodes.forEach(({ btn, badge }, category) => {
+        const missing = stats.get(category)?.missing || 0;
+        if (missing > 0) {
+          badge.textContent = String(missing);
+          badge.classList.add('active');
+          btn.classList.add('has-missing');
+        } else {
+          badge.textContent = '';
+          badge.classList.remove('active');
+          btn.classList.remove('has-missing');
+        }
+      });
+    }
+
+    function computeImportantMissing() {
+      return IMPORTANT_SETTINGS.filter((item) => isEmptyValue(currentSettings[item.key]));
+    }
+
+    function refreshStatusCallout() {
+      const callout = document.getElementById('status-summary');
+      if (!callout) return;
+      const titleEl = document.getElementById('status-summary-title');
+      const descEl = document.getElementById('status-summary-description');
+      const listEl = document.getElementById('status-summary-list');
+      const missing = computeImportantMissing();
+      if (!missing.length) {
+        callout.classList.add('is-hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+      callout.classList.remove('is-hidden');
+      titleEl.textContent = `${missing.length}件の重要項目が未設定です`;
+      descEl.textContent = 'リンクをクリックすると該当の設定フィールドに移動します。';
+      listEl.innerHTML = missing.map((item) => `<li><button type="button" class="status-link" data-field="${item.key}">${escapeHTML(item.label)}</button></li>`).join('');
+    }
+
+    function applyMissingFilter(root = document.getElementById('content-area')) {
+      if (!root || currentCategory === 'activity') return;
+      const fields = Array.from(root.querySelectorAll('.form-group[data-key]'));
+      let visible = 0;
+      fields.forEach((wrap) => {
+        const hide = showMissingOnly && !wrap.classList.contains('is-empty');
+        wrap.style.display = hide ? 'none' : '';
+        if (!hide) visible += 1;
+      });
+      const emptyId = 'missing-empty';
+      let notice = root.querySelector(`#${emptyId}`);
+      if (showMissingOnly && visible === 0) {
+        if (!notice) {
+          notice = document.createElement('div');
+          notice.id = emptyId;
+          notice.className = 'missing-empty';
+          notice.textContent = 'このカテゴリには未設定の項目はありません。';
+          root.appendChild(notice);
+        }
+      } else if (notice) {
+        notice.remove();
+      }
+      if (!showMissingOnly) {
+        root.querySelectorAll('.subsection-title, .panel-columns').forEach((el) => { el.style.display = ''; });
+        return;
+      }
+      root.querySelectorAll('.subsection-title').forEach((title) => {
+        const grid = title.nextElementSibling;
+        if (!grid || !grid.classList.contains('panel-columns')) return;
+        const hasVisible = Array.from(grid.querySelectorAll('.form-group[data-key]')).some((wrap) => wrap.style.display !== 'none');
+        title.style.display = hasVisible ? '' : 'none';
+        grid.style.display = hasVisible ? 'grid' : 'none';
+      });
+    }
+
+    function setMissingFilter(active) {
+      showMissingOnly = Boolean(active);
+      localStorage.setItem(MISSING_FILTER_KEY, showMissingOnly ? '1' : '0');
+      updateMissingFilterButtons();
+      applyMissingFilter();
+    }
+
+    function updateMissingFilterButtons() {
+      const showBtn = document.getElementById('show-missing-fields');
+      const clearBtn = document.getElementById('clear-missing-filter');
+      if (showBtn) showBtn.disabled = showMissingOnly;
+      if (clearBtn) clearBtn.hidden = !showMissingOnly;
+    }
+
+(settings) {
       currentSettings = { ...(settings || {}) };
       const fields = [
         'contact_address','contact_phone','contact_secondary_phone','contact_email','contact_person_name',
@@ -346,9 +511,16 @@
         ]],
         ['top_images', ['index_hero_image_url','index_highlight_img_1_url','index_highlight_img_2_url','index_highlight_img_3_url','index_testimonial_img_1_url','index_testimonial_img_2_url']],
         ['about_page', ['about_mission_image_url','about_safety_image_url']],
-      ]);
 
-      const FIELD_META = {
+]);
+
+FIELD_CATEGORY.clear();
+GROUPS.forEach((ids, category) => {
+  ids.forEach((id) => FIELD_CATEGORY.set(id, category));
+});
+
+const FIELD_META
+ = {
         contact_address: { label: '住所', placeholder: '〒XXX-XXXX 多治見市XX町X-X-X' },
         contact_phone: { label: '電話番号（代表）', placeholder: '0572-XX-XXXX' },
         contact_secondary_phone: { label: '電話番号（サブ）', placeholder: '0572-00-0000 など' },
@@ -491,6 +663,7 @@
           const val = input.value ?? '';
           currentSettings[id] = val;
           updateSingleFieldState(wrap, val);
+          notifyFieldChange();
         };
 
         input.addEventListener('input', updateState);
@@ -535,26 +708,80 @@
         ensureActivitiesLoaded();
       }
 
-      function activate(category){
-        Array.from(menu.querySelectorAll('.menu-btn')).forEach(btn => btn.classList.toggle('active', btn.dataset.category === category));
-        localStorage.setItem('admin_settings_active_tab', category);
-        if (category === 'activity') renderActivity(); else renderFields(category);
-      }
+
+function activate(category){
+  currentCategory = category;
+  Array.from(menu.querySelectorAll('.menu-btn')).forEach(btn => btn.classList.toggle('active', btn.dataset.category === category));
+  localStorage.setItem('admin_settings_active_tab', category);
+  if (category === 'activity') {
+    renderActivity();
+  } else {
+    renderFields(category);
+  }
+  applyMissingFilter();
+}
+
+focusFieldExternal = (fieldId) => {
+  if (!fieldId) return;
+  const category = FIELD_CATEGORY.get(fieldId);
+  if (category && currentCategory !== category) {
+    activate(category);
+  }
+  requestAnimationFrame(() => {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const wrap = input.closest('.form-group');
+    if (wrap) {
+      wrap.classList.add('focus-highlight');
+      setTimeout(() => wrap.classList.remove('focus-highlight'), 1600);
+    }
+    input.focus({ preventScroll: true });
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+};
+
 
       // メニュー描画
+      menuState.nodes.clear();
       Object.keys(CATEGORY_LABELS).forEach(key => {
         const btn = document.createElement('button');
-        btn.type = 'button'; btn.className = 'menu-btn'; btn.dataset.category = key; btn.textContent = CATEGORY_LABELS[key];
+        btn.type = 'button';
+        btn.className = 'menu-btn';
+        btn.dataset.category = key;
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'menu-label';
+        labelSpan.textContent = CATEGORY_LABELS[key];
+        btn.appendChild(labelSpan);
+        const badge = document.createElement('span');
+        badge.className = 'menu-badge';
+        btn.appendChild(badge);
         btn.addEventListener('click', () => activate(key));
         menu.appendChild(btn);
+        menuState.nodes.set(key, { btn, badge });
       });
 
       const params = new URLSearchParams(location.search);
+      const missingParam = params.get('missing');
+      if (missingParam === '1') {
+        showMissingOnly = true;
+      }
       const initial = params.get('tab') || localStorage.getItem('admin_settings_active_tab') || 'contact';
       activate(initial);
+      updateMissingFilterButtons();
+      applyMissingFilter();
+      const focusFieldParam = params.get('field');
+      if (focusFieldParam) {
+        setTimeout(() => focusFieldExternal(focusFieldParam), 120);
+      }
 
       // 旧コンテンツ（静的フィールド群やタブ）は非表示にする
       document.querySelectorAll('#settings-form > .form-group, #settings-form > h2, #settings-form > h3, .tab-panel, .tabs').forEach(el => { el.style.display = 'none'; });
+
+      window.__settingsUI = {
+        refreshCurrent: () => { if (currentCategory) activate(currentCategory); },
+        focusField: (fieldId) => focusFieldExternal(fieldId),
+        setMissingFilter: (flag) => setMissingFilter(flag),
+      };
     }
 
     function isUrl(str){ try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } }
@@ -580,7 +807,7 @@
     function applyPayloadToForm(payload){
       Object.entries(payload || {}).forEach(([k,v]) => {
         const el = document.querySelector(`#settings-form [name="${k}"]`) || document.getElementById(k);
-        if (el) el.value = v;
+        if (el) { el.value = v; currentSettings[k] = v; }
       });
     }
 
@@ -694,6 +921,7 @@
         const data = JSON.parse(txt);
         applyPayloadToForm(data);
         setupUrlPreviews();
+        updateFieldStates(document.getElementById('settings-form'));
         AdminUI.showResult({ ok: true, message: "下書きを復元しました。" });
       });
       discardBtn?.addEventListener('click', () => {
@@ -718,6 +946,7 @@
         setIf('unit_rover_logo_url','rover');
         setIf('group_crest_url','団章'); setIf('group_crest_url','dan'); setIf('group_crest_url','group'); setIf('group_crest_url','crest');
         setupUrlPreviews();
+        updateFieldStates(document.getElementById('settings-form'));
         AdminUI.showResult({ ok: true, message: "task.txt の値を反映しました。" });
       });
     }
@@ -751,6 +980,15 @@
       setupDraftToolbar();
       setupDirtyGuard();
       setupActivityFilters();
+
+      document.getElementById('show-missing-fields')?.addEventListener('click', () => setMissingFilter(true));
+      document.getElementById('clear-missing-filter')?.addEventListener('click', () => setMissingFilter(false));
+      document.getElementById('status-summary-list')?.addEventListener('click', (event) => {
+        const target = event.target.closest('button[data-field]');
+        if (!target) return;
+        event.preventDefault();
+        focusFieldExternal(target.dataset.field);
+      });
 
       // 文字化け対策：表示テキストを明示的に上書き
       try {

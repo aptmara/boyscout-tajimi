@@ -44,6 +44,17 @@
     },
   };
 
+  const SETTINGS_FIELD_LINKS = {
+    site_favicon_url: { tab: 'site_meta', field: 'site_favicon_url' },
+    group_crest_url: { tab: 'branding', field: 'group_crest_url' },
+    contact_address: { tab: 'contact', field: 'contact_address' },
+    contact_phone: { tab: 'contact', field: 'contact_phone' },
+    contact_email: { tab: 'contact', field: 'contact_email' },
+    index_hero_image_url: { tab: 'top_images', field: 'index_hero_image_url' },
+    about_mission_image_url: { tab: 'about_page', field: 'about_mission_image_url' },
+    about_safety_image_url: { tab: 'about_page', field: 'about_safety_image_url' },
+  };
+
   document.addEventListener('DOMContentLoaded', init);
 
   async function init() {
@@ -404,7 +415,7 @@
       <section class="view-section">
         <div class="section-heading">
           <h2>設定の状態</h2>
-          <button class="btn-primary" type="button" id="open-settings">設定を開く</button>
+          <a class="btn-primary" id="open-settings" href="${buildSettingsUrl()}" target="_blank" rel="noopener">設定を開く</a>
         </div>
         <div class="stats-grid">
           ${renderSettingsMetric(settingsSummary)}
@@ -416,8 +427,8 @@
           <h2>未設定項目</h2>
           <p>優先度の高いフィールドを確認</p>
         </div>
-        ${missing.length ? `<ul class="card">
-          ${missing.map((item) => `<li class="settings-missing">⚠️ ${escapeHtml(item.label || item.key)}</li>`).join('')}
+        ${missing.length ? `<ul class="card settings-missing-list">
+          ${missing.map((item) => renderMissingSetting(item)).join('')}
         </ul>` : `
           <div class="card">
             <strong>すべて設定済みです。</strong>
@@ -433,7 +444,11 @@
       </section>
     `;
 
-    document.getElementById('open-settings')?.addEventListener('click', openSettingsPage);
+    document.getElementById('open-settings')?.addEventListener('click', (event) => {
+      if (event.metaKey || event.ctrlKey) return;
+      event.preventDefault();
+      openSettingsPage();
+    });
   }
 
   async function renderBrandingView(root) {
@@ -477,21 +492,54 @@
     `;
   }
 
+  
   function renderSettingsMetric(settings) {
     const complete = settings && settings.missingKeys && settings.missingKeys.length === 0;
     const caption = complete ? '主要項目はすべて設定済みです。' : `${settings.missingKeys.length} 件の項目が未設定です。`;
-    const statusBadge = complete ? '<span class="badge green">整備済み</span>' : '<span class="badge rose">要対応</span>';
+    const statusBadge = complete ? '<span class="badge green">設定済み</span>' : '<span class="badge rose">要対応</span>';
+    const jumpUrl = complete ? '' : buildSettingsUrl({ tab: inferPrimaryMissingTab(settings.missingKeys) });
     return `
       <article class="card">
         <div class="card-header">
           <h3 class="card-title">サイト設定</h3>
           ${statusBadge}
         </div>
-        <p class="card-metric">${complete ? '完了' : '要確認'}</p>
+        <p class="card-metric">${complete ? '良好' : '要確認'}</p>
         <p class="metric-trend">${escapeHtml(caption)}</p>
+        ${complete ? '' : `<div class="card-actions"><a href="${jumpUrl}" target="_blank" rel="noopener" class="btn-link">未設定を確認</a></div>`}
       </article>
     `;
   }
+
+  function renderMissingSetting(item) {
+    const meta = SETTINGS_FIELD_LINKS[item.key] || null;
+    const label = escapeHtml(item.label || item.key);
+    const href = meta ? buildSettingsUrl(meta) : buildSettingsUrl();
+    const keyTag = meta?.field ? `<code>${escapeHtml(meta.field)}</code>` : '';
+    return `
+      <li class="settings-missing">
+        <div class="settings-missing-label">⚠️ ${label}${keyTag ? `<span class="settings-missing-key">${keyTag}</span>` : ''}</div>
+        <a class="btn-ghost" href="${href}" target="_blank" rel="noopener">設定する</a>
+      </li>
+    `;
+  }
+
+  function buildSettingsUrl({ tab, field } = {}) {
+    const params = new URLSearchParams();
+    if (tab) params.set('tab', tab);
+    if (field) params.set('field', field);
+    const query = params.toString();
+    return `/admin/settings.html${query ? `?${query}` : ''}`;
+  }
+
+  function inferPrimaryMissingTab(missingKeys = []) {
+    for (const item of missingKeys) {
+      const meta = SETTINGS_FIELD_LINKS[item.key];
+      if (meta?.tab) return meta.tab;
+    }
+    return 'site_meta';
+  }
+
 
   function renderNewsTable(list, { showEmpty = false, showActions = false } = {}) {
     if (!list || list.length === 0) {
@@ -960,8 +1008,9 @@
     }
   }
 
-  function openSettingsPage() {
-    window.open('/admin/settings.html', '_blank', 'noopener');
+  function openSettingsPage(options = {}) {
+    const url = buildSettingsUrl(options);
+    window.open(url, '_blank', 'noopener');
   }
 
   function openBrandingPage() {
