@@ -1,5 +1,0 @@
-﻿// Deprecated: admin-app.js has been superseded by modular files.
-// This stub keeps backward compatibility if referenced somewhere.
-(function(){
-  console.warn('[admin] admin-app.js is deprecated. Use admin-utils-api.js, admin-palette.js, admin-views.js, admin-layout.js');
-})();
