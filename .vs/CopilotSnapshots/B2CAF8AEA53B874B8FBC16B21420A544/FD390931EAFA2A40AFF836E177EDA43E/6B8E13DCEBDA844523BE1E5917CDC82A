@@ -1,4 +1,4 @@
-/**
+﻿/**
  * dynamic-news.js
  * - ニュース一覧/詳細の動的描画（強化版）
  * - XSS対策のための escapeHTML を使用

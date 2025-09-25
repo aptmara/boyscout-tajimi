@@ -1,4 +1,4 @@
-// admin-app.js (modern admin shell)
+﻿// admin-app.js (modern admin shell)
 (function () {
   const state = {
     activeView: null,

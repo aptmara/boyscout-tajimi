@@ -1,4 +1,4 @@
-// dynamic-unit-activities.js
+﻿// dynamic-unit-activities.js
 // 各隊ページの「各隊の活動の様子」を data-unit に基づき動的生成
 
 document.addEventListener('DOMContentLoaded', () => {

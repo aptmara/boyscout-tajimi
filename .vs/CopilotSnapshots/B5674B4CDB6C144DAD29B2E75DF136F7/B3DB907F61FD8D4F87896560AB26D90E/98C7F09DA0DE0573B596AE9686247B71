@@ -1,33 +1,15 @@
-/**
- * dynamic-news.js
- * - ニュース一覧/詳細の動的描画（強化版）
- * - XSS対策のための escapeHTML を使用
- */
+﻿// enhance-news.js
+// 既存 dynamic-news.js の loadDynamicNewsList を上書きしてUI/UXを改善
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('news-list-container')) {
-    loadDynamicNewsList();
-  }
-  if (document.getElementById('news-article-container')) {
-    loadDynamicNewsDetail();
-  }
-});
+function escapeHTML(str){ if (typeof str !== 'string') return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-function escapeHTML(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+document.addEventListener('DOMContentLoaded', () => { /* 参照のみ */ });
 
-// --- ニュース一覧ページ（アクティビティに合わせて強化） ---
 async function loadDynamicNewsList(){
   const container = document.getElementById('news-list-container');
   if (!container) return;
-
+  const filterSection = document.querySelector('#news-filter-section');
+  if (filterSection) filterSection.style.display = '';
   const newsPaginationContainer = document.getElementById('news-pagination-container');
   const noNewsResultsDiv = document.getElementById('no-news-results');
 
@@ -77,9 +59,9 @@ async function loadDynamicNewsList(){
     newsPaginationContainer.innerHTML = html;
     newsPaginationContainer.querySelectorAll('.news-pagination-button').forEach(btn=>{
       btn.addEventListener('click',(e)=>{
-        const pageNum = parseInt(e.currentTarget.dataset.page,10);
-        const totalPages2 = Math.ceil(allNews.length / NEWS_ITEMS_PER_PAGE);
-        if (pageNum && pageNum!==currentPage && pageNum>0 && pageNum<=totalPages2){ currentPage=pageNum; displayNewsItems(allNews); container.scrollIntoView({behavior:'smooth'}); }
+        const page = parseInt(e.currentTarget.dataset.page,10);
+        const totalPages = Math.ceil(allNews.length / NEWS_ITEMS_PER_PAGE);
+        if (page && page!==currentPage && page>0 && page<=totalPages){ currentPage=page; displayNewsItems(allNews); container.scrollIntoView({behavior:'smooth'}); }
       });
     });
   };
@@ -95,11 +77,7 @@ async function loadDynamicNewsList(){
   };
 
   const renderSkeletons = (n=6) => {
-    const cards=[];
-    for(let i=0;i<n;i++){
-      cards.push(`<article class="bg-white rounded-xl shadow-lg overflow-hidden"><div class="skeleton skeleton-thumb"></div><div class="p-6"><div class="skeleton skeleton-text" style="width:35%"></div><div class="skeleton skeleton-text" style="width:90%"></div><div class="skeleton skeleton-text" style="width:80%"></div></div></article>`);
-    }
-    container.innerHTML = cards.join('');
+    const cards=[]; for(let i=0;i<n;i++){ cards.push(`<article class="bg-white rounded-xl shadow-lg overflow-hidden"><div class="skeleton skeleton-thumb"></div><div class="p-6"><div class="skeleton skeleton-text" style="width:35%"></div><div class="skeleton skeleton-text" style="width:90%"></div><div class="skeleton skeleton-text" style="width:80%"></div></div></article>`);} container.innerHTML = cards.join('');
   };
 
   const readQuery = () => { const sp = new URLSearchParams(location.search); return { q: sp.get('q')||'', category: sp.get('category')||'all', unit: sp.get('unit')||'', tags_any: (sp.get('tags_any')||'').split(',').filter(Boolean), ym: sp.get('ym')||'' }; };
@@ -125,31 +103,13 @@ async function loadDynamicNewsList(){
     allNews = await response.json();
     const q = readQuery();
     // UIへ反映
-    const catSel = document.getElementById('news-category-filter');
-    const unitSel = document.getElementById('news-unit-filter');
-    const tagSel  = document.getElementById('news-tags-filter');
-    const monthInp= document.getElementById('news-date-filter');
-    const searchInp=document.getElementById('news-search');
-    if (catSel && q.category) catSel.value = q.category;
-    if (unitSel && q.unit) unitSel.value = q.unit;
-    if (Array.isArray(q.tags_any) && tagSel) Array.from(tagSel.options).forEach(o=>o.selected = q.tags_any.includes(o.value));
-    if (q.ym && monthInp) monthInp.value = q.ym;
-    if (q.q && searchInp) searchInp.value = q.q;
+    const catSel = document.getElementById('news-category-filter'); const unitSel = document.getElementById('news-unit-filter'); const tagSel = document.getElementById('news-tags-filter'); const monthInp = document.getElementById('news-date-filter'); const searchInp = document.getElementById('news-search');
+    if (catSel && q.category) catSel.value = q.category; if (unitSel && q.unit) unitSel.value = q.unit; if (Array.isArray(q.tags_any) && tagSel) Array.from(tagSel.options).forEach(o=>o.selected = q.tags_any.includes(o.value)); if (q.ym && monthInp) monthInp.value = q.ym; if (q.q && searchInp) searchInp.value = q.q;
     displayNewsItems(allNews);
-  } catch (err) {
-    console.error('Failed to fetch news:', err);
-    container.innerHTML = '<p class="text-center text-red-500">お知らせの読み込みに失敗しました。</p>';
-  }
+  } catch (err) { console.error('Failed to fetch news:', err); container.innerHTML = '<p class="text-center text-red-500">お知らせの読み込みに失敗しました。</p>'; }
 
-  // フィルタ適用
-  const btn = document.getElementById('news-filter-button');
-  const catSel = document.getElementById('news-category-filter');
-  const monthInp = document.getElementById('news-date-filter');
-  const unitSel = document.getElementById('news-unit-filter');
-  const tagSel = document.getElementById('news-tags-filter');
-  const searchInp = document.getElementById('news-search');
-  const btnText = document.getElementById('filter-button-text');
-  const spinner = document.getElementById('filter-loading-spinner');
+  // フィルタ
+  const btn = document.getElementById('news-filter-button'); const catSel = document.getElementById('news-category-filter'); const monthInp = document.getElementById('news-date-filter'); const unitSel = document.getElementById('news-unit-filter'); const tagSel = document.getElementById('news-tags-filter'); const searchInp = document.getElementById('news-search'); const btnText = document.getElementById('filter-button-text'); const spinner = document.getElementById('filter-loading-spinner');
   if (btn) btn.addEventListener('click', ()=>{
     try {
       spinner?.classList?.remove('hidden'); if (btnText) btnText.textContent = '絞り込み中...';
@@ -170,29 +130,7 @@ async function loadDynamicNewsList(){
       });
       writeQuery({ q, category: cat, unit, tags_any: tags, ym });
       displayNewsItems(filtered);
-    } finally {
-      spinner?.classList?.add('hidden'); if (btnText) btnText.textContent = '絞り込む';
-    }
+    } finally { spinner?.classList?.add('hidden'); if (btnText) btnText.textContent = '絞り込む'; }
   });
 }
-
-// --- ニュース詳細ページ（アクティビティに合わせて強化） ---
-async function loadDynamicNewsDetail() {
-  const articleContainer = document.getElementById('news-article-container');
-  if (!articleContainer) return;
-  const urlParams = new URLSearchParams(window.location.search);
-  const newsId = urlParams.get('id');
-  if (!newsId) return;
-
-  const pageTitleElement = document.getElementById('page-title-news');
-  const crumbTitle = document.getElementById('news-title-breadcrumb');
-  const articleNotFoundDiv = document.getElementById('news-article-not-found');
-
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
-
-  // Google Drive 画像埋め込み対応
-  const toEmbed = (u) => {
-    try {
-      const url = new URL(u, location.origin);
-      if (url.hostname.includes
 

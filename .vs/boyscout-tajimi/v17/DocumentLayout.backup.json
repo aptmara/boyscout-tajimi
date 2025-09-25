@@ -1,15 +1,54 @@
 {
   "Version": 1,
-<<<<<<< HEAD
   "WorkspaceRootPath": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-venture.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:unit-venture.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-unit-activities.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dynamic-unit-activities.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-rover.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:unit-rover.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\package-scripts.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:package-scripts.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\enhance-news.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:enhance-news.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\app.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\app.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-palette.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-palette.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-views.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-views.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\common-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:common-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\about.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:about.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-app.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-app.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-news.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dynamic-news.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-cub.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -22,6 +61,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-beaver.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:unit-beaver.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-rover.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:unit-rover.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-venture.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:unit-venture.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\testimonials.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -72,30 +119,34 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:activity-detail-placeholder.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\about.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:about.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\common-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:common-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\dashboard.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\dashboard.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-utils-api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-utils-api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-layout.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-layout.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-editors.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\admin-editors.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\_tmp_dashboard_view.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin\\_tmp_dashboard_view.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-about.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:dynamic-about.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\body.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:body.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
-=======
-  "WorkspaceRootPath": "C:\\Users\\yamak\\source\\repos\\aptmara\\boyscout-tajimi\\",
-  "Documents": [],
->>>>>>> 3d59f2e (活動ハイライト/各隊セクション自動生成・CTA hover・members削除・ニュース自動生成 ほか)
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -103,12 +154,195 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-<<<<<<< HEAD
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "body.json",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\body.json",
+              "RelativeDocumentMoniker": "body.json",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\body.json",
+              "RelativeToolTip": "body.json",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-25T08:02:34.557Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "package-scripts.json",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\package-scripts.json",
+              "RelativeDocumentMoniker": "package-scripts.json",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\package-scripts.json",
+              "RelativeToolTip": "package-scripts.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-25T08:02:27.102Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "dynamic-unit-activities.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-unit-activities.js",
+              "RelativeDocumentMoniker": "dynamic-unit-activities.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-unit-activities.js",
+              "RelativeToolTip": "dynamic-unit-activities.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T08:02:21.048Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "dynamic-about.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-about.js",
+              "RelativeDocumentMoniker": "dynamic-about.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-about.js",
+              "RelativeToolTip": "dynamic-about.js",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T08:02:14.556Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "_tmp_dashboard_view.html",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\_tmp_dashboard_view.html",
+              "RelativeDocumentMoniker": "admin\\_tmp_dashboard_view.html",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\_tmp_dashboard_view.html",
+              "RelativeToolTip": "admin\\_tmp_dashboard_view.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-09-25T08:02:04.567Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "enhance-news.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\enhance-news.js",
+              "RelativeDocumentMoniker": "enhance-news.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\enhance-news.js",
+              "RelativeToolTip": "enhance-news.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:46:26.967Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "admin-editors.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-editors.js",
+              "RelativeDocumentMoniker": "admin\\admin-editors.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-editors.js",
+              "RelativeToolTip": "admin\\admin-editors.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:24:27.763Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "admin-app.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-app.js",
+              "RelativeDocumentMoniker": "admin\\admin-app.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-app.js",
+              "RelativeToolTip": "admin\\admin-app.js",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:17:08.418Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "app.html",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\app.html",
+              "RelativeDocumentMoniker": "admin\\app.html",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\app.html",
+              "RelativeToolTip": "admin\\app.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-09-25T07:16:34.879Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "admin-palette.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-palette.js",
+              "RelativeDocumentMoniker": "admin\\admin-palette.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-palette.js",
+              "RelativeToolTip": "admin\\admin-palette.js",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAAC8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:15:19.268Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "admin-views.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-views.js",
+              "RelativeDocumentMoniker": "admin\\admin-views.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-views.js",
+              "RelativeToolTip": "admin\\admin-views.js",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAgwF8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:14:52.582Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "admin-layout.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-layout.js",
+              "RelativeDocumentMoniker": "admin\\admin-layout.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-layout.js",
+              "RelativeToolTip": "admin\\admin-layout.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:13:13.769Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "admin-utils-api.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-utils-api.js",
+              "RelativeDocumentMoniker": "admin\\admin-utils-api.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\admin-utils-api.js",
+              "RelativeToolTip": "admin\\admin-utils-api.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T07:12:45.982Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "dynamic-news.js",
+              "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-news.js",
+              "RelativeDocumentMoniker": "dynamic-news.js",
+              "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\dynamic-news.js",
+              "RelativeToolTip": "dynamic-news.js",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-25T06:43:35.413Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "unit-venture.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-venture.html",
               "RelativeDocumentMoniker": "unit-venture.html",
@@ -116,64 +350,60 @@
               "RelativeToolTip": "unit-venture.html",
               "ViewState": "AgIAAPAAAAAAAAAAAAAAAPoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:59:53.581Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:59:53.581Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 15,
               "Title": "unit-rover.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-rover.html",
               "RelativeDocumentMoniker": "unit-rover.html",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-rover.html",
               "RelativeToolTip": "unit-rover.html",
-              "ViewState": "AgIAAOkAAAAAAAAAAAAAAPkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAALAAAAAAAAAAAAAAAOYAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:59:44.351Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:59:44.351Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 12,
               "Title": "unit-cub.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-cub.html",
               "RelativeDocumentMoniker": "unit-cub.html",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-cub.html",
               "RelativeToolTip": "unit-cub.html",
-              "ViewState": "AgIAAO0AAAAAAAAAAAAAAPoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAAALgAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
               "WhenOpened": "2025-09-14T13:59:34.335Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 13,
               "Title": "unit-boy.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-boy.html",
               "RelativeDocumentMoniker": "unit-boy.html",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-boy.html",
               "RelativeToolTip": "unit-boy.html",
-              "ViewState": "AgIAAPAAAAAAAAAAAAAAAPoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAALoAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:59:24.109Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:59:24.109Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 14,
               "Title": "unit-beaver.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-beaver.html",
               "RelativeDocumentMoniker": "unit-beaver.html",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\unit-beaver.html",
               "RelativeToolTip": "unit-beaver.html",
-              "ViewState": "AgIAAO0AAAAAAAAAAAAAAAIBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAQBAAAAAAAAAAAmwBEBAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:59:14.57Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:59:14.57Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 17,
               "Title": "testimonials.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\testimonials.html",
               "RelativeDocumentMoniker": "testimonials.html",
@@ -181,12 +411,11 @@
               "RelativeToolTip": "testimonials.html",
               "ViewState": "AgIAAKEAAAAAAAAAAAAAALcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:59:00.137Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:59:00.137Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 18,
               "Title": "sitemap.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\sitemap.html",
               "RelativeDocumentMoniker": "sitemap.html",
@@ -194,12 +423,11 @@
               "RelativeToolTip": "sitemap.html",
               "ViewState": "AgIAAIAAAAAAAAAAAAAAAIoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:58:51.692Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:58:51.692Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 19,
               "Title": "privacy.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\privacy.html",
               "RelativeDocumentMoniker": "privacy.html",
@@ -207,12 +435,11 @@
               "RelativeToolTip": "privacy.html",
               "ViewState": "AgIAAIEAAAAAAAAAAAAAAJMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:58:40.688Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:58:40.688Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 20,
               "Title": "package.json",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\package.json",
               "RelativeDocumentMoniker": "package.json",
@@ -225,7 +452,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 21,
               "Title": "news-list.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\news-list.html",
               "RelativeDocumentMoniker": "news-list.html",
@@ -238,7 +465,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 22,
               "Title": "news-detail-placeholder.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\news-detail-placeholder.html",
               "RelativeDocumentMoniker": "news-detail-placeholder.html",
@@ -251,7 +478,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 23,
               "Title": "members-placeholder.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\members-placeholder.html",
               "RelativeDocumentMoniker": "members-placeholder.html",
@@ -259,12 +486,11 @@
               "RelativeToolTip": "members-placeholder.html",
               "ViewState": "AgIAAI0AAAAAAAAAAAAAAKEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:58:03.414Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:58:03.414Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 26,
               "Title": "contact.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\contact.html",
               "RelativeDocumentMoniker": "contact.html",
@@ -272,12 +498,11 @@
               "RelativeToolTip": "contact.html",
               "ViewState": "AgIAAJwAAAAAAAAAAAAAAKoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:57:48.961Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:57:48.961Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 27,
               "Title": "activity-log.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\activity-log.html",
               "RelativeDocumentMoniker": "activity-log.html",
@@ -290,7 +515,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 28,
               "Title": "activity-detail-placeholder.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\activity-detail-placeholder.html",
               "RelativeDocumentMoniker": "activity-detail-placeholder.html",
@@ -303,20 +528,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 9,
               "Title": "about.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\about.html",
               "RelativeDocumentMoniker": "about.html",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\about.html",
               "RelativeToolTip": "about.html",
-              "ViewState": "AgIAAOEAAAAAAAAAAAAAAPEAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAJYAAAAAAAAAAAAAAOsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
               "WhenOpened": "2025-09-14T13:57:14.245Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 24,
               "Title": "join.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\join.html",
               "RelativeDocumentMoniker": "join.html",
@@ -324,12 +549,11 @@
               "RelativeToolTip": "join.html",
               "ViewState": "AgIAAA0BAAAAAAAAAAAAABoBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2025-09-14T13:53:59.883Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-14T13:53:59.883Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 25,
               "Title": "index.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\index.html",
               "RelativeDocumentMoniker": "index.html",
@@ -342,20 +566,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 6,
               "Title": "common-scripts.js",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\common-scripts.js",
               "RelativeDocumentMoniker": "common-scripts.js",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\common-scripts.js",
               "RelativeToolTip": "common-scripts.js",
-              "ViewState": "AgIAAF4AAAAAAAAAAAAgwHsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAJUDAAAAAAAAAAAAAJ4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-09-14T13:49:24.148Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 29,
               "Title": "dashboard.html",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\admin\\dashboard.html",
               "RelativeDocumentMoniker": "admin\\dashboard.html",
@@ -368,36 +592,29 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 8,
               "Title": "database.js",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js",
               "RelativeDocumentMoniker": "database.js",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\database.js",
               "RelativeToolTip": "database.js",
-              "ViewState": "AgIAAK8AAAAAAAAAAAAqwLwAAAACAAAAAAAAAA==",
+              "ViewState": "AgIAAGwBAAAAAAAAAAAAABkBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-09-14T13:41:19.2Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 7,
               "Title": "server.js",
               "DocumentMoniker": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js",
               "RelativeDocumentMoniker": "server.js",
               "ToolTip": "C:\\Users\\yamak\\Downloads\\sagyou\\boyscout-tajimi\\server.js",
               "RelativeToolTip": "server.js",
-              "ViewState": "AgIAABkCAAAAAAAAAAAqwDUCAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAPsDAAAAAAAAAAAuwKkCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-09-14T13:39:57.695Z",
               "EditorCaption": ""
-=======
-          "SelectedChildIndex": -1,
-          "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
->>>>>>> 3d59f2e (活動ハイライト/各隊セクション自動生成・CTA hover・members削除・ニュース自動生成 ほか)
             }
           ]
         }

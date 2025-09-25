@@ -1,0 +1,74 @@
+﻿// admin-utils-api.js
+(function(){
+  const Admin = (window.Admin = window.Admin || {});
+
+  // Global state shared across modules
+  Admin.state = {
+    activeView: null,
+    palette: { open:false, items:[], filtered:[], selectedIndex:-1 },
+    cache: { news:null, activities:null, settings:null, summary:null },
+  };
+
+  // Constants
+  Admin.constants = {
+    SETTINGS_FIELD_LINKS: {
+      site_favicon_url: { tab: 'site_meta', field: 'site_favicon_url' },
+      group_crest_url: { tab: 'branding', field: 'group_crest_url' },
+      contact_address: { tab: 'contact', field: 'contact_address' },
+      contact_phone: { tab: 'contact', field: 'contact_phone' },
+      contact_email: { tab: 'contact', field: 'contact_email' },
+      index_hero_image_url: { tab: 'top_images', field: 'index_hero_image_url' },
+      about_mission_image_url: { tab: 'about_page', field: 'about_mission_image_url' },
+      about_safety_image_url: { tab: 'about_page', field: 'about_safety_image_url' },
+    }
+  };
+
+  // Utils
+  const utils = Admin.utils = {
+    escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (chr) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[chr] || chr));
+    },
+    escapeAttribute(value){ return utils.escapeHtml(value).replace(/`/g, '&#96;'); },
+    debounce(fn, wait=200){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); }; },
+    labelizeUnit(unit){
+      const unitLabels = { beaver:'ビーバー', cub:'カブ', boy:'ボーイ', venture:'ベンチャー', rover:'ローバー' };
+      return unitLabels[unit] || unit || '—';
+    },
+    formatDate(value){
+      if (!value) return '—';
+      try{ const dt=new Date(value); if (Number.isNaN(dt.getTime())) return '—'; return dt.toLocaleDateString('ja-JP', { year:'numeric', month:'short', day:'numeric' }); } catch { return '—'; }
+    },
+    showToast(message, variant='success'){
+      const stack = document.getElementById('toast-stack'); if (!stack) return;
+      const toast = document.createElement('div'); toast.className = `toast ${variant}`; toast.textContent = message; stack.appendChild(toast);
+      setTimeout(()=>{ toast.classList.add('hide'); toast.addEventListener('transitionend', ()=>toast.remove(), { once:true }); toast.style.opacity='0'; }, 2800);
+    },
+    confirmDestructive(message){
+      return new Promise((resolve)=>{
+        if (window.AdminUI && typeof AdminUI.showResult === 'function'){
+          AdminUI.showResult({ ok:false, message, actions:[ { label:'キャンセル', keepOpen:false, onClick:()=>resolve(false) }, { label:'削除する', variant:'danger', keepOpen:false, onClick:()=>resolve(true) } ] });
+        } else {
+          resolve(window.confirm(message));
+        }
+      });
+    },
+    buildUniqueOptions(list){ const set=new Set(); list.forEach(v=>{ if (!v) return; set.add(String(v)); }); return Array.from(set).sort(); }
+  };
+
+  // Small actions used by views
+  Admin.actions = {
+    openEditor(type){ window.open(type==='activity' ? '/admin/activity-edit.html' : '/admin/edit.html', '_blank', 'noopener'); },
+    openSettingsPage(options={}){ const params=new URLSearchParams(); if (options.tab) params.set('tab', options.tab); if (options.field) params.set('field', options.field); const q=params.toString(); const url=`/admin/settings.html${q?`?${q}`:''}`; window.open(url, '_blank', 'noopener'); },
+    openBrandingPage(){ window.open('/admin/branding.html', '_blank', 'noopener'); }
+  };
+
+  // API
+  Admin.api = {
+    async summary(){ const res = await fetch('/api/admin/summary', { credentials:'same-origin' }); if (!res.ok) throw new Error('サマリーの取得に失敗しました'); return res.json(); },
+    async news(){ const res = await fetch('/api/news?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('お知らせの取得に失敗しました'); return res.json(); },
+    async activities(){ const res = await fetch('/api/activities?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('活動の取得に失敗しました'); return res.json(); },
+    async deleteNews(id){ const res = await fetch(`/api/news/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('削除に失敗しました'); },
+    async deleteActivity(id){ const res = await fetch(`/api/activities/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('削除に失敗しました'); },
+    async settings(){ const res = await fetch('/api/settings/all', { credentials:'same-origin' }); if (!res.ok) throw new Error('設定の取得に失敗しました'); return res.json(); }
+  };
+})();

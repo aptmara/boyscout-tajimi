@@ -1,4 +1,4 @@
-// dynamic-about.js
+﻿// dynamic-about.js
 // about.html の各隊紹介と指導者カードをサイト設定から動的生成
 
 (function(){

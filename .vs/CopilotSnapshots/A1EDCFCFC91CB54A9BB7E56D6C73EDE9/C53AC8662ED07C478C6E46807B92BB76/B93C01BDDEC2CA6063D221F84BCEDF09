@@ -1,0 +1,5 @@
+﻿{
+  "scripts": {
+    "start:json": "node server-json.js"
+  }
+}

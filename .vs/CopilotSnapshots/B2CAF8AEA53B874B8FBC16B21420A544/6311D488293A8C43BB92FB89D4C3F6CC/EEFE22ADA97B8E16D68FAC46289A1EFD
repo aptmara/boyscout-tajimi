@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -116,7 +116,6 @@
   <script src="admin-utils-api.js"></script>
   <script src="admin-palette.js"></script>
   <script src="admin-views.js"></script>
-  <script src="admin-editors.js"></script>
   <script src="admin-layout.js"></script>
 </body>
 </html>
