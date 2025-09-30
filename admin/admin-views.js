@@ -49,7 +49,7 @@
   function renderError(error){ const root=document.getElementById('view-root'); if (!root) return; const message = error && error.message ? utils.escapeHtml(error.message) : '不明なエラーが発生しました。'; root.innerHTML = `<section class="view-section"><div class="card empty-state"><h2>読み込みエラー</h2><p>${message}</p><button class="btn-primary" type="button" id="retry-view">再読み込み</button></div></section>`; document.getElementById('retry-view')?.addEventListener('click', ()=> views.setActiveView(state.activeView, { force:true })); }
 
   // ---- Dashboard ----
-  async function renderDashboardView(root){ const summary = await api.summary(); state.cache.summary = summary; const { news, activities, settings } = summary; root.innerHTML = `
+  async function renderDashboardView(root){ const summary = await getSummary({ force:true }); const { news, activities, settings } = summary; root.innerHTML = `
     <section class="view-section"><div class="section-heading"><h2>主要指標</h2><p>最新の投稿状況と設定ステータス</p></div><div class="stats-grid">${renderMetricCard('お知らせ件数', news.total, news.trendLabel, '📰')}${renderMetricCard('活動記録', activities.total, activities.trendLabel, '🎒')}${renderSettingsMetric(settings)}</div></section>
     <section class="view-section"><div class="section-heading"><h2>最近のお知らせ</h2><p>直近5件を表示します</p><button class="btn-ghost" type="button" id="jump-to-news">一覧を開く</button></div>${renderNewsTable(news.recent)}</section>
     <section class="view-section"><div class="section-heading"><h2>最新の活動</h2><p>直近の活動記録を確認</p><button class="btn-ghost" type="button" id="jump-to-activities">一覧を開く</button></div>${renderActivityTable(activities.recent)}</section>`; document.getElementById('jump-to-news')?.addEventListener('click', ()=> views.setActiveView('news', { force:true })); document.getElementById('jump-to-activities')?.addEventListener('click', ()=> views.setActiveView('activities', { force:true })); }
@@ -59,6 +59,9 @@
   function renderSettingsMetric(settings){ const complete = settings && settings.missingKeys && settings.missingKeys.length===0; const caption = complete ? '主要項目はすべて設定済みです。' : `${settings.missingKeys.length} 件の項目が未設定です。`; const statusBadge = complete ? '<span class="badge green">設定済み</span>' : '<span class="badge rose">要対応</span>'; const jumpUrl = complete ? '' : buildSettingsUrl({ tab: inferPrimaryMissingTab(settings.missingKeys) }); return `<article class="card"><div class="card-header"><h3 class="card-title">サイト設定</h3>${statusBadge}</div><p class="card-metric">${complete?'良好':'要確認'}</p><p class="metric-trend">${utils.escapeHtml(caption)}</p>${complete?'':`<div class="card-actions"><a href="${jumpUrl}" target="_blank" rel="noopener" class="btn-link">未設定を確認</a></div>`}</article>`; }
   function buildSettingsUrl({ tab, field }={}){ const p=new URLSearchParams(); if (tab) p.set('tab', tab); if (field) p.set('field', field); const q=p.toString(); return `/admin/settings.html${q?`?${q}`:''}`; }
   function inferPrimaryMissingTab(missingKeys=[]){ for (const item of missingKeys){ const meta = constants.SETTINGS_FIELD_LINKS[item.key]; if (meta?.tab) return meta.tab; } return 'site_meta'; }
+
+  async function getSummary({ force=false }={}){ if (!force && state.cache.summary) return state.cache.summary; const summary = await api.summary(); state.cache.summary = summary; return summary; }
+  async function getSettings({ force=false }={}){ if (!force && state.cache.settings) return state.cache.settings; const settings = await api.settings(); state.cache.settings = settings; return settings; }
 
   function renderNewsTable(list, { showEmpty=false, showActions=false } = {}){ if (!list || list.length===0){ return showEmpty?'<div class="empty-state">まだ記事がありません。<div style="margin-top:16px"><button class="btn-secondary" type="button" id="empty-create-news">お知らせを作成</button></div></div>':'<p class="empty-state">データがありません。</p>'; } return `<div class="card"><table class="data-table"><thead><tr><th style="width: 40%">タイトル</th><th>カテゴリ</th><th>隊</th><th>作成日</th>${showActions?'<th>操作</th>':''}</tr></thead><tbody>${list.map((item)=>`<tr data-id="${item.id}"><td>${utils.escapeHtml(item.title||'(無題)')}</td><td>${utils.escapeHtml(item.category||'未分類')}</td><td>${utils.escapeHtml(utils.labelizeUnit(item.unit))}</td><td>${utils.formatDate(item.created_at)}</td>${showActions?renderNewsActionsCell(item.id):''}</tr>`).join('')}</tbody></table></div>`; }
   function renderNewsActionsCell(id){ return `<td><div class="table-actions"><a href="/news-detail-placeholder.html?id=${id}" target="_blank" rel="noopener">公開</a><button type="button" data-action="edit" data-id="${id}">編集</button><button type="button" data-action="delete" data-id="${id}" class="btn-danger">削除</button></div></td>`; }
@@ -84,11 +87,111 @@
     const update = ()=>{ const query=(searchInput?.value||'').toLowerCase(); const unit=unitSelect?.value||''; const category=categorySelect?.value||''; const filtered=data.filter((item)=>{ const matchesQuery=!query||(item.title||'').toLowerCase().includes(query)||(item.content||'').toLowerCase().includes(query); const matchesUnit=!unit||(item.unit||'')===unit; const matchesCategory=!category||(item.category||'')===category; return matchesQuery&&matchesUnit&&matchesCategory; }); tableWrap.innerHTML=renderActivityTable(filtered, { showEmpty:true, showActions:true }); bindActivityTableActions(); };
     searchInput?.addEventListener('input', utils.debounce(update, 200)); unitSelect?.addEventListener('change', update); categorySelect?.addEventListener('change', update); update(); }
 
-  async function renderSettingsSummaryView(root){ const summary = state.cache.summary || await api.summary(); const settingsSummary = summary.settings; const allSettings = await api.settings(); state.cache.settings = allSettings; const missing = settingsSummary.missingKeys || []; root.innerHTML = `
+  async function renderSettingsSummaryView(root){ const summary = await getSummary(); const settingsSummary = summary.settings; const allSettings = await getSettings({ force:true }); const missing = settingsSummary.missingKeys || []; root.innerHTML = `
     <section class="view-section"><div class="section-heading"><h2>設定の状態</h2><a class="btn-primary" id="open-settings" href="${buildSettingsUrl()}" target="_blank" rel="noopener">設定を開く</a></div><div class="stats-grid">${renderSettingsMetric(settingsSummary)}${renderBrandPreview(allSettings)}</div></section>
     <section class="view-section"><div class="section-heading"><h2>未設定項目</h2><p>優先度の高いフィールドを確認</p></div>${missing.length?`<ul class="card settings-missing-list">${missing.map((item)=>renderMissingSetting(item)).join('')}</ul>`:`<div class="card"><strong>すべて設定済みです。</strong><p>ファビコンや画像が揃っており、公開準備が整っています。</p></div>`}</section>
     <section class="view-section"><div class="section-heading"><h2>主要設定サマリー</h2></div>${renderSettingsSummaryTable(allSettings)}</section>`;
     document.getElementById('open-settings')?.addEventListener('click', (event)=>{ if (event.metaKey || event.ctrlKey) return; event.preventDefault(); actions.openSettingsPage(); }); }
+
+            
+  async function renderBrandingView(root){
+    const settings = await getSettings({ force:true });
+    const units = ['beaver','cub','boy','venture','rover'];
+    const unitEntries = units.map((unit)=>{
+      const label = utils.labelizeUnit(unit);
+      const logo = settings[`unit_${unit}_logo_url`];
+      const leaderPhoto = settings[`unit_${unit}_leader_photo_url`];
+      const leaderMessage = (settings[`unit_${unit}_leader_message`] || '').trim();
+      const gallery = [1,2,3,4].map((n)=>settings[`unit_${unit}_gallery_img_${n}_url`]).filter(Boolean);
+      return { unit, label, logo, leaderPhoto, leaderMessage, gallery };
+    });
+    const logosReady = unitEntries.filter((item)=>Boolean(item.logo)).length;
+    const leaderReady = unitEntries.filter((item)=>item.leaderPhoto && item.leaderMessage).length;
+    const galleryCount = unitEntries.reduce((acc, item)=>acc + item.gallery.length, 0);
+    const missingLogos = unitEntries.filter((item)=>!item.logo).map((item)=>item.label);
+    const missingLeaderPhotos = unitEntries.filter((item)=>!item.leaderPhoto).map((item)=>item.label);
+    const missingLeaderMessages = unitEntries.filter((item)=>!item.leaderMessage).map((item)=>item.label);
+    const missingGalleryUnits = unitEntries.filter((item)=>item.gallery.length===0).map((item)=>item.label);
+    const overviewCards = [
+      renderBrandPreview(settings),
+      renderBrandingStatusCard({
+        title:'隊章ロゴ',
+        value:`${logosReady}/${unitEntries.length} 設定済み`,
+        detail: missingLogos.length ? `${joinLabels(missingLogos)} のロゴが未設定です。` : 'すべての隊章ロゴが登録済みです。',
+        badgeVariant: missingLogos.length ? 'rose' : 'green',
+        badgeLabel: missingLogos.length ? '要確認' : '整備済み'
+      }),
+      renderBrandingStatusCard({
+        title:'リーダー紹介',
+        value:`${leaderReady}/${unitEntries.length} 完了`,
+        detail: buildLeaderDetail(missingLeaderPhotos, missingLeaderMessages),
+        badgeVariant: (missingLeaderPhotos.length || missingLeaderMessages.length) ? 'rose' : 'green',
+        badgeLabel: (missingLeaderPhotos.length || missingLeaderMessages.length) ? '要確認' : '整備済み'
+      }),
+      renderBrandingStatusCard({
+        title:'フォトギャラリー',
+        value:`${galleryCount} 枚`,
+        detail: missingGalleryUnits.length ? `${joinLabels(missingGalleryUnits)} にギャラリーが未登録です。` : '各隊でギャラリー画像が登録されています。',
+        badgeVariant: missingGalleryUnits.length ? 'rose' : 'blue',
+        badgeLabel: missingGalleryUnits.length ? '要確認' : '良好'
+      })
+    ];
+    root.innerHTML = `
+      <section class="view-section"><div class="section-heading"><h2>ブランド資産の状態</h2><button class="btn-primary" type="button" id="open-branding">ブランディング設定を開く</button></div><div class="stats-grid brand-stats">${overviewCards.join('')}</div></section>
+      <section class="view-section"><div class="section-heading"><h2>隊章ロゴ</h2><p>各隊のロゴ設定を確認</p></div><div class="brand-grid" style="display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${unitEntries.map((item)=>renderUnitLogoCard(item)).join('')}</div></section>
+      <section class="view-section"><div class="section-heading"><h2>リーダー紹介とギャラリー</h2><p>写真・メッセージ・ギャラリーの状態を確認</p></div><div class="brand-leaders" style="display:grid; gap:16px;">${unitEntries.map((item)=>renderUnitLeaderCard(item)).join('')}</div></section>`;
+    document.getElementById('open-branding')?.addEventListener('click', (event)=>{ if (event.metaKey || event.ctrlKey) return; event.preventDefault(); actions.openBrandingPage(); });
+  }
+
+  function renderBrandingStatusCard({ title, value, detail, badgeVariant='blue', badgeLabel='状態' }){
+    const safeTitle = utils.escapeHtml(title);
+    const safeValue = utils.escapeHtml(value);
+    const safeDetail = detail ? utils.escapeHtml(detail) : '';
+    const badge = badgeVariant ? `<span class="badge ${badgeVariant}">${utils.escapeHtml(badgeLabel)}</span>` : '';
+    const detailHtml = safeDetail ? `<p class="metric-trend">${safeDetail}</p>` : '';
+    return `<article class="card"><div class="card-header"><h3 class="card-title">${safeTitle}</h3>${badge}</div><p class="card-metric">${safeValue}</p>${detailHtml}</article>`;
+  }
+
+  function renderUnitLogoCard(item){
+    const badge = item.logo ? '<span class="badge blue">設定済み</span>' : '<span class="badge rose">未設定</span>';
+    const preview = item.logo ? `<img src="${utils.escapeAttribute(item.logo)}" alt="${utils.escapeHtml(item.label)}隊章" style="max-width:100%; max-height:120px; object-fit:contain;">` : '<span style="color:#94a3b8; font-size:13px;">未設定</span>';
+    const urlText = item.logo ? utils.escapeHtml(truncateText(item.logo, 60)) : 'URLが未設定です。';
+    return `<article class="card brand-tile"><div class="card-header"><h3 class="card-title">${utils.escapeHtml(item.label)} 隊章</h3>${badge}</div><div style="background:#f8fafc; border-radius:12px; display:flex; align-items:center; justify-content:center; min-height:140px;">${preview}</div><p class="metric-trend" style="margin-top:12px; word-break:break-all;">${urlText}</p></article>`;
+  }
+
+  function renderUnitLeaderCard(item){
+    const complete = item.leaderPhoto && item.leaderMessage;
+    const badge = complete ? '<span class="badge blue">整備済み</span>' : '<span class="badge rose">要確認</span>';
+    const photo = item.leaderPhoto ? `<img src="${utils.escapeAttribute(item.leaderPhoto)}" alt="${utils.escapeHtml(item.label)}隊リーダー" style="width:96px; height:96px; object-fit:cover; border-radius:16px;">` : '<div style="width:96px; height:96px; border-radius:16px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">写真なし</div>';
+    const message = item.leaderMessage ? formatMultiline(item.leaderMessage, 160) : '<span style="color:#94a3b8;">メッセージが未設定です。</span>';
+    const galleryInfo = item.gallery.length ? `${item.gallery.length}枚のギャラリー` : 'ギャラリー未登録';
+    return `<article class="card brand-leader"><div class="card-header"><h3 class="card-title">${utils.escapeHtml(item.label)} 隊</h3>${badge}</div><div style="display:flex; gap:16px; align-items:flex-start;"><div>${photo}</div><div style="flex:1;"><p class="metric-trend" style="margin:0 0 8px;">${message}</p><p class="metric-trend" style="margin:0; color:#64748b;">${utils.escapeHtml(galleryInfo)}</p></div></div></article>`;
+  }
+
+  function formatMultiline(value, limit=120){
+    const normalized = (value || '').trim();
+    if (!normalized) return '';
+    const truncated = normalized.length > limit ? normalized.slice(0, limit) + '…' : normalized;
+    return utils.escapeHtml(truncated).replace(/\n/g, '<br>');
+  }
+
+  function truncateText(value, limit=48){
+    const text = String(value || '').trim();
+    if (!text) return '';
+    return text.length > limit ? text.slice(0, limit) + '…' : text;
+  }
+
+  function joinLabels(list){
+    return list.join('、');
+  }
+
+  function buildLeaderDetail(missingPhotos, missingMessages){
+    if (!missingPhotos.length && !missingMessages.length) return '全ての隊でリーダー写真とメッセージが登録されています。';
+    const notices = [];
+    if (missingPhotos.length) notices.push(`${joinLabels(missingPhotos)} の写真が未設定`);
+    if (missingMessages.length) notices.push(`${joinLabels(missingMessages)} のメッセージが未設定`);
+    return notices.join(' / ');
+  }
 
   function renderBrandPreview(settings){ const crest=settings.group_crest_url; const favicon=settings.site_favicon_url; return `<article class="card"><div class="card-header"><h3 class="card-title">ブランド概要</h3>${crest?'<span class="badge blue">画像あり</span>':'<span class="badge rose">未設定</span>'}</div><div style="display:flex; gap:16px; align-items:center;"><div style="width:72px; height:72px; border-radius:16px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; overflow:hidden;">${crest?`<img src="${utils.escapeAttribute(crest)}" alt="団章プレビュー" style="max-width:72px; max-height:72px;">`:'---'}</div><div><p style="margin:0 0 6px; font-weight:600;">団章</p><p style="margin:0; font-size:13px; color:#64748b;">${crest?'公開用の団章画像が設定されています。':'団章画像が未設定です。'}</p><p style="margin:10px 0 0; font-size:13px; color:#64748b;">ファビコン: ${favicon?'設定済み ✅':'未設定 ⚠️'}</p></div></div></article>`; }
   function renderMissingSetting(item){ const meta = constants.SETTINGS_FIELD_LINKS[item.key] || null; const label = utils.escapeHtml(item.label || item.key); const href = meta ? buildSettingsUrl(meta) : buildSettingsUrl(); const keyTag = meta?.field ? `<code>${utils.escapeHtml(meta.field)}</code>` : ''; return `<li class="settings-missing"><div class="settings-missing-label">⚠️ ${label}${keyTag?`<span class="settings-missing-key">${keyTag}</span>`:''}</div><a class="btn-ghost" href="${href}" target="_blank" rel="noopener">設定する</a></li>`; }
