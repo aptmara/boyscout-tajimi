@@ -648,18 +648,21 @@ app.post('/api/activity-webhook', webhookRawJson, webhookAuth, async (req, res) 
 // ================================================================
 
 // GET /api/settings - 設定を取得
-// (admin/settings.html が実際に使用する /api/settings/all のエイリアスとしても機能)
+// (admin/settings.html などで利用される /api/settings/all のエイリアスとして残す)
 app.get(['/api/settings', '/api/settings/all'], authMiddleware, async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT key, value FROM settings');
+    const { rows } = await db.query('SELECT key, value FROM settings ORDER BY key ASC');
+    if (req.path.endsWith('/all')) {
+      return res.json(rows);
+    }
     const settings = rows.reduce((acc, row) => {
-      acc[row.key] = row.value;
+      acc[row.key] = row.value ?? '';
       return acc;
     }, {});
-    res.json(settings);
+    return res.json(settings);
   } catch (err) {
     console.error(`GET ${req.path} error:`, err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1018,3 +1021,4 @@ function startServer(app) {
 }
 
 startServer(app);
+
