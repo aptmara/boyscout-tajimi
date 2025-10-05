@@ -12,6 +12,7 @@ const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const expressLayouts = require('express-ejs-layouts');
@@ -151,18 +152,15 @@ app.use(errorHandler);
 
 
 // ------------------------------
-// /json-api を mount（最後でOK）
+// /uploads を mount（画像配信）
 // ------------------------------
-// const jsonApi = require('./server-json');      // Router
-// app.use('/json-api', jsonApi);
-
-// /uploads をグローバルで公開（server-json.js の保存先を流用）
-// const UPLOAD_DIR = jsonApi.UPLOAD_DIR;
-// app.use('/uploads', express.static(UPLOAD_DIR, {
-//   etag: true,
-//   maxAge: '7d',
-//   immutable: true,
-// }));
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOAD_DIR, {
+  etag: true,
+  maxAge: '7d', // 7日間キャッシュ
+  immutable: true,
+}));
 
 // ------------------------------
 // 起動（唯一の listen ）

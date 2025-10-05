@@ -2,8 +2,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/views/**/*.html",
-    "./src/js/**/*.js",
+    './src/views/**/*.ejs', // ejsファイルを監視対象に
+    './src/js/**/*.js',
   ],
   theme: {
     extend: {},
