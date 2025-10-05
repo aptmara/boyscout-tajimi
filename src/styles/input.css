@@ -1,0 +1,11 @@
+/* styles/input.css */
+@tailwind base;
+
+/* Import other stylesheets to be bundled */
+@import "./activity-dashboard.css";
+@import "./admin-app.css";
+@import "./admin-styles.css";
+@import "./lightbox.css";
+
+@tailwind components;
+@tailwind utilities;
