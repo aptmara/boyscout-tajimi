@@ -2,14 +2,28 @@
 const db = require('../database');
 
 const convertGoogleDriveUrl = (url) => {
-  if (typeof url !== 'string' || !url.includes('drive.google.com')) {
+  if (typeof url !== 'string') {
     return url;
   }
-  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    const fileId = match[1];
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
+
+  // Handle the format: https://drive.usercontent.google.com/uc?export=view&id=FILE_ID
+  if (url.includes('drive.usercontent.google.com/uc')) {
+    const match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      const fileId = match[1];
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
+    }
   }
+
+  // Handle the format: https://drive.google.com/file/d/FILE_ID/view
+  if (url.includes('drive.google.com/file/d/')) {
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      const fileId = match[1];
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
+    }
+  }
+
   return url;
 };
 
@@ -56,7 +70,7 @@ const runMigration = async () => {
 
     // 2. Convert 'news' table
     console.log("Processing 'news' table...");
-    const news = await client.query("SELECT id, image_url FROM news WHERE image_url IS NOT NULL AND image_url LIKE '%drive.google.com/file/d/%'");
+    const news = await client.query("SELECT id, image_url FROM news WHERE image_url IS NOT NULL AND (image_url LIKE '%drive.google.com/file/d/%' OR image_url LIKE '%drive.usercontent.google.com/uc%')");
     let newsUpdated = 0;
     for (const row of news.rows) {
       const newUrl = convertGoogleDriveUrl(row.image_url);
@@ -69,7 +83,7 @@ const runMigration = async () => {
 
     // 3. Convert 'settings' table
     console.log("Processing 'settings' table...");
-    const settings = await client.query("SELECT key, value FROM settings WHERE key LIKE '%_url' AND value LIKE '%drive.google.com/file/d/%'");
+    const settings = await client.query("SELECT key, value FROM settings WHERE key LIKE '%_url' AND (value LIKE '%drive.google.com/file/d/%' OR value LIKE '%drive.usercontent.google.com/uc%')");
     let settingsUpdated = 0;
     for (const row of settings.rows) {
       const newValue = convertGoogleDriveUrl(row.value);
