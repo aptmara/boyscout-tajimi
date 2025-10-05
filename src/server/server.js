@@ -14,6 +14,7 @@ const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const expressLayouts = require('express-ejs-layouts');
 
 const db = require('./database.js');
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
@@ -25,11 +26,20 @@ app.set('trust proxy', 1);
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
 // ------------------------------
-// 静的配信・圧縮など（必要に応じ追加）
+// View Engine Setup (EJS)
 // ------------------------------
 const projectRoot = path.join(__dirname, '../..');
+app.set('view engine', 'ejs');
+app.set('views', path.join(projectRoot, 'src', 'views'));
+app.use(expressLayouts);
+app.set('layout', 'layouts/main');
+
+
+// ------------------------------
+// 静的配信・圧縮など（必要に応じ追加）
+// ------------------------------
 app.use(express.static(path.join(projectRoot, 'public')));
-app.use(express.static(path.join(projectRoot, 'src', 'views')));
+// app.use(express.static(path.join(projectRoot, 'src', 'views'))); // EJSレンダリングのため削除
 app.use(express.static(path.join(projectRoot, 'src', 'js')));
 app.use(express.static(path.join(projectRoot, 'src', 'assets')));
 
@@ -126,6 +136,13 @@ app.use('/api/contact', contactRoutes);
 
 
 // ================================================================
+// View Routes (SSR Pages)
+// ================================================================
+const viewRoutes = require('./routes/view.routes.js');
+app.use('/', viewRoutes);
+
+
+// ================================================================
 // Global Error Handler (Must be the last middleware)
 // ================================================================
 const { errorHandler } = require('./middleware/error.middleware.js');
@@ -161,4 +178,3 @@ function startServer(app) {
 }
 
 startServer(app);
-
