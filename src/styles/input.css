@@ -9,3 +9,20 @@
 
 @tailwind components;
 @tailwind utilities;
+
+/* index.htmlから移動したカスタムスタイル */
+.hero-bg {
+    background-image: url('https://placehold.co/1920x1080/334155/e2e8f0?text=High-Quality+Hero+Image'); /* 管理画面の設定で差し替え可能 */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* パララックス風効果 */
+}
+.fade-hidden {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .6s ease, transform .6s ease;
+}
+.fade-show {
+    opacity: 1 !important;
+    transform: none !important;
+}
