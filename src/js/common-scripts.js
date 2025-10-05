@@ -224,11 +224,11 @@ function initActivityDetailPage() {
 function applyUnitLogos() {
   try {
     const logos = {
-      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
-      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
-      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
-      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
-      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
+      beaver: 'https://drive.google.com/thumbnail?id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.google.com/thumbnail?id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.google.com/thumbnail?id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.google.com/thumbnail?id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.google.com/thumbnail?id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
     };
 
     const path = (location.pathname || '').toLowerCase();
@@ -268,12 +268,12 @@ async function applyLogosFromTaskTxt() {
   try {
     if (window.__brandingFromSettings) return; // すでに設定から適用済みなら何もしない
     const defaults = {
-      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
-      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
-      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
-      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
-      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa',
-      dan: 'https://drive.usercontent.google.com/uc?export=view&id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ'
+      beaver: 'https://drive.google.com/thumbnail?id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.google.com/thumbnail?id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.google.com/thumbnail?id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.google.com/thumbnail?id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.google.com/thumbnail?id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa',
+      dan: 'https://drive.google.com/thumbnail?id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ'
     };
 
     const res = await fetch('/task.txt', { cache: 'no-store' });
@@ -339,11 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function applyUnitLogosV2() {
   try {
     const logos = {
-      beaver: 'https://drive.usercontent.google.com/uc?export=view&id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
-      cub: 'https://drive.usercontent.google.com/uc?export=view&id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
-      boy: 'https://drive.usercontent.google.com/uc?export=view&id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
-      venture: 'https://drive.usercontent.google.com/uc?export=view&id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
-      rover: 'https://drive.usercontent.google.com/uc?export=view&id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
+      beaver: 'https://drive.google.com/thumbnail?id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
+      cub: 'https://drive.google.com/thumbnail?id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
+      boy: 'https://drive.google.com/thumbnail?id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
+      venture: 'https://drive.google.com/thumbnail?id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
+      rover: 'https://drive.google.com/thumbnail?id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
     };
 
     const path = (location.pathname || '').toLowerCase();
@@ -362,7 +362,7 @@ function applyUnitLogosV2() {
         if (crest && logos[key]) crest.src = logos[key];
 
         // ヘッダー/フッターの団章は指定URLに差し替え（サイト共通）
-        const danCrest = 'https://drive.usercontent.google.com/uc?export=view&id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ';
+        const danCrest = 'https://drive.google.com/thumbnail?id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ';
         const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
         if (headerImg) headerImg.src = danCrest;
         const footerImg = document.querySelector('footer img[alt*="団章"]');
