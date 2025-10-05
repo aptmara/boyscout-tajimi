@@ -20,7 +20,7 @@ const webhookRawJson = express.raw({ type: 'application/json', limit: '1mb' });
 
 // Public routes
 router.get('/', getAllNews);
-rourer.get('/:id', getNewsById);
+router.get('/:id', getNewsById);
 
 // Webhook route - Note: path is relative to where this router is mounted
 router.post('/webhook', webhookRawJson, webhookAuth, newsWebhook);
