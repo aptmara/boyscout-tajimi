@@ -1,0 +1,105 @@
+<section class="bg-blue-600 text-white py-12 md:py-20 fade-in-section">
+    <div class="container mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">お問い合わせ</h1>
+        <p class="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto">
+            ご質問、見学・体験のお申し込み、その他ご不明な点がございましたら、以下の方法でお気軽にご連絡ください。
+        </p>
+    </div>
+</section>
+
+<section id="contact-details-form" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.2s;">
+    <div class="container mx-auto px-6">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+            <div class="space-y-10">
+                <div>
+                    <h2 class="text-3xl font-bold text-green-700 mb-6">連絡先</h2>
+                    <div class="space-y-4 text-gray-700">
+                        <div class="flex items-start">
+                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <div>
+                                <h4 class="font-semibold">所在地 (主な活動場所)</h4>
+                                <p class="contact-address">〒507-0033 岐阜県多治見市本町１丁目１２２ (多治見市役所駅北庁舎)</p> <!-- 管理画面から更新可 -->
+                                <p class="text-sm text-gray-500">※活動により場所が変更になる場合があります。</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.308 1.154a11.034 11.034 0 005.37 5.37l1.154-2.308a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                            <div>
+                                <h4 class="font-semibold">電話番号</h4>
+                                <p><a href="#" class="hover:text-green-600 contact-phone-secondary">0572-XX-XXXX</a> (担当: <span class="contact-person-name">[担当者名]</span>)</p>
+                                <p class="text-sm text-gray-500">受付時間: 平日 9:00～17:00 (活動中は対応できない場合があります)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <div>
+                                <h4 class="font-semibold">メールアドレス</h4>
+                                <p><a href="mailto:info@bs-tajimi1.example.jp" class="hover:text-green-600">info@bs-tajimi1.example.jp</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold text-green-700 mb-4">アクセスマップ</h3>
+                    <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
+                        <div id="contact-map-embed">
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3230.420026630898!2d137.1230183152658!3d35.3376909801507!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x600340e5764c3e71%3A0x597a7aacb613de99!2z5aWH5rKz6KaH5biC5役所!5e0!3m2!1sja!2sjp!4v1683872000000!5m2!1sja!2sjp" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-8 md:p-10 rounded-xl shadow-xl card-hover-effect mt-12 lg:mt-0">
+                <h2 class="text-3xl font-bold text-green-700 mb-8">お問い合わせフォーム</h2>
+                <form id="contact-form" action="#" method="POST" class="space-y-6" novalidate>
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">お名前 <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="name" autocomplete="name" required
+                               class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                        <p class="text-xs text-red-500 mt-1 hidden" id="name-error">お名前を入力してください。</p>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" id="email" autocomplete="email" required
+                               class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                        <p class="text-xs text-red-500 mt-1 hidden" id="email-error">有効なメールアドレスを入力してください。</p>
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">電話番号 (任意)</label>
+                        <input type="tel" name="phone" id="phone" autocomplete="tel"
+                               class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                    </div>
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">件名</label>
+                        <input type="text" name="subject" id="subject"
+                               class="form-input mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300">
+                    </div>
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">お問い合わせ内容 <span class="text-red-500">*</span></label>
+                        <textarea id="message" name="message" rows="5" required
+                                  class="form-textarea mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm transition-colors duration-300"></textarea>
+                        <p class="text-xs text-red-500 mt-1 hidden" id="message-error">お問い合わせ内容を入力してください。</p>
+                    </div>
+                    <div class="pt-2">
+                        <p class="text-xs text-gray-500 mb-4">
+                            ご入力いただいた個人情報は、お問い合わせへの対応および連絡のためにのみ利用いたします。
+                            詳細は<a href="/privacy" class="text-green-600 hover:underline">プライバシーポリシー</a>をご確認ください。
+                        </p>
+                        <button type="submit"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-all duration-300 ease-in-out transform hover:scale-105">
+                            送信する
+                        </button>
+                    </div>
+                </form>
+                <div id="form-success-message" class="hidden mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md" role="status" aria-live="polite">
+                    <p class="font-semibold">お問い合わせありがとうございます！</p>
+                    <p data-success-detail>メッセージが正常に送信されました。担当者より折り返しご連絡いたしますので、今しばらくお待ちください。</p>
+                </div>
+                <div id="form-error-message" class="hidden mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md" role="alert" aria-live="assertive">
+                    <p class="font-semibold">送信に失敗しました</p>
+                    <p data-error-detail>恐れ入りますが、時間をおいて再度お試しいただくか、お電話にてお問い合わせください。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
