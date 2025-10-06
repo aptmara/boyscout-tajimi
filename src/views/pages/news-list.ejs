@@ -1,0 +1,119 @@
+<nav class="container mx-auto px-6 py-4 fade-in-section" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                ホーム
+            </a>
+        </li>
+        <li aria-current="page">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">お知らせ</span>
+            </div>
+        </li>
+    </ol>
+</nav>
+
+<section class="bg-green-600 text-white py-12 md:py-20 fade-in-section">
+    <div class="container mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">お知らせ</h1>
+        <p class="text-lg md:text-xl text-green-100 max-w-2xl mx-auto">
+            ボーイスカウト多治見第一団からの最新情報や重要なお知らせ、イベントのご案内などを掲載しています。
+        </p>
+    </div>
+</section>
+
+<section class="py-10 bg-gray-50 fade-in-section" style="transition-delay: 0.2s;">
+    <div class="container mx-auto px-6">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6" id="news-filter-panel">
+            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="text-lg font-semibold text-gray-800">必要なニュースをすばやくチェック</p>
+                    <p class="text-sm text-gray-500">カテゴリやタグ、配信月、キーワードで簡単に絞り込みができます。</p>
+                </div>
+                <button type="button" id="news-reset-filters" class="chip chip--ghost self-start md:self-center">条件をリセット</button>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">カテゴリ</p>
+                    <div id="news-category-chips" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">隊・対象</p>
+                    <div id="news-unit-chips" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">人気タグ</p>
+                        <button type="button" id="news-tag-mode-toggle" class="chip chip--outline text-xs" aria-pressed="false" aria-label="タグの組み合わせ方法を切り替え">タグ条件: OR</button>
+                    </div>
+                    <div id="news-tag-bar" class="flex gap-2 overflow-x-auto pb-2 custom-scroll" role="list"></div>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr,1fr,1fr]">
+                    <label class="flex flex-col gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">キーワード検索</span>
+                        <div class="relative flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.64 5.64a7.5 7.5 0 0010.61 10.61z"/></svg>
+                            <input type="search" id="news-search" name="news-search" placeholder="タイトルや本文、タグから検索" class="flex-1 bg-transparent focus:outline-none text-sm text-gray-700" autocomplete="off">
+                        </div>
+                    </label>
+                    <label class="flex flex-col gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">配信月</span>
+                        <input type="month" id="news-date-filter" name="news-date-filter" class="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 focus:border-green-500 focus:ring-2 focus:ring-green-100 transition" />
+                    </label>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">並び替え</span>
+                        <div id="news-sort-chips" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="news-active-filter-bar" class="hidden flex flex-wrap items-center gap-2 border-t border-gray-100 pt-4">
+                <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">適用中:</span>
+                <div id="news-active-filters" class="flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-12 md:py-16 fade-in-section" style="transition-delay: 0.4s;">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">ニュース一覧</h2>
+                <p id="news-results-count" class="text-sm text-gray-500">読み込み中...</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <svg class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span>タグをクリックすると同じ話題のニュースを素早く絞り込めます。</span>
+            </div>
+        </div>
+
+        <div id="news-list-loading" class="flex items-center justify-center py-12">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span class="ml-3 text-sm text-gray-500">ニュースを読み込み中です...</span>
+        </div>
+
+        <div id="news-list-container" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+
+        <div id="no-news-results" class="hidden text-center text-gray-600 py-10">
+            <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+                <svg class="w-20 h-20 text-yellow-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 15h6"></path></svg>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-2">該当するニュースが見つかりませんでした</h3>
+                <p class="text-gray-500">条件を変更するか、別のキーワードをお試しください。</p>
+                <p class="text-sm mt-4">フィルタのリセットでもう一度一覧を表示できます。</p>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-10">
+            <button type="button" id="news-load-more-button" class="hidden chip chip--solid px-6 py-3 text-base">もっと見る</button>
+        </div>
+        <div id="news-list-end" class="hidden text-center text-sm text-gray-500 mt-6">すべてのニュースを表示しました</div>
+        <div id="news-load-more-sentinel" class="h-px w-full"></div>
+    </div>
+</section>

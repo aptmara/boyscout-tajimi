@@ -79,4 +79,44 @@ router.get('/about', (req, res) => {
   });
 });
 
+// 静的ページ用の汎用ルーター
+const staticPages = {
+  'activity-log': '活動記録',
+  'contact': 'お問い合わせ',
+  'join': '入団案内',
+  'news-list': 'お知らせ一覧',
+  'privacy': 'プライバシーポリシー',
+  'sitemap': 'サイトマップ',
+  'testimonials': '保護者・スカウトの声',
+  'unit-beaver': 'ビーバー隊の紹介',
+  'unit-cub': 'カブ隊の紹介',
+  'unit-boy': 'ボーイ隊の紹介',
+  'unit-venture': 'ベンチャー隊の紹介',
+  'unit-rover': 'ローバー隊の紹介',
+  'leaders-all': '指導者一覧'
+};
+
+Object.entries(staticPages).forEach(([page, title]) => {
+  router.get(`/${page}`, (req, res) => {
+    let pageScripts = [];
+    if (page === 'activity-log') {
+      pageScripts = ['/filters-dynamic.js', '/dynamic-activities.v2.js', '/enhance-activities.js'];
+    } else if (page === 'news-list') {
+      pageScripts = ['/filters-dynamic.js', '/dynamic-news.js', '/enhance-news.js'];
+    } else if (page.startsWith('unit-')) {
+      pageScripts = ['/dynamic-unit-activities.js'];
+    } else if (page === 'news-detail-placeholder') {
+      pageScripts = ['/lightbox.js', '/dynamic-news.js'];
+    } else if (page === 'activity-detail-placeholder') {
+      pageScripts = ['/lightbox.js', '/dynamic-activities.v2.js'];
+    }
+    res.render(`pages/${page}`, {
+      title: `${title} - ボーイスカウト多治見第一団`,
+      description: `ボーイスカウト多治見第一団の${title}ページです。`,
+      pageScripts
+    });
+  });
+});
+
+
 module.exports = router;
