@@ -141,6 +141,11 @@
   color: var(--icon-color, #16a34a);
 }
 
+.activity-card__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .activity-card__type {
   display: flex;
   align-items: center;

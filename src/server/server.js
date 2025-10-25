@@ -44,6 +44,14 @@ app.use(express.static(path.join(projectRoot, 'public')));
 app.use(express.static(path.join(projectRoot, 'src', 'js')));
 app.use(express.static(path.join(projectRoot, 'src', 'assets')));
 
+// フロントエンドはルート直下の task.txt を直接取得するため、明示的に送信する
+app.get('/task.txt', (req, res, next) => {
+  const taskFilePath = path.join(projectRoot, 'task.txt');
+  res.sendFile(taskFilePath, (err) => {
+    if (err) next(err);
+  });
+});
+
 // ------------------------------
 // セッション（Postgres）
 // ------------------------------
@@ -114,7 +122,10 @@ app.use('/api/activities', activityRoutes);
 // Settings API
 // ================================================================
 const settingsRoutes = require('./routes/settings.routes.js');
+const { getPublicSettings } = require('./controllers/settings.controller.js');
 app.use('/api/settings', settingsRoutes);
+// 既存フロントエンド資産は /api/public-settings を参照しているため、後方互換のために公開設定用エイリアスを追加
+app.get('/api/public-settings', getPublicSettings);
 
 // ================================================================
 // Auth API

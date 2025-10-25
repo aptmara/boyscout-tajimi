@@ -12,6 +12,7 @@
 <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group">
   <div class="relative">
     <img src="<%= card.imageUrl %>" alt="<%= card.altText %>" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+    <%# 画像の上に重ねるオーバーレイ %>
     <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
   </div>
   <div class="p-6">
