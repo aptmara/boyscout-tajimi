@@ -53,14 +53,26 @@ app.get('/task.txt', (req, res, next) => {
 });
 
 // ------------------------------
-// セッション（Postgres）
+// セッション（Postgres or File）
 // ------------------------------
+let sessionStore;
+if (db.useSqlite) {
+  const FileStore = require('session-file-store')(session);
+  sessionStore = new FileStore({
+    path: path.join(__dirname, '../../sessions'),
+    ttl: 86400,
+  });
+  console.log('Using FileStore for sessions.');
+} else {
+  sessionStore = new pgSession({
+    pool: db.pool,
+    tableName: 'session',
+  });
+}
+
 app.use(
   session({
-    store: new pgSession({
-      pool: db.pool,
-      tableName: 'session',
-    }),
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
     resave: false,
     saveUninitialized: false,
@@ -81,23 +93,6 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // ------------------------------
-// DB 初期化
-// ------------------------------
-db.setupDatabase().catch((e) => {
-  console.error('setupDatabase error:', e);
-});
-
-// ------------------------------
-// データ移行スクリプト
-// ------------------------------
-const { runMigration } = require('./migrations/convert-drive-urls.js');
-runMigration().catch(err => {
-  console.error('!!! Data migration for URL conversion failed !!!', err);
-  // Production環境では、移行の失敗が致命的な場合、プロセスを終了させることも検討
-  // process.exit(1);
-});
-
-// ------------------------------
 // 認証ミドルウェア
 // ------------------------------
 const { authMiddleware, webhookAuth } = require('./middleware/auth.middleware.js');
@@ -108,15 +103,11 @@ const { authMiddleware, webhookAuth } = require('./middleware/auth.middleware.js
 const newsRoutes = require('./routes/news.routes.js');
 app.use('/api/news', newsRoutes);
 
-
-
-
 // ================================================================
 // Activity API
 // ================================================================
 const activityRoutes = require('./routes/activity.routes.js');
 app.use('/api/activities', activityRoutes);
-
 
 // ================================================================
 // Settings API
@@ -139,13 +130,16 @@ app.use('/api', authRoutes); // Mount at /api to handle /api/login, /api/logout,
 const adminRoutes = require('./routes/admin.routes.js');
 app.use('/api/admin', adminRoutes);
 
-
 // ================================================================
 // Contact API
 // ================================================================
 const contactRoutes = require('./routes/contact.routes.js');
 app.use('/api/contact', contactRoutes);
 
+// ------------------------------
+// Admin Static Files (HTML)
+// ------------------------------
+// app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
 
 // ================================================================
 // View Routes (SSR Pages)
@@ -153,14 +147,11 @@ app.use('/api/contact', contactRoutes);
 const viewRoutes = require('./routes/view.routes.js');
 app.use('/', viewRoutes);
 
-
 // ================================================================
 // Global Error Handler (Must be the last middleware)
 // ================================================================
 const { errorHandler } = require('./middleware/error.middleware.js');
 app.use(errorHandler);
-
-
 
 // ------------------------------
 // /uploads を mount（画像配信）
@@ -172,6 +163,31 @@ app.use('/uploads', express.static(UPLOAD_DIR, {
   maxAge: '7d', // 7日間キャッシュ
   immutable: true,
 }));
+
+// ------------------------------
+// 起動シーケンス
+// ------------------------------
+async function bootstrap() {
+  try {
+    // 1. DB Setup
+    await db.setupDatabase();
+
+    // 2. Migration
+    const { runMigration } = require('./migrations/convert-drive-urls.js');
+    try {
+      await runMigration();
+    } catch (err) {
+      console.error('!!! Data migration for URL conversion failed !!!', err);
+      // Continue even if migration fails in dev
+    }
+
+    // 3. Start Server
+    startServer(app);
+  } catch (e) {
+    console.error('Failed to start server:', e);
+    process.exit(1);
+  }
+}
 
 // ------------------------------
 // 起動（唯一の listen ）
@@ -186,4 +202,4 @@ function startServer(app) {
   return server;
 }
 
-startServer(app);
+bootstrap();
