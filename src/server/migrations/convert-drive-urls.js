@@ -57,7 +57,7 @@ const runMigration = async () => {
           continue;
         }
       }
-      
+
       if (Array.isArray(urls)) {
         const newUrls = urls.map(convertGoogleDriveUrl);
         if (JSON.stringify(urls) !== JSON.stringify(newUrls)) {
@@ -70,13 +70,25 @@ const runMigration = async () => {
 
     // 2. Convert 'news' table
     console.log("Processing 'news' table...");
-    const news = await client.query("SELECT id, image_url FROM news WHERE image_url IS NOT NULL AND (image_url LIKE '%drive.google.com/file/d/%' OR image_url LIKE '%drive.usercontent.google.com/uc%')");
+    const news = await client.query("SELECT id, image_urls FROM news WHERE image_urls IS NOT NULL AND image_urls::text <> '[]'");
     let newsUpdated = 0;
     for (const row of news.rows) {
-      const newUrl = convertGoogleDriveUrl(row.image_url);
-      if (newUrl !== row.image_url) {
-        await client.query('UPDATE news SET image_url = $1 WHERE id = $2', [newUrl, row.id]);
-        newsUpdated++;
+      let urls = row.image_urls;
+      if (typeof urls === 'string') {
+        try {
+          urls = JSON.parse(urls);
+        } catch {
+          console.warn(`  - Skipping news ${row.id} due to invalid JSON in image_urls.`);
+          continue;
+        }
+      }
+
+      if (Array.isArray(urls)) {
+        const newUrls = urls.map(convertGoogleDriveUrl);
+        if (JSON.stringify(urls) !== JSON.stringify(newUrls)) {
+          await client.query('UPDATE news SET image_urls = $1 WHERE id = $2', [JSON.stringify(newUrls), row.id]);
+          newsUpdated++;
+        }
       }
     }
     console.log(`  - Updated ${newsUpdated} records in 'news'.`);
