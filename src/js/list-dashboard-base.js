@@ -97,7 +97,11 @@ class BaseListDashboard {
       this.renderFilterOptions(settings);
 
       // データ取得
-      const res = await fetch(this.apiUrl + (this.apiUrl.includes('?') ? '&' : '?') + 'limit=1000');
+      const res = await fetch(this.apiUrl + (this.apiUrl.includes('?') ? '&' : '?') + 'limit=1000', {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
       if (!res.ok) throw new Error('Network response was not ok');
 
       const text = await res.text();
