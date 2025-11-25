@@ -10,24 +10,70 @@
 
   function onSheetReady(fn){ if (typeof requestAnimationFrame === 'function') requestAnimationFrame(fn); else setTimeout(fn, 0); }
 
+  // ç”»åƒURLã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚’æ›´æ–°ã™ã‚‹é–¢æ•°
+  function updateImagePreview(textareaId, containerId) {
+    const textarea = document.getElementById(textareaId);
+    const container = document.getElementById(containerId);
+    if (!textarea || !container) return;
+
+    const urls = textarea.value.split(/\n+/).map(u => u.trim()).filter(u => u);
+    container.innerHTML = ''; // Clear current previews
+
+    if (urls.length === 0) {
+      container.innerHTML = '<div class="preview-placeholder">ç”»åƒURLã‚’å…¥åŠ›ã™ã‚‹ã¨ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ãŒè¡¨ç¤ºã•ã‚Œã¾ã™</div>';
+      return;
+    }
+
+    urls.forEach(rawUrl => {
+      const url = utils.convertGoogleDriveUrl(rawUrl);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'image-preview-item';
+      
+      const img = document.createElement('img');
+      img.src = url;
+      img.className = 'image-preview-thumb';
+      img.onerror = () => { wrapper.classList.add('error'); };
+      
+      wrapper.appendChild(img);
+      container.appendChild(wrapper);
+    });
+  }
+
+  // URLå…¥åŠ›æ¬„ã®å¤‰æ›´ç›£è¦–ã‚’è¨­å®šã™ã‚‹é–¢æ•°
+  function setupImagePreview(textareaId, containerId) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+    textarea.addEventListener('input', utils.debounce(() => updateImagePreview(textareaId, containerId), 500));
+  }
+
   // ---- News Editor ----
   async function openNewsEditor(id){
     const isEdit = Boolean(id);
-    const title = isEdit ? '‚¨’m‚ç‚¹‚ğ•ÒW' : '‚¨’m‚ç‚¹‚ğì¬';
+    const title = isEdit ? 'ãŠçŸ¥ã‚‰ã›ç·¨é›†' : 'ãŠçŸ¥ã‚‰ã›ä½œæˆ';
     const formId = 'news-editor-form';
     const html = `
-      <form id="${formId}" class="editor-form">
-        <div class="form-row"><label>ƒ^ƒCƒgƒ‹</label><input type="text" id="news-title" required class="input"></div>
-        <div class="form-row"><label>–{•¶</label><textarea id="news-content" required class="textarea" rows="8"></textarea></div>
-        <div class="form-row"><label>ƒJƒeƒSƒŠ</label><input type="text" id="news-category" class="input" placeholder="–¢•ª—Ş"></div>
-        <div class="form-row"><label>‘à</label><select id="news-unit" class="input"><option value="">i–¢w’èj</option></select></div>
-        <div class="form-row"><label>ƒ^ƒOi•¡”‘I‘ğ‰Âj</label><select id="news-tags" class="input" multiple size="5"></select></div>
-        <div class="editor-actions"><button type="submit" class="btn">${isEdit?'XV‚·‚é':'ì¬‚·‚é'}</button><button type="button" id="news-cancel" class="btn-ghost">ƒLƒƒƒ“ƒZƒ‹</button></div>
-        <p id="news-error" class="error-message"></p>
+      <form id="${formId}" class="editor-form form-grid">
+        <div class="form-group full-width"><label>ã‚¿ã‚¤ãƒˆãƒ«</label><input type="text" id="news-title" required class="input"></div>
+        <div class="form-group full-width"><label>æœ¬æ–‡</label><textarea id="news-content" required class="textarea" rows="8"></textarea></div>
+        
+        <div class="form-group full-width">
+          <label>ç”»åƒURL (1è¡Œã«1ã¤ãƒ»Google Driveå¯¾å¿œ)</label>
+          <textarea id="news-images" class="textarea" rows="3" placeholder="https://..."></textarea>
+          <div id="news-images-preview" class="image-preview-container mt-2"></div>
+        </div>
+
+        <div class="form-group"><label>ã‚«ãƒ†ã‚´ãƒªãƒ¼</label><input type="text" id="news-category" class="input" placeholder="æœªåˆ†é¡"></div>
+        <div class="form-group"><label>éšŠ</label><select id="news-unit" class="select"><option value="">(æŒ‡å®šãªã—)</option></select></div>
+        <div class="form-group full-width"><label>ã‚¿ã‚°ï¼ˆè¤‡æ•°é¸æŠå¯ï¼‰</label><select id="news-tags" class="select" multiple size="5"></select></div>
+        
+        <div class="editor-actions full-width">
+          <button type="button" id="news-cancel" class="btn-ghost">ã‚­ãƒ£ãƒ³ã‚»ãƒ«</button>
+          <button type="submit" class="btn-primary">${isEdit?'æ›´æ–°ã™ã‚‹':'ä½œæˆã™ã‚‹'}</button>
+        </div>
+        <p id="news-error" class="error-message full-width"></p>
       </form>`;
     AdminUI.open({ title, html, actions: [] });
 
-    // Populate settings (units/tags)
     let settings = {};
     try {
       const res = await fetch('/api/settings/all', { credentials:'same-origin' });
@@ -38,16 +84,18 @@
       const form = document.getElementById(formId);
       const titleInput = document.getElementById('news-title');
       const contentInput = document.getElementById('news-content');
+      const imagesInput = document.getElementById('news-images'); // Added
       const categoryInput = document.getElementById('news-category');
       const unitSelect = document.getElementById('news-unit');
       const tagsSelect = document.getElementById('news-tags');
       const err = document.getElementById('news-error');
       document.getElementById('news-cancel')?.addEventListener('click', AdminUI.close);
 
-      // options
+      setupImagePreview('news-images', 'news-images-preview');
+
       try{
         const units = JSON.parse(settings.units_json || '[]');
-        unitSelect.innerHTML = '<option value="">i–¢w’èj</option>' + (Array.isArray(units)?units.map(u=>`<option value="${utils.escapeHtml(u.slug)}">${utils.escapeHtml(u.label||u.slug)}</option>`).join(''): '');
+        unitSelect.innerHTML = '<option value="">(æŒ‡å®šãªã—)</option>' + (Array.isArray(units)?units.map(u=>`<option value="${utils.escapeHtml(u.slug)}">${utils.escapeHtml(u.label||u.slug)}</option>`).join(''): '');
         const tags = JSON.parse(settings.news_tags_json || '[]');
         tagsSelect.innerHTML = (Array.isArray(tags)?tags.map(t=>`<option value="${utils.escapeHtml(t.slug)}">${utils.escapeHtml(t.label||t.slug)}</option>`).join(''): '');
       } catch {}
@@ -59,41 +107,52 @@
             const a = await r.json();
             titleInput.value = a.title || '';
             contentInput.value = a.content || '';
+            // ç”»åƒURLé…åˆ—ã‚’æ”¹è¡ŒåŒºåˆ‡ã‚Šæ–‡å­—åˆ—ã«è¡¨ç¤º
+            imagesInput.value = Array.isArray(a.image_urls) ? a.image_urls.join('\n') : '';
+            updateImagePreview('news-images', 'news-images-preview');
+            
             categoryInput.value = a.category || '';
             unitSelect.value = a.unit || '';
             const set = new Set(Array.isArray(a.tags)?a.tags:[]);
             Array.from(tagsSelect.options).forEach(o=> o.selected = set.has(o.value));
           } else {
-            err.textContent = '‹L–‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½B';
+            err.textContent = 'è¨˜äº‹ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚';
           }
-        } catch { err.textContent = '‹L–‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½B'; }
+        } catch { err.textContent = 'è¨˜äº‹ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
       }
 
       form?.addEventListener('submit', async (e)=>{
         e.preventDefault();
         err.textContent = '';
+        
+        // Google Drive URLã®å¤‰æ›å‡¦ç†
+        const rawImages = imagesInput.value.split(/\n+/).map(s => s.trim()).filter(s => s);
+        const convertedImages = rawImages.map(url => utils.convertGoogleDriveUrl(url));
+
         const payload = {
           title: String(titleInput.value||'').trim(),
           content: String(contentInput.value||'').trim(),
-          category: String(categoryInput.value||'').trim() || '–¢•ª—Ş',
+          images: convertedImages,
+          category: String(categoryInput.value||'').trim() || 'æœªåˆ†é¡',
           unit: String(unitSelect.value||'').trim() || null,
           tags: Array.from(tagsSelect.options).filter(o=>o.selected).map(o=>o.value)
         };
-        if (!payload.title || !payload.content){ err.textContent = 'ƒ^ƒCƒgƒ‹‚Æ–{•¶‚Í•K{‚Å‚·B'; return; }
+        if (!payload.title || !payload.content){ err.textContent = 'ã‚¿ã‚¤ãƒˆãƒ«ã¨æœ¬æ–‡ã¯å¿…é ˆã§ã™ã€‚'; return; }
+        
         const url = isEdit ? `/api/news/${encodeURIComponent(id)}` : '/api/news';
         const method = isEdit ? 'PUT' : 'POST';
         try {
           const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(payload) });
           if (res.ok){
             AdminUI.close();
-            utils.showToast('•Û‘¶‚µ‚Ü‚µ‚½', 'success');
-            state.cache.summary = null; // refresh dashboard next time
+            utils.showToast('ä¿å­˜ã—ã¾ã—ãŸ', 'success');
+            state.cache.summary = null;
             window.Admin?.views?.setActiveView('news', { force:true });
           } else {
             const data = await res.json().catch(()=>({}));
-            err.textContent = data.error || '•Û‘¶‚É¸”s‚µ‚Ü‚µ‚½B';
+            err.textContent = data.error || 'ä¿å­˜ã«å¤±æ•—ã—ã¾ã—ãŸã€‚';
           }
-        } catch { err.textContent = '’ÊM‚É¸”s‚µ‚Ü‚µ‚½B'; }
+        } catch { err.textContent = 'é€šä¿¡ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
       });
     });
   }
@@ -101,22 +160,32 @@
   // ---- Activity Editor ----
   async function openActivityEditor(id){
     const isEdit = Boolean(id);
-    const title = isEdit ? 'Šˆ“®‚ğ•ÒW' : 'Šˆ“®‚ğì¬';
+    const title = isEdit ? 'æ´»å‹•è¨˜éŒ²ç·¨é›†' : 'æ´»å‹•è¨˜éŒ²ä½œæˆ';
     const formId = 'activity-editor-form';
     const html = `
-      <form id="${formId}" class="editor-form">
-        <div class="form-row"><label>ƒ^ƒCƒgƒ‹</label><input type="text" id="act-title" required class="input"></div>
-        <div class="form-row"><label>–{•¶</label><textarea id="act-content" required class="textarea" rows="8"></textarea></div>
-        <div class="form-row"><label>ƒJƒeƒSƒŠ</label><input type="text" id="act-category" class="input" placeholder="–¢•ª—Ş"></div>
-        <div class="form-row"><label>‘à</label><select id="act-unit" class="input"><option value="">i–¢w’èj</option></select></div>
-        <div class="form-row"><label>ƒ^ƒOi•¡”‘I‘ğ‰Âj</label><select id="act-tags" class="input" multiple size="5"></select></div>
-        <div class="form-row"><label>À{“ú</label><input type="date" id="act-date" class="input"></div>
-        <div class="editor-actions"><button type="submit" class="btn">${isEdit?'XV‚·‚é':'ì¬‚·‚é'}</button><button type="button" id="act-cancel" class="btn-ghost">ƒLƒƒƒ“ƒZƒ‹</button></div>
-        <p id="act-error" class="error-message"></p>
+      <form id="${formId}" class="editor-form form-grid">
+        <div class="form-group full-width"><label>ã‚¿ã‚¤ãƒˆãƒ«</label><input type="text" id="act-title" required class="input"></div>
+        <div class="form-group full-width"><label>æœ¬æ–‡</label><textarea id="act-content" required class="textarea" rows="8"></textarea></div>
+        
+        <div class="form-group full-width">
+          <label>ç”»åƒURL (1è¡Œã«1ã¤ãƒ»Google Driveå¯¾å¿œ)</label>
+          <textarea id="act-images" class="textarea" rows="3" placeholder="https://..."></textarea>
+          <div id="act-images-preview" class="image-preview-container mt-2"></div>
+        </div>
+
+        <div class="form-group"><label>ã‚«ãƒ†ã‚´ãƒªãƒ¼</label><input type="text" id="act-category" class="input" placeholder="æœªåˆ†é¡"></div>
+        <div class="form-group"><label>éšŠ</label><select id="act-unit" class="select"><option value="">(æŒ‡å®šãªã—)</option></select></div>
+        <div class="form-group"><label>ã‚¿ã‚°ï¼ˆè¤‡æ•°é¸æŠå¯ï¼‰</label><select id="act-tags" class="select" multiple size="5"></select></div>
+        <div class="form-group"><label>æ´»å‹•æ—¥</label><input type="date" id="act-date" class="input">
+        
+        <div class="editor-actions full-width">
+          <button type="button" id="act-cancel" class="btn-ghost">ã‚­ãƒ£ãƒ³ã‚»ãƒ«</button>
+          <button type="submit" class="btn-primary">${isEdit?'æ›´æ–°ã™ã‚‹':'ä½œæˆã™ã‚‹'}</button>
+        </div>
+        <p id="act-error" class="error-message full-width"></p>
       </form>`;
     AdminUI.open({ title, html, actions: [] });
 
-    // settings
     let settings = {};
     try { const r=await fetch('/api/settings/all', { credentials:'same-origin' }); if (r.ok){ const rows=await r.json(); settings = rows.reduce((a,x)=>(a[x.key]=x.value,a),{}); } } catch {}
 
@@ -124,6 +193,7 @@
       const form = document.getElementById(formId);
       const titleInput = document.getElementById('act-title');
       const contentInput = document.getElementById('act-content');
+      const imagesInput = document.getElementById('act-images'); // Added
       const categoryInput = document.getElementById('act-category');
       const unitSelect = document.getElementById('act-unit');
       const tagsSelect = document.getElementById('act-tags');
@@ -131,9 +201,11 @@
       const err = document.getElementById('act-error');
       document.getElementById('act-cancel')?.addEventListener('click', AdminUI.close);
 
+      setupImagePreview('act-images', 'act-images-preview');
+
       try{
         const units = JSON.parse(settings.units_json || '[]');
-        unitSelect.innerHTML = '<option value="">i–¢w’èj</option>' + (Array.isArray(units)?units.map(u=>`<option value="${utils.escapeHtml(u.slug)}">${utils.escapeHtml(u.label||u.slug)}</option>`).join(''): '');
+        unitSelect.innerHTML = '<option value="">(æŒ‡å®šãªã—)</option>' + (Array.isArray(units)?units.map(u=>`<option value="${utils.escapeHtml(u.slug)}">${utils.escapeHtml(u.label||u.slug)}</option>`).join(''): '');
         const tags = JSON.parse(settings.activity_tags_json || '[]');
         tagsSelect.innerHTML = (Array.isArray(tags)?tags.map(t=>`<option value="${utils.escapeHtml(t.slug)}">${utils.escapeHtml(t.label||t.slug)}</option>`).join(''): '');
       } catch {}
@@ -145,33 +217,44 @@
             const a = await r.json();
             titleInput.value = a.title || '';
             contentInput.value = a.content || '';
+            // ç”»åƒURLé…åˆ—ã‚’æ”¹è¡ŒåŒºåˆ‡ã‚Šæ–‡å­—åˆ—ã«å¤‰æ›ã—ã¦è¡¨ç¤º
+            imagesInput.value = Array.isArray(a.image_urls) ? a.image_urls.join('\n') : '';
+            updateImagePreview('act-images', 'act-images-preview');
+
             categoryInput.value = a.category || '';
             unitSelect.value = a.unit || '';
             const set = new Set(Array.isArray(a.tags)?a.tags:[]);
             Array.from(tagsSelect.options).forEach(o=> o.selected = set.has(o.value));
             if (a.activity_date){ const d=new Date(a.activity_date); if (!isNaN(d)){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); dateInput.value = `${y}-${m}-${day}`; } }
-          } else { err.textContent = 'Šˆ“®‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½B'; }
-        } catch { err.textContent = 'Šˆ“®‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½B'; }
+          } else { err.textContent = 'æ´»å‹•è¨˜éŒ²ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
+        } catch { err.textContent = 'æ´»å‹•è¨˜éŒ²ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
       }
 
       form?.addEventListener('submit', async (e)=>{
         e.preventDefault(); err.textContent = '';
+        
+        // Google Drive URLã®å¤‰æ›å‡¦ç†
+        const rawImages = imagesInput.value.split(/\n+/).map(s => s.trim()).filter(s => s);
+        const convertedImages = rawImages.map(url => utils.convertGoogleDriveUrl(url));
+
         const payload = {
           title: String(titleInput.value||'').trim(),
           content: String(contentInput.value||'').trim(),
-          category: String(categoryInput.value||'').trim() || '–¢•ª—Ş',
+          images: convertedImages,
+          category: String(categoryInput.value||'').trim() || 'æœªåˆ†é¡',
           unit: String(unitSelect.value||'').trim() || null,
           tags: Array.from(tagsSelect.options).filter(o=>o.selected).map(o=>o.value),
           activity_date: String(dateInput.value||'').trim() || null
         };
-        if (!payload.title || !payload.content){ err.textContent = 'ƒ^ƒCƒgƒ‹‚Æ–{•¶‚Í•K{‚Å‚·B'; return; }
+        if (!payload.title || !payload.content){ err.textContent = 'ã‚¿ã‚¤ãƒˆãƒ«ã¨æœ¬æ–‡ã¯å¿…é ˆã§ã™ã€‚'; return; }
+        
         const url = isEdit ? `/api/activities/${encodeURIComponent(id)}` : '/api/activities';
         const method = isEdit ? 'PUT' : 'POST';
         try {
           const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(payload) });
-          if (res.ok){ AdminUI.close(); utils.showToast('•Û‘¶‚µ‚Ü‚µ‚½', 'success'); state.cache.summary = null; window.Admin?.views?.setActiveView('activities', { force:true }); }
-          else { const data = await res.json().catch(()=>({})); err.textContent = data.error || '•Û‘¶‚É¸”s‚µ‚Ü‚µ‚½B'; }
-        } catch { err.textContent = '’ÊM‚É¸”s‚µ‚Ü‚µ‚½B'; }
+          if (res.ok){ AdminUI.close(); utils.showToast('ä¿å­˜ã—ã¾ã—ãŸ', 'success'); state.cache.summary = null; window.Admin?.views?.setActiveView('activities', { force:true }); } 
+          else { const data = await res.json().catch(()=>({})); err.textContent = data.error || 'ä¿å­˜ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
+        } catch { err.textContent = 'é€šä¿¡ã«å¤±æ•—ã—ã¾ã—ãŸã€‚'; }
       });
     });
   }

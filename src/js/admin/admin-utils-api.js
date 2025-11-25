@@ -31,7 +31,7 @@
     escapeAttribute(value){ return utils.escapeHtml(value).replace(/`/g, '&#96;'); },
     debounce(fn, wait=200){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); }; },
     labelizeUnit(unit){
-      const unitLabels = { beaver:'�r�[�o�[', cub:'�J�u', boy:'�{�[�C', venture:'�x���`���[', rover:'���[�o�[' };
+      const unitLabels = { beaver:'ビーバー', cub:'カブ', boy:'ボーイ', venture:'ベンチャー', rover:'ローバー' };
       return unitLabels[unit] || unit || '?';
     },
     formatDate(value){
@@ -46,7 +46,7 @@
     confirmDestructive(message){
       return new Promise((resolve)=>{
         if (window.AdminUI && typeof AdminUI.showResult === 'function'){
-          AdminUI.showResult({ ok:false, message, actions:[ { label:'�L�����Z��', keepOpen:false, onClick:()=>resolve(false) }, { label:'�폜����', variant:'danger', keepOpen:false, onClick:()=>resolve(true) } ] });
+          AdminUI.showResult({ ok:false, message, actions:[ { label:'キャンセル', keepOpen:false, onClick:()=>resolve(false) }, { label:'削除する', variant:'danger', keepOpen:false, onClick:()=>resolve(true) } ] });
         } else {
           resolve(window.confirm(message));
         }
@@ -75,11 +75,11 @@
 
   // API
   Admin.api = {
-    async summary(){ const res = await fetch('/api/admin/summary', { credentials:'same-origin' }); if (!res.ok) throw new Error('�T�}���[�̎擾�Ɏ��s���܂���'); return res.json(); },
-    async news(){ const res = await fetch('/api/news?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('���m�点�̎擾�Ɏ��s���܂���'); return res.json(); },
-    async activities(){ const res = await fetch('/api/activities?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('�����̎擾�Ɏ��s���܂���'); return res.json(); },
-    async deleteNews(id){ const res = await fetch(`/api/news/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('�폜�Ɏ��s���܂���'); },
-    async deleteActivity(id){ const res = await fetch(`/api/activities/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('�폜�Ɏ��s���܂���'); },
-    async settings(){ const res = await fetch('/api/settings/all', { credentials:'same-origin' }); if (!res.ok) throw new Error('�ݒ�̎擾�Ɏ��s���܂���'); return res.json(); }
+    async summary(){ const res = await fetch('/api/admin/summary', { credentials:'same-origin' }); if (!res.ok) throw new Error('サマリーの取得に失敗しました'); return res.json(); },
+    async news(){ const res = await fetch('/api/news?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('お知らせの取得に失敗しました'); return res.json(); },
+    async activities(){ const res = await fetch('/api/activities?limit=100', { credentials:'same-origin' }); if (!res.ok) throw new Error('活動記録の取得に失敗しました'); return res.json(); },
+    async deleteNews(id){ const res = await fetch(`/api/news/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('削除に失敗しました'); },
+    async deleteActivity(id){ const res = await fetch(`/api/activities/${id}`, { method:'DELETE', credentials:'same-origin' }); if (!res.ok && res.status !== 204) throw new Error('削除に失敗しました'); },
+    async settings(){ const res = await fetch('/api/settings/all', { credentials:'same-origin' }); if (!res.ok) throw new Error('設定の取得に失敗しました'); return res.json(); }
   };
 })();

@@ -100,15 +100,15 @@ Object.entries(staticPages).forEach(([page, title]) => {
   router.get(`/${page}`, (req, res) => {
     let pageScripts = [];
     if (page === 'activity-log') {
-      pageScripts = ['/filters-dynamic.js', '/dynamic-activities.v2.js', '/enhance-activities.js'];
+      pageScripts = ['/list-dashboard-base.js', '/activity-list.js'];
     } else if (page === 'news-list') {
-      pageScripts = ['/filters-dynamic.js', '/dynamic-news.js', '/enhance-news.js'];
+      pageScripts = ['/list-dashboard-base.js', '/news-list.js'];
     } else if (page.startsWith('unit-')) {
       pageScripts = ['/dynamic-unit-activities.js'];
     } else if (page === 'news-detail-placeholder') {
-      pageScripts = ['/lightbox.js', '/dynamic-news.js'];
+      pageScripts = ['/lightbox.js', '/list-dashboard-base.js', '/news-list.js'];
     } else if (page === 'activity-detail-placeholder') {
-      pageScripts = ['/lightbox.js', '/dynamic-activities.v2.js'];
+      pageScripts = ['/lightbox.js', '/list-dashboard-base.js', '/activity-list.js'];
     }
     res.render(`pages/${page}`, {
       title: `${title} - ボーイスカウト多治見第一団`,

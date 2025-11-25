@@ -831,3 +831,133 @@ html {
   .btn-primary, .btn-ghost { padding: 9px 12px; font-size: 13px; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* --- New List View Styles --- */
+.view-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.view-search-bar {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.view-search-bar input {
+  width: 100%;
+  padding-left: 40px; /* Space for icon */
+}
+
+.view-search-bar::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Pagination */
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive Table Tweaks */
+@media (max-width: 768px) {
+  .view-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .view-search-bar {
+    min-width: auto;
+  }
+  
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* --- Settings Tab UI --- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.tab-btn.active {
+  color: #15803d;
+  border-bottom-color: #15803d;
+}
+
+/* Settings Description */
+.settings-description {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+/* Preview in settings */
+.image-preview-item {
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  display: inline-block;
+}
+.image-preview-thumb {
+  max-height: 120px;
+  display: block;
+}
+.image-preview-item.error {
+  border-color: #fca5a5;
+  padding: 8px;
+  color: #b91c1c;
+}
+.image-preview-item.error::before {
+  content: '画像の読み込みに失敗しました';
+  font-size: 12px;
+}
