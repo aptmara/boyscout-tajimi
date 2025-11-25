@@ -97,7 +97,11 @@ class BaseListDashboard {
       this.renderFilterOptions(settings);
 
       // データ取得
-      const res = await fetch(this.apiUrl + (this.apiUrl.includes('?') ? '&' : '?') + 'limit=1000', {
+      // 末尾にスラッシュがない場合は追加して、リダイレクト（301 -> HTML）を防ぐ
+      const baseUrl = this.apiUrl.endsWith('/') ? this.apiUrl : this.apiUrl + '/';
+      const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'limit=1000';
+
+      const res = await fetch(url, {
         headers: {
           'Accept': 'application/json'
         }
