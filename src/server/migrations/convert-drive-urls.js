@@ -109,7 +109,7 @@ const runMigration = async () => {
     // 4. Set migration flag
     console.log('Setting migration completion flag...');
     await client.query(
-      "INSERT INTO settings (key, value) VALUES ('migration_drive_url_converted_v1', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
+      "INSERT INTO settings (key, value) VALUES ('migration_drive_url_converted_v1', 'true')"
     );
 
     await client.query('COMMIT');
