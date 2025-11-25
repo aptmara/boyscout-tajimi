@@ -19,7 +19,7 @@ class BaseListDashboard {
     this.paginationContainer = document.getElementById(`${prefix}-pagination-container`);
     this.noResultsDiv = document.getElementById(`no-${prefix}-results`);
     this.resultsCount = document.getElementById(`${prefix}-results-count`);
-    
+
     this.catSelect = document.getElementById(`${prefix}-category-chips`);
     this.unitSelect = document.getElementById(`${prefix}-unit-chips`);
     this.tagBar = document.getElementById(`${prefix}-tag-bar`);
@@ -34,7 +34,7 @@ class BaseListDashboard {
 
     // Config
     this.ITEMS_PER_PAGE = 6;
-    
+
     // State
     this.allItems = [];
     this.filteredItems = [];
@@ -74,7 +74,7 @@ class BaseListDashboard {
     this.state.search = params.get('q') || '';
     this.state.sort = params.get('sort') || 'newest';
     this.state.tagMode = params.get('tagMode') || 'or';
-    
+
     const tagsParam = params.get('tags');
     if (tagsParam) {
       this.state.tags = tagsParam.split(',').filter(Boolean);
@@ -92,15 +92,23 @@ class BaseListDashboard {
       const settingsRes = await fetch('/api/settings/all');
       let settings = {};
       if (settingsRes.ok) {
-        settings = (await settingsRes.json()).reduce((acc, it) => (acc[it.key]=it.value, acc), {});
+        settings = (await settingsRes.json()).reduce((acc, it) => (acc[it.key] = it.value, acc), {});
       }
       this.renderFilterOptions(settings);
 
       // データ取得
       const res = await fetch(this.apiUrl + (this.apiUrl.includes('?') ? '&' : '?') + 'limit=1000');
       if (!res.ok) throw new Error('Network response was not ok');
-      
-      const data = await res.json();
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('API Response is not JSON. Status:', res.status, 'Body:', text.substring(0, 500));
+        throw new Error('Invalid JSON response');
+      }
+
       if (Array.isArray(data)) {
         this.allItems = data;
       } else if (data && Array.isArray(data.items)) {
@@ -120,18 +128,18 @@ class BaseListDashboard {
   }
 
   // サブクラスで実装すべきメソッド
-  renderFilterOptions(settings) {}
+  renderFilterOptions(settings) { }
   renderItem(item) { return ''; }
   normalizeItem(item) { return item; }
 
   // 共通フィルタリングロジック
   applyFilters() {
     const { category, unit, tags, tagMode, ym, search, sort } = this.state;
-    
+
     let filtered = this.allItems.map(item => this.normalizeItem(item)).filter(item => {
       if (category && item.category !== category) return false;
       if (unit && item.unit !== unit) return false;
-      
+
       if (ym) {
         // normalizeItemで _dateObj を作っておくことを推奨
         const d = item._dateObj || new Date(item.activity_date || item.created_at);
@@ -140,14 +148,14 @@ class BaseListDashboard {
           if (itemYm !== ym) return false;
         }
       }
-      
+
       if (search) {
         const q = search.toLowerCase();
         // normalizeItemで _searchBlob を作っておくことを推奨
         const text = item._searchBlob || `${item.title} ${item.content}`.toLowerCase();
         if (!text.includes(q)) return false;
       }
-      
+
       if (tags.length > 0) {
         const itemTags = Array.isArray(item.tags) ? item.tags : [];
         if (tagMode === 'and') {
@@ -163,7 +171,7 @@ class BaseListDashboard {
       const dateA = a._dateObj || new Date(a.activity_date || a.created_at);
       const dateB = b._dateObj || new Date(b.activity_date || b.created_at);
       if (sort === 'title') {
-        return (a.title||'').localeCompare(b.title||'', 'ja');
+        return (a.title || '').localeCompare(b.title || '', 'ja');
       }
       return sort === 'oldest' ? dateA - dateB : dateB - dateA;
     });
@@ -200,7 +208,7 @@ class BaseListDashboard {
 
   renderList(items) {
     this.container.innerHTML = '';
-    
+
     if (items.length === 0) {
       if (this.noResultsDiv) this.noResultsDiv.classList.remove('hidden');
       return;
@@ -255,7 +263,7 @@ class BaseListDashboard {
   renderActiveFilters() {
     if (!this.activeFilters || !this.activeFilterBar) return;
     this.activeFilters.innerHTML = '';
-    
+
     const addBadge = (label, type, value = '') => {
       const btn = document.createElement('button');
       btn.className = 'chip chip--outline text-xs flex items-center gap-1 pr-2';
@@ -328,7 +336,7 @@ class BaseListDashboard {
         if (!btn) return;
         const type = btn.dataset.type;
         const value = btn.dataset.value;
-        
+
         if (type === 'tag') {
           this.state.tags = this.state.tags.filter(t => t !== value);
         } else if (type === 'search') {
@@ -368,7 +376,7 @@ class BaseListDashboard {
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({}, '', newUrl);
-    try { sessionStorage.setItem(this.storageKey, window.location.search); } catch {}
+    try { sessionStorage.setItem(this.storageKey, window.location.search); } catch { }
   }
 
   renderChips(container, items, type, labels = []) {
@@ -377,7 +385,7 @@ class BaseListDashboard {
     items.forEach((item, index) => {
       const value = typeof item === 'object' ? item.val : item;
       const label = typeof item === 'object' ? item.label : (labels[index] || item);
-      
+
       const btn = document.createElement('button');
       btn.className = 'chip chip--outline text-xs';
       btn.dataset.type = type;
@@ -424,13 +432,26 @@ class BaseListDashboard {
   renderSkeletons() {
     // Default implementation
     const cards = [];
-    for(let i=0; i<this.ITEMS_PER_PAGE; i++){
+    for (let i = 0; i < this.ITEMS_PER_PAGE; i++) {
       cards.push(`<div class="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse p-6 h-60"></div>`);
     }
     this.container.innerHTML = cards.join('');
   }
 }
 
-// グローバルに公開
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, function (match) {
+    const escape = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    };
+    return escape[match];
+  });
+}
+
 window.BaseListDashboard = BaseListDashboard;
 window.escapeHTML = escapeHTML; // サブクラスで使うため
