@@ -52,6 +52,8 @@ class BaseListDashboard {
     this.isLoading = false;
     this.searchDebounceTimer = null;
 
+    this.loadingSpinner = document.getElementById(`${prefix}-list-loading`);
+
     this.init();
   }
 
@@ -97,10 +99,23 @@ class BaseListDashboard {
       // データ取得
       const res = await fetch(this.apiUrl + (this.apiUrl.includes('?') ? '&' : '?') + 'limit=1000');
       if (!res.ok) throw new Error('Network response was not ok');
-      this.allItems = await res.json();
+      
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        this.allItems = data;
+      } else if (data && Array.isArray(data.items)) {
+        this.allItems = data.items;
+      } else {
+        this.allItems = [];
+        console.warn('Unexpected API response format:', data);
+      }
     } catch (error) {
       console.error(`Failed to fetch data for ${this.prefix}:`, error);
       this.container.innerHTML = '<p class="text-center text-red-500 py-8">データの読み込みに失敗しました。</p>';
+    } finally {
+      if (this.loadingSpinner) {
+        this.loadingSpinner.classList.add('hidden');
+      }
     }
   }
 
