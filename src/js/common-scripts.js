@@ -66,32 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 特定のページでのみ実行する初期化処理 ---
   if (document.getElementById('hero')) {
-  // タイトルアニメはセッション内で1回。サブタイトル/CTAは完了後にふわっと表示。
-  let played = false;
-  try { played = sessionStorage.getItem('heroAnimPlayed') === '1'; } catch {}
-  const subtitle = document.getElementById('hero-subtitle');
-  const ctas = document.getElementById('hero-ctas');
-  if (!played) {
-    try { sessionStorage.setItem('heroAnimPlayed', '1'); } catch {}
-    if (subtitle) subtitle.classList.add('fade-hidden');
-    if (ctas) ctas.classList.add('fade-hidden');
-    if (typeof initHeroTextAnimation === 'function') {
-      initHeroTextAnimation('#hero-title', 300, 120, () => {
-        if (subtitle) { subtitle.classList.remove('fade-hidden'); subtitle.classList.add('fade-show'); }
-        if (ctas) { ctas.classList.remove('fade-hidden'); ctas.classList.add('fade-show'); }
-      });
+    // タイトルアニメはセッション内で1回。サブタイトル/CTAは完了後にふわっと表示。
+    let played = false;
+    try { played = sessionStorage.getItem('heroAnimPlayed') === '1'; } catch { }
+    const subtitle = document.getElementById('hero-subtitle');
+    const ctas = document.getElementById('hero-ctas');
+    if (!played) {
+      try { sessionStorage.setItem('heroAnimPlayed', '1'); } catch { }
+      if (subtitle) subtitle.classList.add('fade-hidden');
+      if (ctas) ctas.classList.add('fade-hidden');
+      if (typeof initHeroTextAnimation === 'function') {
+        initHeroTextAnimation('#hero-title', 300, 120, () => {
+          if (subtitle) { subtitle.classList.remove('fade-hidden'); subtitle.classList.add('fade-show'); }
+          if (ctas) { ctas.classList.remove('fade-hidden'); ctas.classList.add('fade-show'); }
+        });
+      }
+    } else {
+      if (subtitle) subtitle.classList.add('fade-show');
+      if (ctas) ctas.classList.add('fade-show');
     }
-  } else {
-    if (subtitle) subtitle.classList.add('fade-show');
-    if (ctas) ctas.classList.add('fade-show');
+    if (typeof initCounterAnimation === 'function') initCounterAnimation();
   }
-  if (typeof initCounterAnimation === 'function') initCounterAnimation();
-}
   if (document.getElementById('activity-log-container')) {
-    if (typeof initActivityLogPage === 'function') initActivityLogPage();
+    // initActivityLogPage is removed as it was looking for dynamic-activities.js which doesn't exist.
+    // The page logic is handled by activity-list.js.
   }
   if (document.getElementById('activity-article-container')) {
-    if (typeof initActivityDetailPage === 'function') initActivityDetailPage();
+    // initActivityDetailPage is removed as it was looking for dynamic-activities.js which doesn't exist.
+    // The page logic is handled by activity-list.js.
   }
   if (document.getElementById('contact-form')) {
     if (typeof initContactForm === 'function') initContactForm();
@@ -130,7 +132,7 @@ function initHeroTextAnimation(targetSelector, initialDelay = 0, typingSpeed = 1
       setTimeout(type, typingSpeed);
     } else {
       target.classList.remove('typing-container');
-      try { if (typeof onComplete === 'function') onComplete(); } catch {}
+      try { if (typeof onComplete === 'function') onComplete(); } catch { }
     }
   };
 
@@ -192,13 +194,13 @@ function initCounterAnimation() {
  * dynamic-activities.jsの `loadActivityLog` 関数を呼び出すことを想定
  */
 function initActivityLogPage() {
-    console.log("活動記録一覧ページを初期化します。");
-    // `dynamic-activities.js` に `loadActivityLog` 関数が定義されている場合
-    if (typeof loadActivityLog === 'function') {
-        loadActivityLog();
-    } else {
-        console.warn('`loadActivityLog`関数が`dynamic-activities.js`に見つかりません。');
-    }
+  console.log("活動記録一覧ページを初期化します。");
+  // `dynamic-activities.js` に `loadActivityLog` 関数が定義されている場合
+  if (typeof loadActivityLog === 'function') {
+    loadActivityLog();
+  } else {
+    console.warn('`loadActivityLog`関数が`dynamic-activities.js`に見つかりません。');
+  }
 }
 
 /**
@@ -206,13 +208,13 @@ function initActivityLogPage() {
  * dynamic-activities.jsの `loadActivityDetail` 関数を呼び出すことを想定
  */
 function initActivityDetailPage() {
-    console.log("活動記録詳細ページを初期化します。");
-    // `dynamic-activities.js` に `loadActivityDetail` 関数が定義されている場合
-    if (typeof loadActivityDetail === 'function') {
-        loadActivityDetail();
-    } else {
-        console.warn('`loadActivityDetail`関数が`dynamic-activities.js`に見つかりません。');
-    }
+  console.log("活動記録詳細ページを初期化します。");
+  // `dynamic-activities.js` に `loadActivityDetail` 関数が定義されている場合
+  if (typeof loadActivityDetail === 'function') {
+    loadActivityDetail();
+  } else {
+    console.warn('`loadActivityDetail`関数が`dynamic-activities.js`に見つかりません。');
+  }
 }
 
 
@@ -259,7 +261,7 @@ function applyUnitLogos() {
         break;
       }
     }
-    
+
     // ヘッダー/フッターの団章は指定URLに差し替え（サイト共通）
     const danCrest = 'https://drive.google.com/thumbnail?id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ';
     const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
@@ -492,55 +494,55 @@ async function applySiteSettings() {
 
     // 2. 各隊の紹介ページに記載されているリーダー名を更新
     const leaderMapping = {
-        'leader-beaver-name': 'leader_beaver',
-        'leader-cub-name': 'leader_cub',
-        'leader-boy-name': 'leader_boy',
-        'leader-venture-name': 'leader_venture',
-        'leader-rover-name': 'leader_rover'
+      'leader-beaver-name': 'leader_beaver',
+      'leader-cub-name': 'leader_cub',
+      'leader-boy-name': 'leader_boy',
+      'leader-venture-name': 'leader_venture',
+      'leader-rover-name': 'leader_rover'
     };
     for (const className in leaderMapping) {
-        const el = document.querySelector(`.${className}`);
-        if (el) {
-            el.textContent = settings[leaderMapping[className]] || '（リーダー名未設定）';
-        }
+      const el = document.querySelector(`.${className}`);
+      if (el) {
+        el.textContent = settings[leaderMapping[className]] || '（リーダー名未設定）';
+      }
     }
 
     // 3. プライバシーポリシー関連
     const privacyMapping = {
-        '#enactment-date': 'privacy_effective_date',
-        '#last-updated-date': 'privacy_last_updated_date'
+      '#enactment-date': 'privacy_effective_date',
+      '#last-updated-date': 'privacy_last_updated_date'
     };
     for (const selector in privacyMapping) {
-        const el = document.querySelector(selector);
-        if (el && settings[privacyMapping[selector]]) {
-            el.textContent = settings[privacyMapping[selector]];
-        }
+      const el = document.querySelector(selector);
+      if (el && settings[privacyMapping[selector]]) {
+        el.textContent = settings[privacyMapping[selector]];
+      }
     }
     document.querySelectorAll('.privacy-contact-person').forEach(el => {
-        if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
+      if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
     });
     document.querySelectorAll('.privacy-contact-phone').forEach(el => {
-        if (settings.privacy_contact_phone) {
-            el.textContent = settings.privacy_contact_phone;
-            if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
-        }
+      if (settings.privacy_contact_phone) {
+        el.textContent = settings.privacy_contact_phone;
+        if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
+      }
     });
     document.querySelectorAll('.privacy-contact-email').forEach(el => {
-        if (settings.privacy_contact_email) {
-            el.textContent = settings.privacy_contact_email;
-            if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
-        }
+      if (settings.privacy_contact_email) {
+        el.textContent = settings.privacy_contact_email;
+        if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
+      }
     });
 
     // 4. お問い合わせページ専用
     document.querySelectorAll('.contact-person-name').forEach(el => {
-        if (settings.contact_person_name) el.textContent = settings.contact_person_name;
+      if (settings.contact_person_name) el.textContent = settings.contact_person_name;
     });
     document.querySelectorAll('.contact-phone-secondary').forEach(el => {
-        if (settings.contact_secondary_phone) {
-            el.textContent = settings.contact_secondary_phone;
-            if (el.tagName === 'A') el.href = 'tel:' + settings.contact_secondary_phone.replace(/-/g, '');
-        }
+      if (settings.contact_secondary_phone) {
+        el.textContent = settings.contact_secondary_phone;
+        if (el.tagName === 'A') el.href = 'tel:' + settings.contact_secondary_phone.replace(/-/g, '');
+      }
     });
     const mapEl = document.getElementById('contact-map-embed');
     if (mapEl && settings.contact_map_embed_html) {
@@ -686,7 +688,7 @@ function initSmoothScroll() {
   });
 
   document.querySelectorAll(COMMON_SETTINGS.scrollToTopSelector).forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', function (e) {
       e.preventDefault();
       const mobileMenuStore =
         (window.Alpine && Alpine.store && Alpine.store(COMMON_SETTINGS.mobileMenuStoreName)) || null;
@@ -730,9 +732,9 @@ function initHeaderScrollBehavior() {
   if (!header) return;
   window.addEventListener('scroll', () => {
     if (window.pageYOffset > 50) {
-        header.classList.add('scrolled');
+      header.classList.add('scrolled');
     } else {
-        header.classList.remove('scrolled');
+      header.classList.remove('scrolled');
     }
   }, { passive: true });
 }
@@ -782,8 +784,8 @@ function initLazyLoadImages() {
   const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
 
   if ("IntersectionObserver" in window) {
-    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
-      entries.forEach(function(entry) {
+    let lazyImageObserver = new IntersectionObserver(function (entries, observer) {
+      entries.forEach(function (entry) {
         if (entry.isIntersecting) {
           let lazyImage = entry.target;
           lazyImage.src = lazyImage.dataset.src;
@@ -794,15 +796,15 @@ function initLazyLoadImages() {
       });
     });
 
-    lazyImages.forEach(function(lazyImage) {
+    lazyImages.forEach(function (lazyImage) {
       lazyImageObserver.observe(lazyImage);
     });
   } else {
     // IntersectionObserverをサポートしない古いブラウザ向けのフォールバック
     // （ここでは単純にすべての画像を読み込む）
-    lazyImages.forEach(function(lazyImage) {
-        lazyImage.src = lazyImage.dataset.src;
-        lazyImage.classList.remove("lazy");
+    lazyImages.forEach(function (lazyImage) {
+      lazyImage.src = lazyImage.dataset.src;
+      lazyImage.classList.remove("lazy");
     });
   }
 }
