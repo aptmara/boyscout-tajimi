@@ -45,11 +45,15 @@ function Ensure-GitAvailable {
 
 function Invoke-GitOrFail {
     param(
-        [string[]]$Args,
+        [string[]]$GitArgs,
         [string]$ActionLabel
     )
 
-    $output = git @Args 2>&1
+    Write-Host ">>> git $($GitArgs -join ' ')" -ForegroundColor Cyan
+    $output = git @GitArgs 2>&1
+    if (-not [string]::IsNullOrWhiteSpace($output)) {
+        Write-Host $output
+    }
     if ($LASTEXITCODE -ne 0) {
         Fail-AndThrow "$ActionLabel に失敗しました。`n$output"
     }
@@ -123,6 +127,13 @@ $global:ExitCode = 0
 try {
     Ensure-GitAvailable
 
+    $statusOutput = Invoke-GitOrFail -GitArgs @("status", "--porcelain") -ActionLabel "変更の確認"
+    if ([string]::IsNullOrWhiteSpace($statusOutput)) {
+        Write-Host "コミット対象の変更がありません。"
+        Show-InfoDialog "コミット対象の変更がありません。" "情報"
+        return
+    }
+
     $commitMessage = Get-CommitMessageFromDialog
     if (-not $commitMessage) {
         Write-Host "キャンセルしました。"
@@ -130,14 +141,9 @@ try {
         return
     }
 
-    $statusOutput = Invoke-GitOrFail -Args @("status", "--porcelain") -ActionLabel "変更の確認"
-    if ([string]::IsNullOrWhiteSpace($statusOutput)) {
-        Fail-AndThrow "コミットする変更がありません。"
-    }
-
-    Invoke-GitOrFail -Args @("add", "-A") -ActionLabel "git add"
-    Invoke-GitOrFail -Args @("commit", "-m", $commitMessage) -ActionLabel "git commit"
-    Invoke-GitOrFail -Args @("push") -ActionLabel "git push"
+    Invoke-GitOrFail -GitArgs @("add", "-A") -ActionLabel "git add"
+    Invoke-GitOrFail -GitArgs @("commit", "-m", $commitMessage) -ActionLabel "git commit"
+    Invoke-GitOrFail -GitArgs @("push") -ActionLabel "git push"
 
     Show-InfoDialog "push まで完了しました。" "成功"
 }
@@ -154,10 +160,12 @@ finally {
         Write-Host "処理が完了しました。何かキーを押すとウィンドウを閉じます。"
         Read-Host
     }
+}
 
-    if ($env:COMMIT_AND_PUSH_KEEP_OPEN -eq "1") {
-        return $global:ExitCode
-    }
-
+if ($env:COMMIT_AND_PUSH_KEEP_OPEN -eq "1") {
+    Write-Host ""
+    Write-Host "終了コード: $global:ExitCode"
+    Write-Host "このウィンドウは自動では閉じません。必要なら手動で閉じてください。"
+} else {
     exit $global:ExitCode
 }

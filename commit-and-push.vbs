@@ -5,11 +5,10 @@ base = fso.GetParentFolderName(WScript.ScriptFullName)
 ps1 = fso.BuildPath(base, "tools\commit-and-push.ps1")
 
 If Not fso.FileExists(ps1) Then
-    MsgBox "tools\commit-and-push.ps1 が見つかりません。", vbCritical, "エラー"
+    MsgBox "tools\commit-and-push.ps1 not found.", vbCritical, "Error"
     WScript.Quit 1
 End If
 
-' PowerShell 7 を優先して探す
 pwsh = ""
 If fso.FileExists("C:\Program Files\PowerShell\7\pwsh.exe") Then
     pwsh = """C:\Program Files\PowerShell\7\pwsh.exe"""
@@ -27,7 +26,7 @@ Else
 End If
 
 If pwsh = "" Then
-    MsgBox "PowerShell 7 (pwsh.exe) が見つかりません。インストールしてください。", vbCritical, "エラー"
+    MsgBox "PowerShell 7 (pwsh.exe) not found. Install it and retry.", vbCritical, "Error"
     WScript.Quit 1
 End If
 

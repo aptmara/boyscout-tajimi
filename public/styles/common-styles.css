@@ -145,6 +145,10 @@ header#main-header.scrolled {
     transition: width 0.3s ease-in-out;
 }
 
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600)::after {
+    width: 0%;
+}
+
 #main-header nav div.hidden.md\:flex a:not(.bg-green-600):hover::after {
     width: 70%; /* 全幅ではなく、少し短めに */
 }
@@ -193,6 +197,15 @@ header#main-header.scrolled {
 /* HERO SECTION                                   */
 /* ============================================== */
 /* .hero-bg はHTML側で背景画像を指定 */
+.hero-bg {
+    background-color: #1f2937; /* Fallback color: dark gray */
+    background-image: url('https://placehold.co/1920x1080/334155/e2e8f0?text=High-Quality+Hero+Image');
+    /* 管理画面の設定で差し替え可能 */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    /* パララックス風効果 */
+}
 
 #hero-title {
     /* font-family, font-weight は h1 のスタイルを継承 */
@@ -679,4 +692,15 @@ svg.icon {
 .activity-card__icon svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.fade-hidden {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .6s ease, transform .6s ease;
+}
+
+.fade-show {
+    opacity: 1 !important;
+    transform: none !important;
 }
