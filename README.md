@@ -1,131 +1,213 @@
-# ボーイスカウト 多治見第一団 公式ウェブサイト
+# ⚜️ ボーイスカウト多治見第一団 公式ウェブサイト
 
-このリポジトリは、ボーイスカウト多治見第一団の公式サイトのソースです。静的HTMLをベースに、Node.js + Express + PostgreSQL による管理画面・APIでニュース/活動記録/サイト設定を更新できます。
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-43853D.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-v5-000000.svg?logo=express&logoColor=white)](https://expressjs.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20PostgreSQL-336791.svg)](https://www.postgresql.org/)
 
-## 主要機能
+> **「自然の中で、仲間と共に育つ。」**  
+> ボーイスカウト多治見第一団の活動を支え、地域社会へ発信するためのモダンなWebプラットフォーム。
 
-- 公開サイト: トップ/団紹介/各隊ページ/活動記録/お知らせ/入団案内/お問い合わせ など
-- 管理画面: ニュース・活動記録の作成/編集/削除、サイト共通設定の一括更新
-- API: ニュース/活動記録の公開取得、管理用CRUD、サイト公開設定の取得
-- Webhook取り込み: 署名付きJSONを受け取り、ニュース/活動記録を自動登録
-- 画像はURL参照方式（ファイルは保持せず、外部ストレージ/CDNのURLを保存）
+---
 
-## 技術スタック
+## 📖 目次
 
-- フロント: HTML/CSS（Tailwind・`common-styles.css`）/ Vanilla JS
-- サーバ: Node.js 18+ / Express 5
-- DB: PostgreSQL（`pg`）/ セッションは `connect-pg-simple` でPostgresに保存
-- 補助: `.env` 読込（`dotenv`）、CSSビルド（`tailwindcss`）
+- [📌 プロジェクト概要](#-プロジェクト概要)
+- [🏗 アーキテクチャ](#-アーキテクチャ)
+- [✨ 主な機能](#-主な機能)
+- [🛠 技術スタック詳細](#-技術スタック詳細)
+- [💻 セットアップ & 開発ガイド](#-セットアップ--開発ガイド)
+- [📂 ディレクトリ構造](#-ディレクトリ構造)
+- [🔌 API リファレンス (簡易版)](#-api-リファレンス-簡易版)
+- [🚀 デプロイ](#-デプロイ)
+- [❓ トラブルシューティング](#-トラブルシューティング)
 
-## ディレクトリ（要点のみ）
+---
 
-- `server.js`: エントリ。静的配信・セッション・DB連携API・Webhook・`/json-api` ルータのマウント・`/uploads` の公開
-- `server-json.js`: JSONファイル保存ベースの実験用API（`/json-api` 配下にマウント、本番非推奨）
-- `database.js`: Postgres接続/初期化（テーブル作成・VIEW/TRIGGER・初回管理者作成）
-- `admin/`: 管理UI（ログイン・ダッシュボード・編集・設定・ブランディング）
-- `dynamic-*.js`: 公開ページ側の動的読込（ニュース/活動の一覧・詳細、トップの最新表示など）
-- `styles/` + `tailwind.config.js`: CSSビルド入力。出力は `common-styles.css`
+## 📌 プロジェクト概要
 
-## セットアップ
+このリポジトリは、ボーイスカウト多治見第一団の公式ウェブサイト兼コンテンツ管理システム（CMS）です。
+一般ユーザー向けの**情報発信機能**と、指導者が手軽に更新できる**管理機能**を統合しています。
 
-前提: Node.js 18+ / PostgreSQL / npm または yarn
+サーバーサイドレンダリング（SSR）による高速な初期表示とSEO対策、そしてSPAライクな管理画面による操作性を両立させています。
 
-1) 依存関係のインストール
-- `npm install`
+---
 
-2) 環境変数（.env）
-- `DATABASE_URL`（必須）例: `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
-- `SESSION_SECRET`（必須）十分に長いランダム文字列
-- `WEBHOOK_SECRET`（任意/使う場合は必須）Webhook署名検証用の秘密鍵
-- `INITIAL_ADMIN_USERNAME`・`INITIAL_ADMIN_PASSWORD`（任意）初回管理者を自動作成
-- `NODE_ENV`（任意）`production` 推奨
-- `PORT`（任意）未設定時は 10000
-- `HOST`（任意）未設定時は `0.0.0.0`
-- `HMAC_TOLERANCE_SEC`（任意）デフォルト 300 秒
-- `SMTP_HOST`（必須）お問い合わせフォームで使用するSMTPサーバーホスト名
-- `SMTP_PORT`（任意）デフォルトは 587
-- `SMTP_SECURE`（任意）`true` の場合は SMTPS (既定ポート 465) を利用
-- `SMTP_STARTTLS`（任意）`false` で STARTTLS を無効化（デフォルトは `SMTP_SECURE=false` のとき自動的に STARTTLS を試行）
-- `SMTP_REQUIRE_TLS`（任意）`true` で STARTTLS の利用を必須化
-- `SMTP_TLS_REJECT_UNAUTHORIZED`（任意）`false` で自己署名証明書を許容
-- `SMTP_USER` / `SMTP_PASS`（任意）SMTP 認証が必要な場合の資格情報
-- `SMTP_FROM`（必須）送信メールの From ヘッダ（例: `"多治見第一団" <noreply@example.jp>`）
-- `CONTACT_FORM_FROM`（任意）From ヘッダを個別指定したい場合に設定（未設定時は `SMTP_FROM` を使用）
-- `DEFAULT_CONTACT_EMAIL`（任意）管理画面でメールアドレス未設定時の送信先フォールバック
+## 🏗 アーキテクチャ
 
-3) DB 初期化
-- `npm run db:setup`
+本システムは、環境に応じて柔軟に構成を変えるハイブリッドな設計を採用しています。
 
-4) 起動
-- `npm start`
-- アクセス: `http://localhost:10000`
-- 管理画面: `http://localhost:10000/admin/login.html`
+```mermaid
+graph TD
+    User[👤 User / Visitor] -->|HTTPS| LB[Load Balancer / Web Server]
+    LB -->|Express| App[🖥️ Node.js App Server]
+    
+    subgraph "Backend Layer"
+        App -->|Auth| AuthMiddleware[🛡️ Auth Middleware]
+        App -->|SSR| EJS[📄 EJS View Engine]
+        App -->|API| REST[🔌 REST API]
+    end
+    
+    subgraph "Data Layer"
+        REST -->|Query| DB[(🗄️ Database)]
+        style DB fill:#f9f,stroke:#333,stroke-width:4px
+        Note[Environment Switch] -.-> DB
+    end
 
-補足: セッションテーブルが自動作成されない場合、以下のDDLを実行してください。
-```sql
-CREATE TABLE IF NOT EXISTS "session" (
-  sid varchar PRIMARY KEY,
-  sess json NOT NULL,
-  expire timestamp(6) NOT NULL
-);
-CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+    classDef env fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    class Note env
 ```
 
-## 管理画面
+*   **Development**: 設定不要な `SQLite` と `session-file-store` で即座に開発可能。
+*   **Production**: 堅牢な `PostgreSQL` と `connect-pg-simple` に自動切り替え。
 
-- ログイン: `/admin/login.html`（DBの `admins` テーブルのユーザー）
-- ダッシュボード: `/admin/app.html`（ニュース・活動・設定・ブランディングに遷移）
-- 記事編集: `/admin/edit.html`（ニュース）/ `/admin/activity-edit.html`（活動）
-- サイト設定: `/admin/settings.html`（住所/連絡先/各隊情報/プライバシー/トップ画像など）
+---
 
-## API（要点）
+## ✨ 主な機能
 
-- セッション: `POST /api/login`, `POST /api/logout`, `GET /api/session`
-- 公開取得:
-  - `GET /api/news`, `GET /api/news/:id`
-  - `GET /api/activities`, `GET /api/activities/:id`
-  - `GET /api/public-settings`（公開して良い範囲の設定のみ）
-- 管理（要ログイン）:
-  - `POST|PUT|DELETE /api/news/*`, `POST|PUT|DELETE /api/activities/*`
-  - `PUT /api/settings`
-- Webhook（HMAC署名必須／本文はJSON）:
-  - `POST /api/news-webhook`
-  - `POST /api/activity-webhook`
+### 🌏 公開フロントエンド
+*   **ダイナミックトップページ**: 最新の活動ログとニュースを自動集約して表示。
+*   **レスポンシブUI**: Tailwind CSS によるモバイルファースト設計。
+*   **SEO最適化**: 各ページで適切なメタタグと構造化データを出力。
+*   **各隊ページ**: ビーバーからローバーまで、各部門の個別の活動紹介ページ。
 
-署名仕様（共通）
-- ヘッダ: `X-Timestamp`（UNIX秒）, `X-Signature`（`sha256=<hex>` も可）
-- 許容ずれ: 300 秒（`HMAC_TOLERANCE_SEC` で変更可）
-- 計算式: `HMAC-SHA256(secret, "<timestamp>.<raw-body>" )`
+### 🔐 管理ダッシュボード (`/admin`)
+*   **統合CMS**: ニュース記事、活動記録の一元管理。
+*   **メディア管理**: ドラッグ＆ドロップによる画像アップロードとプレビュー。
+*   **サイト設定エディタ**: 住所や連絡先、SEO設定などをコード修正なしで変更可能。
+*   **セキュリティ**: `bcrypt` によるハッシュ化とセッションベースの認証。
 
-サンプル
+---
+
+## 🛠 技術スタック詳細
+
+| カテゴリ | テクノロジー | 採用理由 |
+| :--- | :--- | :--- |
+| **Runtime** | **Node.js** | 非同期I/Oによる高い並行処理能力。 |
+| **Framework** | **Express v5** | 柔軟性が高く、ミドルウェアエコシステムが豊富。 |
+| **View Engine** | **EJS** | シンプルな構文でHTMLを動的に生成。学習コストが低い。 |
+| **Styling** | **Tailwind CSS** | ユーティリティファーストで、迅速なUI構築が可能。 |
+| **Database** | **PostgreSQL / SQLite** | 本番の堅牢性と開発の手軽さを両立するアダプタパターン実装。 |
+| **Scripting** | **Alpine.js** | jQueryの代替として、宣言的かつ軽量にDOM操作を実現。 |
+
+---
+
+## 💻 セットアップ & 開発ガイド
+
+### 1. 前提条件
+*   Node.js `v18.0.0` 以上
+*   npm `v9.0.0` 以上
+
+### 2. インストール
+
 ```bash
-export WEBHOOK_SECRET=your-secret
-ts=$(date +%s)
-body='{"title":"テスト","content":"本文","images":["https://example.com/a.jpg"]}'
-sig=$(node -e "const c=require('crypto');const s=process.env.WEBHOOK_SECRET;const ts=process.argv[1];const b=process.argv[2];console.log('sha256='+c.createHmac('sha256',s).update(ts+'.'+b,'utf8').digest('hex'));" $ts "$body")
-curl -X POST http://localhost:10000/api/news-webhook \
-  -H 'Content-Type: application/json' \
-  -H "X-Timestamp: $ts" \
-  -H "X-Signature: $sig" \
-  --data "$body"
+# リポジトリのクローン
+git clone https://github.com/aptmara/boyscout-tajimi.git
+cd boyscout-tajimi
+
+# 依存関係のインストール
+npm install
 ```
 
-## 開発メモ
+### 3. 環境設定 (`.env`)
+プロジェクトルートに `.env` ファイルを作成します。
 
-- CSS ビルド（Tailwind）: `npm run build:css`（入力: `styles/input.css` → 出力: `common-styles.css`）
-- 実験用JSON API: `/json-api` 配下（本番では未使用想定）。画像は `/uploads` に保存・`/uploads` で公開
-- 画像はURLで管理（Google Drive 等のURLやCDNを想定）
+```ini
+# アプリケーション設定
+PORT=3000
+NODE_ENV=development
 
-## 今後の展望
+# データベース接続 (開発時はSQLiteを使用するため空欄または 'sqlite:' でOK)
+DATABASE_URL=sqlite:
 
-- 詳細ページの実装強化: `activity-detail-placeholder.html` / `news-detail-placeholder.html` の本格対応
-- 画像まわり: アップロード機能 or 画像CDN連携（Drive直リンクの安全な埋め込み/サイズ最適化）
-- 認証/運用強化: パスワードリセット、レート制限、CSRF対策、`helmet` 等のヘッダ強化
-- Webhook堅牢化: リプレイ防止（nonce/一意ID）と署名検証ログの整備
-- 設定/APIの整理: 重複ルートや権限制御の統一、公開/非公開キーの明確化
-- 国際化/表示: 一部の文字化けの解消、UI文言の統一、アクセシビリティ改善（WCAG準拠）
-- 開発体験: CI/テスト導入、型/静的検査、Docker化、環境差分のドキュメント整備
+# セキュリティ (推測困難な文字列を設定してください)
+SESSION_SECRET=your_super_secret_session_key_CHANGE_ME
 
-## ライセンス
+# 初回管理者セットアップ (db:setup実行時に作成されます)
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=password123
+```
 
-- ISC（`package.json` 参照）
+### 4. 初期化と起動
+
+```bash
+# 1. データベースの初期化 (SQLiteファイルまたはPGテーブルの作成)
+npm run db:setup
+
+# 2. 開発サーバーの起動
+npm run start:dev
+```
+
+ブラウザで `http://localhost:3000` にアクセスしてください。
+管理画面は `/admin/login.html` からアクセスできます。
+
+---
+
+## 📂 ディレクトリ構造
+
+重要なファイルとフォルダの役割を解説します。
+
+```text
+boyscout-tajimi/
+├── 📂 src/
+│   ├── 📂 server/                # バックエンドロジックの中核
+│   │   ├── 📄 server.js          # アプリケーションのエントリポイント
+│   │   ├── 📄 database.js        # DB接続ラッパー (SQLite/PG抽象化層)
+│   │   ├── 📂 routes/            # ルーティング定義 (API & View)
+│   │   ├── 📂 controllers/       # ビジネスロジック
+│   │   └── 📂 middleware/        # 認証・エラーハンドリング
+│   ├── 📂 views/                 # EJSテンプレート (フロントエンド)
+│   │   ├── 📂 layouts/           # 共通レイアウト (main.ejs)
+│   │   ├── 📂 pages/             # 各ページの実体
+│   │   └── 📂 partials/          # 再利用可能なコンポーネント
+│   └── 📂 styles/                # Tailwind CSS ソースファイル
+├── 📂 public/                    # 静的アセット (ブラウザから直接アクセス可能)
+│   ├── 📂 styles/                # ビルド済みCSS
+│   └── 📂 admin/                 # 管理画面用静的HTML
+└── 📄 package.json               # 依存関係定義
+```
+
+---
+
+## 🔌 API リファレンス (簡易版)
+
+主な内部APIのエンドポイントです。すべてのAPIは `/api` プレフィックスを持ちます。
+
+| メソッド | エンドポイント | 説明 | 認証 |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/api/news` | ニュース記事一覧を取得（ページネーション対応） | 不要 |
+| `GET` | `/api/activities` | 活動記録一覧を取得 | 不要 |
+| `GET` | `/api/settings` | 公開されているサイト設定を取得 | 不要 |
+| `POST` | `/api/login` | 管理者ログイン | - |
+| `POST` | `/api/admin/news` | 新しいニュース記事を作成 | **必要** |
+| `PUT` | `/api/admin/settings` | サイト設定を更新 | **必要** |
+
+---
+
+## 🚀 デプロイ
+
+このプロジェクトは、**Render** や **Heroku**、**Vercel (Serverless Function)** などのPaaS、またはVPSへのデプロイに対応しています。
+
+### Render.com の場合
+1.  New Web Service を作成。
+2.  Build Command: `npm install && npm run build`
+3.  Start Command: `npm start`
+4.  Environment Variables に `DATABASE_URL` (Internal Connection String) 等を設定。
+
+---
+
+## ❓ トラブルシューティング
+
+**Q. `npm run db:setup` でエラーが出る**
+> A. プロジェクトルートに書き込み権限があるか確認してください。SQLiteモードでは `database.sqlite` ファイルを作成しようとします。
+
+**Q. CSSが反映されない**
+> A. `npm run build:css` を実行して Tailwind CSS を再コンパイルしてください。開発中は `npm run start:dev` とは別に、ウォッチモードでCSSビルドを走らせることを推奨します。
+
+**Q. 本番環境で画像が表示されない**
+> A. アップロードされた画像はデフォルトでローカルディスク (`src/server/uploads`) に保存されます。PaaS (Render/Heroku) の無料プラン等はディスクが一時的(Ephemeral)なため、再起動で消えます。永続化が必要な場合は、S3やCloudinaryへの保存処理に変更するか、永続ディスクをマウントしてください。
+
+---
+
+_Maintained by the Boy Scout Tajimi Team_

@@ -79,7 +79,7 @@ const updateNews = asyncHandler(async (req, res) => {
   }
 
   if (setClauses.length === 0) {
-      return res.status(400).json({ error: 'No update fields provided' });
+    return res.status(400).json({ error: 'No update fields provided' });
   }
 
   params.push(req.params.id);
@@ -107,9 +107,9 @@ const newsWebhook = asyncHandler(async (req, res) => {
   if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
   const imgs = Array.isArray(images) ? images : [];
-  const cat  = (category && String(category).trim()) || '未分類';
-  const uni  = normalizeSlug(unit);
-  const tgs  = normalizeTags(tags);
+  const cat = (category && String(category).trim()) || '未分類';
+  const uni = normalizeSlug(unit);
+  const tgs = normalizeTags(tags);
 
   await db.query(
     `INSERT INTO news (title, content, image_urls, category, unit, tags)

@@ -86,14 +86,38 @@ class BaseListDashboard {
     this.updateTagModeDisplay();
   }
 
+  async fetchSettings() {
+    const candidates = [
+      { url: '/api/settings/all', format: 'array' },
+      { url: '/api/public-settings', format: 'object' }
+    ];
+    for (const { url, format } of candidates) {
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) {
+          console.warn(`Settings fetch skipped (${url}) status=${res.status}`);
+          continue;
+        }
+        const text = await res.text();
+        const json = JSON.parse(text);
+        if (format === 'array' && Array.isArray(json)) {
+          return json.reduce((acc, it) => (acc[it.key] = it.value, acc), {});
+        }
+        if (format === 'object' && json && typeof json === 'object') {
+          return json;
+        }
+        console.warn(`Settings response format mismatch for ${url}:`, json);
+      } catch (err) {
+        console.warn(`Settings fetch failed (${url}):`, err);
+      }
+    }
+    return {};
+  }
+
   async fetchData() {
     try {
       // 設定取得 (サブクラスでオーバーライド可能だが、基本は共通)
-      const settingsRes = await fetch('/api/settings/all');
-      let settings = {};
-      if (settingsRes.ok) {
-        settings = (await settingsRes.json()).reduce((acc, it) => (acc[it.key] = it.value, acc), {});
-      }
+      const settings = await this.fetchSettings();
       this.renderFilterOptions(settings);
 
       // データ取得
