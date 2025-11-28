@@ -88,7 +88,6 @@ class BaseListDashboard {
 
   async fetchSettings() {
     const candidates = [
-      { url: '/api/settings/all', format: 'array' },
       { url: '/api/public-settings', format: 'object' }
     ];
     for (const { url, format } of candidates) {

@@ -3,6 +3,47 @@
   const Admin = (window.Admin = window.Admin || {});
   const { state, utils, api, actions } = Admin;
 
+  // --- Views Management ---
+  const views = Admin.views = {};
+
+  views.setActiveView = async function(viewId, params = {}) {
+    const { id, force } = params;
+    if (!force && state.activeView === viewId && !id) return;
+
+    const reg = views.registry ? views.registry[viewId] : null;
+    if (!reg) {
+      console.warn(`View ${viewId} not found`);
+      return;
+    }
+
+    // Update State
+    state.activeView = viewId;
+    localStorage.setItem('admin.active', viewId);
+
+    // Update UI (Sidebar)
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.view === viewId);
+    });
+
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('view', id ? `${viewId}/${id}` : viewId);
+    window.history.replaceState({}, '', url);
+
+    // Render
+    const root = document.getElementById('view-root');
+    if (!root) return;
+
+    // Set Title
+    const titleEl = document.querySelector('.top-bar h1');
+    if (titleEl) titleEl.textContent = reg.title;
+
+    // Render Content
+    if (typeof reg.render === 'function') {
+      await reg.render(root, id);
+    }
+  };
+
   // --- Utility Components ---
   const Components = {
     pagination(current, totalPages, onPageChange) {
