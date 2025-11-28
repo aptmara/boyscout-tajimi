@@ -81,6 +81,8 @@ function Get-CommitMessageFromDialog {
     $textBox.Size = New-Object System.Drawing.Size(380, 60)
     $textBox.Multiline = $true
     $textBox.ScrollBars = "Vertical"
+    $textBox.AcceptsReturn = $false  # Enter で実行ボタンを押す
+    $textBox.AcceptsTab = $false
     $form.Controls.Add($textBox)
 
     $okButton = New-Object System.Windows.Forms.Button
