@@ -1,44 +1,55 @@
-<header id="main-header" class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 transition-all duration-300">
-    <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-        <div>
-            <a href="/" class="text-xl sm:text-2xl font-bold text-green-700 hover:text-green-600 transition-colors duration-300 flex items-center">
-                <img src="https://placehold.co/40x40/15803d/FFFFFF?text=BS" alt="団章" class="h-8 w-8 mr-2 rounded-full border-2 border-white shadow-sm">
-                ボーイスカウト多治見第一団
+<header id="main-header" class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 border-b border-gray-100">
+    <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center h-16">
+        <div class="flex-shrink-0">
+            <a href="/" class="group flex items-center gap-3" aria-label="トップページへ">
+                <img src="https://placehold.co/40x40/15803d/FFFFFF?text=BS" alt="団章" class="h-10 w-10 rounded-full border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300">
+                <div class="flex flex-col">
+                    <span class="text-xs text-green-600 font-bold tracking-wider leading-tight">日本ボーイスカウト岐阜県連盟</span>
+                    <span class="text-lg sm:text-xl font-extrabold text-gray-800 group-hover:text-green-700 transition-colors duration-300 leading-tight">多治見第一団</span>
+                </div>
             </a>
         </div>
-        <div class="hidden md:flex items-center space-x-5 lg:space-x-7">
-            <a href="/about" class="text-gray-700 hover:text-green-600 font-medium">団について</a>
-            <a href="/#units" class="text-gray-700 hover:text-green-600 font-medium">各隊の紹介</a>
-            <a href="/activity-log" class="text-gray-700 hover:text-green-600 font-medium">活動内容</a>
-            <a href="/join" class="text-gray-700 hover:text-green-600 font-medium">入団案内</a>
-            <a href="/news-list" class="text-gray-700 hover:text-green-600 font-medium">お知らせ</a>
-            <a href="/contact" class="text-gray-700 hover:text-green-600 font-medium">お問い合わせ</a>
 
+        <!-- PC Menu -->
+        <div class="hidden lg:flex items-center space-x-1">
+            <a href="/about" class="px-4 py-2 rounded-full text-gray-600 hover:text-green-700 hover:bg-green-50 font-bold transition-all duration-200">団について</a>
+            <a href="/#units" class="px-4 py-2 rounded-full text-gray-600 hover:text-green-700 hover:bg-green-50 font-bold transition-all duration-200">各隊の紹介</a>
+            <a href="/activity-log" class="px-4 py-2 rounded-full text-gray-600 hover:text-green-700 hover:bg-green-50 font-bold transition-all duration-200">活動内容</a>
+            <a href="/news-list" class="px-4 py-2 rounded-full text-gray-600 hover:text-green-700 hover:bg-green-50 font-bold transition-all duration-200">お知らせ</a>
+            <a href="/contact" class="px-4 py-2 rounded-full text-gray-600 hover:text-green-700 hover:bg-green-50 font-bold transition-all duration-200">お問い合わせ</a>
+            <a href="/join" class="ml-4 px-6 py-2.5 rounded-full bg-yellow-400 text-green-900 font-bold shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">入団案内</a>
         </div>
-        <div class="md:hidden">
-            <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="モバイルメニューを開閉" class="text-gray-700 hover:text-green-600 focus:outline-none p-2 rounded-md">
+
+        <!-- Mobile Menu Button -->
+        <div class="lg:hidden">
+            <button id="mobile-menu-button-alpine" @click="$store.mobileMenu.toggle()" aria-label="メニューを開く" class="text-gray-600 hover:text-green-600 focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition-colors">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path class="line line1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16"></path>
-                    <path class="line line2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16"></path>
-                    <path class="line line3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 18h16"></path>
+                    <path class="line line1 transition-transform duration-300" :class="{ 'rotate-45 translate-y-2.5': $store.mobileMenu.isOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16"></path>
+                    <path class="line line2 transition-opacity duration-300" :class="{ 'opacity-0': $store.mobileMenu.isOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 12h16"></path>
+                    <path class="line line3 transition-transform duration-300" :class="{ '-rotate-45 -translate-y-2.5': $store.mobileMenu.isOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 18h16"></path>
                 </svg>
             </button>
         </div>
     </nav>
-    <div id="mobile-menu-alpine" x-show="$store.mobileMenu.isOpen" @click.away="$store.mobileMenu.close()"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform -translate-y-2"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 transform translate-y-0"
-         x-transition:leave-end="opacity-0 transform -translate-y-2"
-         class="md:hidden bg-white shadow-xl border-t border-gray-200 absolute w-full">
-        <a href="/about" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">団について</a>
-        <a href="/#units" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">各隊の紹介</a>
-        <a href="/activity-log" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">活動内容</a>
-        <a href="/join" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">入団案内</a>
-        <a href="/news-list" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お知らせ</a>
-        <a href="/contact" @click="$store.mobileMenu.close()" class="block px-6 py-3 text-gray-700 hover:bg-green-50 transition-colors duration-200 font-medium">お問い合わせ</a>
 
+    <!-- Mobile Menu Dropdown -->
+    <div id="mobile-menu-alpine" x-show="$store.mobileMenu.isOpen" style="display: none;"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-2"
+         class="lg:hidden bg-white/98 backdrop-blur-xl shadow-2xl border-t border-gray-100 absolute w-full left-0 overflow-y-auto max-h-[80vh]">
+        <div class="py-4 px-4 space-y-1">
+            <a href="/about" @click="$store.mobileMenu.close()" class="block px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold transition-all">団について</a>
+            <a href="/#units" @click="$store.mobileMenu.close()" class="block px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold transition-all">各隊の紹介</a>
+            <a href="/activity-log" @click="$store.mobileMenu.close()" class="block px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold transition-all">活動内容</a>
+            <a href="/news-list" @click="$store.mobileMenu.close()" class="block px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold transition-all">お知らせ</a>
+            <a href="/contact" @click="$store.mobileMenu.close()" class="block px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold transition-all">お問い合わせ</a>
+            <div class="pt-4 mt-2 border-t border-gray-100">
+                <a href="/join" @click="$store.mobileMenu.close()" class="block w-full text-center bg-yellow-400 text-green-900 font-bold py-3 rounded-xl shadow-md active:scale-95 transition-transform">入団案内を見る</a>
+            </div>
+        </div>
     </div>
 </header>
