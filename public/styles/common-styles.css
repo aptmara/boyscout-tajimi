@@ -704,3 +704,38 @@ svg.icon {
     opacity: 1 !important;
     transform: none !important;
 }
+
+/* ============================================== */
+/* FOOTER (readability fallback) */
+/* ============================================== */
+footer {
+    background: radial-gradient(circle at 80% 20%, rgba(21, 128, 61, 0.12), transparent 35%), #0b172a;
+    color: #e5e7eb;
+    padding: 60px 24px 48px;
+}
+
+footer .footer-lead {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 14px 16px;
+    border-radius: 14px;
+    line-height: 1.7;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+footer a {
+    color: #e5e7eb;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #facc15;
+}
+
+footer .contact-address,
+footer .contact-email,
+footer .contact-phone {
+    color: #f3f4f6;
+    font-weight: 600;
+}
