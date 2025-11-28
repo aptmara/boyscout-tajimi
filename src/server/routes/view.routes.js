@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const helpers = require('../utils/template-helpers');
 const {
   formatDateJP,
   pickFirstImage,
   buildSummary
-} = require('../utils/template-helpers');
+} = helpers;
 
 
 // Card Data Shaper
@@ -18,7 +19,7 @@ const shapeCardData = (item, type) => {
       dateText: item.activity_date ? formatDateJP(item.activity_date) : (item.created_at ? formatDateJP(item.created_at) : ''),
       badges: [],
       title: item.title,
-      detailUrl: `/activity-detail-placeholder.html?id=${item.id}`,
+      detailUrl: `/activity/${item.id}`,
       summary: buildSummary(item.content, 120),
       ctaText: '詳細を見る'
     };
@@ -34,7 +35,7 @@ const shapeCardData = (item, type) => {
       dateText: item.created_at ? formatDateJP(item.created_at) : '',
       badges,
       title: item.title,
-      detailUrl: `/news-detail-placeholder.html?id=${item.id}`,
+      detailUrl: `/news/${item.id}`,
       summary: buildSummary(item.content, 110),
       ctaText: '詳しく読む'
     };
@@ -70,6 +71,47 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// 詳細ページ (SSR)
+router.get('/news/:id', async (req, res, next) => {
+  const { id } = req.params;
+  if (!id || isNaN(Number(id))) return next(); // 404へ
+
+  try {
+    const { rows } = await db.pool.query('SELECT * FROM news WHERE id = $1', [id]);
+    if (rows.length === 0) return next();
+
+    const item = rows[0];
+    res.render('pages/news-detail', {
+      title: `${item.title} - お知らせ`,
+      description: buildSummary(item.content, 120),
+      item,
+      helpers
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/activity/:id', async (req, res, next) => {
+  const { id } = req.params;
+  if (!id || isNaN(Number(id))) return next(); // 404へ
+
+  try {
+    const { rows } = await db.pool.query('SELECT * FROM activities WHERE id = $1', [id]);
+    if (rows.length === 0) return next();
+
+    const item = rows[0];
+    res.render('pages/activity-detail', {
+      title: `${item.title} - 活動記録`,
+      description: buildSummary(item.content, 120),
+      item,
+      helpers
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // 「団について」ページ
 router.get('/about', (req, res) => {
   res.render('pages/about', {
@@ -93,9 +135,7 @@ const staticPages = {
   'unit-boy': 'ボーイ隊の紹介',
   'unit-venture': 'ベンチャー隊の紹介',
   'unit-rover': 'ローバー隊の紹介',
-  'leaders-all': '指導者一覧',
-  'news-detail-placeholder': 'お知らせ詳細',
-  'activity-detail-placeholder': '活動記録詳細'
+  'leaders-all': '指導者一覧'
 };
 
 Object.entries(staticPages).forEach(([page, title]) => {
@@ -107,10 +147,6 @@ Object.entries(staticPages).forEach(([page, title]) => {
       pageScripts = ['/list-dashboard-base.js', '/news-list.js'];
     } else if (page.startsWith('unit-')) {
       pageScripts = ['/dynamic-unit-activities.js'];
-    } else if (page === 'news-detail-placeholder') {
-      pageScripts = ['/lightbox.js', '/list-dashboard-base.js', '/news-list.js'];
-    } else if (page === 'activity-detail-placeholder') {
-      pageScripts = ['/lightbox.js', '/list-dashboard-base.js', '/activity-list.js'];
     }
     res.render(`pages/${page}`, {
       title: `${title} - ボーイスカウト多治見第一団`,

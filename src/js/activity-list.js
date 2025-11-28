@@ -124,7 +124,7 @@ class ActivityDashboard extends BaseListDashboard {
 
   renderItem(item) {
     const accent = resolveAccentTheme(item);
-    const detailUrl = `activity-detail-placeholder.html?id=${item.id}`;
+    const detailUrl = `/activity/${item.id}`;
     const unitBadge = item.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(item.unit)}</span>` : '';
     const catBadge = item.category ? `<span class="badge badge--category">${escapeHTML(item.category)}</span>` : '';
     const tagHtml = (item.tags || []).slice(0,6).map(t=>`<span class="badge badge--tag mr-2 mb-2">#${escapeHTML(t)}</span>`).join('');

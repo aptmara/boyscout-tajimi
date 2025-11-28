@@ -101,7 +101,7 @@ class NewsDashboard extends BaseListDashboard {
   }
 
   renderItem(news) {
-    const detailUrl = `news-detail-placeholder.html?id=${news.id}`;
+    const detailUrl = `/news/${news.id}`;
     const unitBadge = news.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(news.unit)}</span>` : '';
     const catBadge = news.category ? `<span class="badge badge--category">${escapeHTML(news.category)}</span>` : '';
     const tagHtml = (news.tags || []).slice(0,6).map(t=>`<span class="badge badge--tag">#${escapeHTML(t)}</span>`).join('');

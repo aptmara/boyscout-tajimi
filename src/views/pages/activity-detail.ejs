@@ -1,0 +1,124 @@
+<%
+  // Helpers
+  const accent = helpers.resolveActivityAccentTheme(item.category);
+  const displayDate = helpers.formatDateJP(item.activity_date || item.created_at);
+  const tags = Array.isArray(item.tags) ? item.tags : [];
+  
+  const normalizeImageUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('drive.google.com')) {
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      const id = match ? match[1] : '';
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+    return url;
+  };
+
+  const images = (Array.isArray(item.image_urls) ? item.image_urls : []).map(normalizeImageUrl).filter(Boolean);
+%>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <article class="bg-white p-6 md:p-10 rounded-xl shadow-lg">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2 flex-wrap">
+        <% if (item.unit) { %>
+          <span class="badge badge--unit"><%= item.unit %></span>
+        <% } %>
+        <% if (item.category) { %>
+          <span class="badge badge--category"><%= item.category %></span>
+        <% } %>
+      </div>
+      <div class="text-sm text-gray-500"><%= displayDate %></div>
+    </div>
+
+    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900"><%= item.title %></h1>
+
+    <% if (tags.length > 0) { %>
+      <div class="mb-6 flex flex-wrap gap-2">
+        <% tags.forEach(function(tag) { %>
+          <span class="badge badge--tag">#<%= tag %></span>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <!-- Gallery -->
+    <% if (images.length > 0) { %>
+      <div id="activity-hero-media" class="mb-8">
+        <div class="overflow-hidden rounded-2xl shadow-xl border border-gray-200 cursor-pointer">
+          <img src="<%= images[0] %>" data-full="<%= images[0] %>" alt="<%= item.title %>" class="w-full h-auto max-h-[70vh] object-cover gallery-image-main">
+        </div>
+        <% if (images.length > 1) { %>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+            <% images.slice(1).forEach(function(img) { %>
+              <div class="overflow-hidden rounded-md border border-gray-100">
+                <img src="<%= img %>" data-full="<%= img %>" class="w-full h-24 object-cover cursor-zoom-in gallery-image-hover hover:opacity-80 transition-opacity">
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- Content -->
+    <div class="prose max-w-none prose-custom leading-relaxed">
+      <%- item.content %>
+    </div>
+
+  </article>
+
+  <div class="mt-8">
+    <a href="/activity-log" class="return-link inline-flex items-center text-green-600 hover:text-green-800 font-medium">
+      ← 活動記録一覧へ戻る
+    </a>
+  </div>
+
+  <!-- Lightbox Container -->
+  <div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
+    <img id="lightbox-img" class="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl transform scale-95 transition-transform duration-300" alt="preview">
+    <button id="lightbox-close" class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 focus:outline-none">&times;</button>
+  </div>
+
+</div>
+
+<script>
+  // Simple Lightbox Logic for SSR page
+  document.addEventListener('DOMContentLoaded', () => {
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    const closeBtn = document.getElementById('lightbox-close');
+    
+    if (!lightbox || !lbImg) return;
+
+    const openLightbox = (src) => {
+      lbImg.src = src;
+      lightbox.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
+      lightbox.classList.add('flex', 'opacity-100');
+      setTimeout(() => lbImg.classList.remove('scale-95'), 10);
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove('opacity-100');
+      lightbox.classList.add('opacity-0');
+      lbImg.classList.add('scale-95');
+      setTimeout(() => {
+        lightbox.classList.add('hidden', 'pointer-events-none');
+        lightbox.classList.remove('flex');
+        lbImg.src = '';
+      }, 300);
+    };
+
+    document.querySelectorAll('img[data-full]').forEach(img => {
+      img.addEventListener('click', () => openLightbox(img.dataset.full));
+    });
+
+    closeBtn?.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  });
+</script>

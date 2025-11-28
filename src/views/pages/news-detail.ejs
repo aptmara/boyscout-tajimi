@@ -1,0 +1,132 @@
+<% 
+  // Helper functions inside template scope or passed from locals
+  const accent = helpers.resolveNewsAccentTheme(item.category);
+  const displayDate = helpers.formatDateJP(item.published_at || item.created_at);
+  const tags = Array.isArray(item.tags) ? item.tags : [];
+  const isImportant = tags.some(tag => tag.includes('重要') || tag.includes('urgent')); 
+  const now = new Date();
+  const createdDate = new Date(item.created_at);
+  const isRecent = !isNaN(createdDate) && ((now - createdDate) / (1000 * 60 * 60 * 24)) <= 21;
+  
+  // Google Drive URL Helper
+  const normalizeImageUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('drive.google.com')) {
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      const id = match ? match[1] : '';
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+    return url;
+  };
+
+  const images = (Array.isArray(item.image_urls) ? item.image_urls : []).map(normalizeImageUrl).filter(Boolean);
+%>
+
+<div class="max-w-6xl mx-auto px-4 py-8" style="--accent-color:<%= accent.color %>">
+  
+  <!-- Header -->
+  <div class="flex flex-col gap-4 mb-8">
+    <div class="flex items-center gap-3 flex-wrap">
+      <span class="activity-card__badge" style="--badge-bg:<%= accent.badgeBg %>;--badge-color:<%= accent.badgeColor %>;">
+        <%= accent.typeLabel %>
+      </span>
+      <% if (isImportant) { %>
+        <span class="activity-card__status" aria-label="重要なお知らせ">重要</span>
+      <% } %>
+      <% if (isRecent && !isImportant) { %>
+        <span class="activity-card__status" style="color:#1d4ed8;background:rgba(59,130,246,0.16)">NEW</span>
+      <% } %>
+    </div>
+    
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight"><%= item.title %></h1>
+    
+    <div class="activity-detail-meta flex flex-wrap gap-4 text-gray-600 text-sm">
+      <% if (displayDate) { %>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7V3M16 7V3M4.5 11h15M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"></path></svg>
+          <%= displayDate %>
+        </span>
+      <% } %>
+      <% if (item.unit) { %>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Z"></path><path d="M6 20a6 6 0 0 1 12 0"></path></svg>
+          <%= item.unit %>
+        </span>
+      <% } %>
+      <% if (item.category) { %>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M5 7v14h14V7"></path><path d="M9 7V5a3 3 0 0 1 6 0v2"></path></svg>
+          <%= item.category %>
+        </span>
+      <% } %>
+    </div>
+
+    <% if (tags.length > 0) { %>
+      <div class="activity-detail-tags flex flex-wrap gap-2">
+        <% tags.forEach(function(tag) { %>
+          <a href="/news-list?tags=<%= encodeURIComponent(tag) %>" class="activity-card__tag px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">#<%= tag %></a>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(220px,1fr)]">
+    
+    <!-- Main Content -->
+    <div class="space-y-8" id="news-article-main">
+      
+      <!-- Gallery -->
+      <% if (images.length > 0) { %>
+        <div class="mb-6">
+          <div class="overflow-hidden rounded-2xl shadow-xl border border-gray-200 mb-4">
+            <img src="<%= images[0] %>" alt="<%= item.title %>" class="w-full h-auto max-h-[70vh] object-cover">
+          </div>
+          <% if (images.length > 1) { %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <% images.slice(1, 6).forEach(function(img) { %>
+                <a href="<%= img %>" target="_blank" rel="noopener" class="block overflow-hidden rounded-xl border border-gray-200 hover:border-green-400 transition">
+                  <img src="<%= img %>" alt="<%= item.title %>" class="w-full h-32 sm:h-36 object-cover">
+                </a>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+
+      <!-- Mobile TOC Placeholder (JS can populate if needed, or simplified) -->
+      <div class="lg:hidden">
+        <!-- Mobile TOC could be implemented here if needed -->
+      </div>
+
+      <!-- Body -->
+      <div class="prose max-w-none prose-lg leading-relaxed">
+        <%- item.content %>
+      </div>
+      
+      <div class="pt-8 border-t border-gray-200">
+        <a href="/news-list" class="inline-flex items-center text-green-600 hover:text-green-800 font-medium transition-colors">
+          ← ニュース一覧へ戻る
+        </a>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="activity-toc-sticky space-y-5 hidden lg:block h-fit sticky top-24">
+      <div class="activity-toc-card bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <p class="font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2">この記事について</p>
+        <div class="space-y-3 text-sm text-gray-600">
+          <% if (displayDate) { %>
+            <p>掲載日: <time><%= displayDate %></time></p>
+          <% } %>
+          <% if (item.unit) { %>
+            <p>対象: <%= item.unit %></p>
+          <% } %>
+          <% if (item.category) { %>
+            <p>カテゴリ: <%= item.category %></p>
+          <% } %>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
