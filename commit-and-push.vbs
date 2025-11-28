@@ -30,5 +30,5 @@ If pwsh = "" Then
     WScript.Quit 1
 End If
 
-cmdLine = pwsh & " -NoExit -ExecutionPolicy Bypass -NoProfile -STA -File """ & ps1 & """"
+cmdLine = pwsh & " -ExecutionPolicy Bypass -NoProfile -STA -Command ""$env:COMMIT_AND_PUSH_NO_PAUSE='1'; & '" & ps1 & "'"""
 shell.Run cmdLine, 1, False

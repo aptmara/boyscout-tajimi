@@ -155,7 +155,7 @@ catch {
     }
 }
 finally {
-    if ($env:COMMIT_AND_PUSH_NO_PAUSE -ne "1") {
+    if ($env:COMMIT_AND_PUSH_KEEP_OPEN -ne "1" -and $env:COMMIT_AND_PUSH_NO_PAUSE -ne "1") {
         Write-Host ""
         Write-Host "処理が完了しました。何かキーを押すとウィンドウを閉じます。"
         Read-Host
