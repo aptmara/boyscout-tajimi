@@ -93,11 +93,13 @@ const staticPages = {
   'unit-boy': 'ボーイ隊の紹介',
   'unit-venture': 'ベンチャー隊の紹介',
   'unit-rover': 'ローバー隊の紹介',
-  'leaders-all': '指導者一覧'
+  'leaders-all': '指導者一覧',
+  'news-detail-placeholder': 'お知らせ詳細',
+  'activity-detail-placeholder': '活動記録詳細'
 };
 
 Object.entries(staticPages).forEach(([page, title]) => {
-  router.get(`/${page}`, (req, res) => {
+  router.get([`/${page}`, `/${page}.html`], (req, res) => {
     let pageScripts = [];
     if (page === 'activity-log') {
       pageScripts = ['/list-dashboard-base.js', '/activity-list.js'];
