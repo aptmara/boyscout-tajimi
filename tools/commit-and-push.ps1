@@ -103,6 +103,7 @@ function Get-CommitMessageFromDialog {
         $form.Close()
     })
     $form.Controls.Add($okButton)
+    $form.AcceptButton = $okButton
 
     $cancelButton = New-Object System.Windows.Forms.Button
     $cancelButton.Text = "キャンセル"
