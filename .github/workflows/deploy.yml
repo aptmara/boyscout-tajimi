@@ -1,3 +1,6 @@
+# GitHub Actions: ConoHa VPSへの自動デプロイ
+# mainブランチへのpush時にVPSへ自動デプロイを実行
+
 name: Deploy to ConoHa VPS
 
 on:
@@ -19,23 +22,6 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Debug key (safe)
-        run: |
-          set -e
-          ls -l ~/.ssh/deploy_key
-          ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null
-          echo "deploy_key looks valid"
-
-      - name: SSH debug (vvv)
-        run: |
-          ssh -vvv -i ~/.ssh/deploy_key \
-            -o IdentitiesOnly=yes \
-            -o PreferredAuthentications=publickey \
-            -o PasswordAuthentication=no \
-            -o KbdInteractiveAuthentication=no \
-            -o StrictHostKeyChecking=no \
-            deploy@${{ secrets.VPS_HOST }} "echo ok"
-
       - name: Deploy to VPS
         run: |
           ssh -i ~/.ssh/deploy_key \
@@ -55,3 +41,4 @@ jobs:
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key
+
