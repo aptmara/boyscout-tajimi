@@ -1,23 +1,36 @@
 /* styles/input.css */
+/* 
+ * ⚠️ 重要: CSSの編集について
+ * 
+ * カスタムスタイルを追加する場合は custom.css に記述してください。
+ * このファイル（input.css）は Tailwind のエントリーポイントです。
+ * 
+ * public/styles/common-styles.css は直接編集しないでください！
+ * → npm run build で上書きされます。
+ */
+
+/* 外部CSSファイルのインポート */
 @import "./activity-dashboard.css";
 @import "./admin-app.css";
 @import "./admin-styles.css";
 @import "./lightbox.css";
+@import "./custom.css";
+/* ← カスタムスタイルはここに書く */
 
+/* Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* index.htmlから移動したカスタムスタイル */
+/* ============================================== */
+/* 基本スタイル（移動しないでください）           */
+/* ============================================== */
 .hero-bg {
     background-color: #1f2937;
-    /* Fallback color */
     background-image: url('https://placehold.co/1920x1080/334155/e2e8f0?text=High-Quality+Hero+Image');
-    /* 管理画面の設定で差し替え可能 */
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    /* パララックス風効果 */
 }
 
 .fade-hidden {
@@ -29,40 +42,4 @@
 .fade-show {
     opacity: 1 !important;
     transform: none !important;
-}
-
-/* ============================================== */
-/* FAQアコーディオン                              */
-/* ============================================== */
-.faq-question {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.faq-question:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-}
-
-.faq-question.open {
-    background-color: rgba(22, 163, 74, 0.05);
-}
-
-.faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    padding: 0 1.5rem;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-}
-
-.faq-answer.open {
-    max-height: 500px;
-    padding: 0 1.5rem 1.5rem 1.5rem;
-}
-
-.faq-icon {
-    transition: transform 0.3s ease;
-}
-
-.faq-question.open .faq-icon {
-    transform: rotate(45deg);
 }
