@@ -40,7 +40,7 @@ jobs:
             ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ok"
       - name: Deploy to VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=no deploy@${{ secrets.VPS_HOST }} "echo ok"
             cd /var/www/boyscout-tajimi
             
             # 最新コードを取得
