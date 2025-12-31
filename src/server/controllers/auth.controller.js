@@ -21,11 +21,24 @@ const login = asyncHandler(async (req, res) => {
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
   // Prevent session fixation
+  if (!req.session) {
+    console.error('Critical Error: req.session is undefined in login handler');
+    return res.status(500).json({ error: 'Server misconfiguration: No session' });
+  }
+
   req.session.regenerate((err) => {
     if (err) {
       console.error('Session regeneration failed:', err);
-      return res.status(500).json({ error: 'Login failed due to server error' });
+      // Fallback: If regeneration fails (e.g. file lock), try to proceed or just error out.
+      // For security, checking if we can just set user.
+      // return res.status(500).json({ error: 'Login failed due to server error' });
     }
+
+    // Even if regeneration failed, we might want to proceed but log it.
+    // However, failing open is bad for fixation. 
+    // If it's a file locking issue on dev (sqlite), retrying might help?
+    if (err) return res.status(500).json({ error: 'Login failed: Session error' });
+
     req.session.user = { id: admin.id, username: admin.username };
     res.json({ message: 'Login successful' });
   });
