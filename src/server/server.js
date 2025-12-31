@@ -30,18 +30,20 @@ const app = express();
 app.set('trust proxy', 1);
 
 // === Security Middleware ===
-app.use(helmet({
-  contentSecurityPolicy: {
+app.use(
+  helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"], // inline scripts are used in legacy admin pgs
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "https://placehold.co", "https://drive.google.com", "https://*.googleusercontent.com"],
+      frameSrc: ["'self'", "https://www.google.com"], // For Google Maps
+      connectSrc: ["'self'", "https://unpkg.com"], // Sometimes needed for fetching resources
+      upgradeInsecureRequests: [],
     },
-  },
-}));
+  })
+);
 
 // Rate limiting for login
 const loginLimiter = rateLimit({
