@@ -4,23 +4,35 @@
 /* THEME COLORS & BASE STYLES                     */
 /* ============================================== */
 :root {
-    --primary-color: #15803d; /* Tailwind green-700 (少し明るめに変更) */
-    --primary-color-darker: #166534; /* Tailwind green-800 */
-    --primary-color-hover: #16a34a; /* Tailwind green-600 */
-    --secondary-color: #f59e0b; /* amber-500: 視認性改善 */
-    --secondary-color-hover: #d97706; /* amber-600 */
+    --primary-color: #15803d;
+    /* Tailwind green-700 (少し明るめに変更) */
+    --primary-color-darker: #166534;
+    /* Tailwind green-800 */
+    --primary-color-hover: #16a34a;
+    /* Tailwind green-600 */
+    --secondary-color: #f59e0b;
+    /* amber-500: 視認性改善 */
+    --secondary-color-hover: #d97706;
+    /* amber-600 */
 
-    --text-color-base: #1f2937; /* Tailwind gray-800 */
-    --text-color-muted: #4b5563; /* Tailwind gray-600 */
-    --text-color-inverted: #ffffff; /* 白文字 */
-    --text-color-heading: var(--primary-color-darker); /* 見出し用の濃い緑 */
+    --text-color-base: #1f2937;
+    /* Tailwind gray-800 */
+    --text-color-muted: #4b5563;
+    /* Tailwind gray-600 */
+    --text-color-inverted: #ffffff;
+    /* 白文字 */
+    --text-color-heading: var(--primary-color-darker);
+    /* 見出し用の濃い緑 */
 
     --bg-color-base: #ffffff;
-    --bg-color-soft: #f8fafc; /* Tailwind slate-50 (よりニュートラルな白系) */
+    --bg-color-soft: #f8fafc;
+    /* Tailwind slate-50 (よりニュートラルな白系) */
     --bg-color-header-scrolled: rgba(255, 255, 255, 0.97);
 
-    --border-color-base: #e5e7eb; /* Tailwind gray-200 */
-    --border-color-light: #f3f4f6; /* Tailwind gray-100 */
+    --border-color-base: #e5e7eb;
+    /* Tailwind gray-200 */
+    --border-color-light: #f3f4f6;
+    /* Tailwind gray-100 */
 
     --font-family-sans: 'Noto Sans JP', sans-serif;
     --font-family-heading: 'M PLUS Rounded 1c', sans-serif;
@@ -31,20 +43,29 @@
     --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -3px rgba(0, 0, 0, 0.06);
     --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
 
-    --border-radius-sm: 0.375rem; /* 6px */
-    --border-radius: 0.5rem;    /* 8px */
-    --border-radius-lg: 0.75rem;   /* 12px */
+    --border-radius-sm: 0.375rem;
+    /* 6px */
+    --border-radius: 0.5rem;
+    /* 8px */
+    --border-radius-lg: 0.75rem;
+    /* 12px */
     --border-radius-full: 9999px;
 
     --transition-base: all 0.3s ease-in-out;
     --transition-fast: all 0.2s ease-in-out;
     /* badges */
-    --badge-tag-bg: #ecfdf5;   /* emerald-50 */
-    --badge-tag-fg: #065f46;   /* emerald-800 */
-    --badge-unit-bg: #e0f2fe;  /* sky-100 */
-    --badge-unit-fg: #075985;  /* sky-800 */
-    --badge-cat-bg: #fef3c7;   /* amber-100 */
-    --badge-cat-fg: #92400e;   /* amber-800 */
+    --badge-tag-bg: #ecfdf5;
+    /* emerald-50 */
+    --badge-tag-fg: #065f46;
+    /* emerald-800 */
+    --badge-unit-bg: #e0f2fe;
+    /* sky-100 */
+    --badge-unit-fg: #075985;
+    /* sky-800 */
+    --badge-cat-bg: #fef3c7;
+    /* amber-100 */
+    --badge-cat-fg: #92400e;
+    /* amber-800 */
 }
 
 /* 基本フォント設定 */
@@ -58,22 +79,51 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: var(--font-family-heading);
     font-weight: 700;
     color: var(--text-color-heading);
     line-height: 1.3;
 }
 
-h1 { font-size: 2.5rem; margin-bottom: 1.5rem; } /* text-4xl */
-h2 { font-size: 2rem; margin-top: 2.5rem; margin-bottom: 1.25rem; } /* text-3xl */
-h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }    /* text-2xl */
-h4 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; } /* text-xl */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* text-4xl */
+h2 {
+    font-size: 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+}
+
+/* text-3xl */
+h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* text-2xl */
+h4 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* text-xl */
 
 p {
     margin-bottom: 1.25rem;
     color: var(--text-color-muted);
 }
+
 p:last-child {
     margin-bottom: 0;
 }
@@ -83,13 +133,18 @@ a {
     text-decoration: none;
     transition: var(--transition-fast);
 }
+
 a:hover {
     color: var(--primary-color-hover);
     text-decoration: underline;
 }
 
 /* アクセシビリティ: focus-visible */
-a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
     outline: 3px solid rgba(22, 163, 74, 0.35);
     outline-offset: 2px;
     border-radius: var(--border-radius-sm);
@@ -109,8 +164,10 @@ html {
 /* ============================================== */
 /* HEADER & NAVIGATION                            */
 /* ============================================== */
-header#main-header { /* 既存のIDセレクタを維持 */
-    background-color: rgba(255, 255, 255, 0.9); /* 少し透明度変更 */
+header#main-header {
+    /* 既存のIDセレクタを維持 */
+    background-color: rgba(255, 255, 255, 0.9);
+    /* 少し透明度変更 */
     /* backdrop-blur-md はTailwindクラスで指定されているはず */
     box-shadow: var(--shadow-xs);
     /* sticky top-0 z-50 はTailwindクラスで指定 */
@@ -123,11 +180,14 @@ header#main-header.scrolled {
 }
 
 /* PCナビゲーションリンク */
-#main-header nav div.hidden.md\:flex a:not(.bg-green-600) { /* Tailwindのクラス構造に合わせる */
+#main-header nav div.hidden.md\:flex a:not(.bg-green-600) {
+    /* Tailwindのクラス構造に合わせる */
     position: relative;
-    padding-top: 0.25rem; /* ホバーエフェクト用スペース */
+    padding-top: 0.25rem;
+    /* ホバーエフェクト用スペース */
     padding-bottom: 0.25rem;
-    margin-left: 0.5rem; /* Tailwind space-x-5 等と競合しないように注意 */
+    margin-left: 0.5rem;
+    /* Tailwind space-x-5 等と競合しないように注意 */
     margin-right: 0.5rem;
     font-weight: 500;
     color: var(--text-color-base);
@@ -136,7 +196,8 @@ header#main-header.scrolled {
 #main-header nav div.hidden.md\:flex a:not(.bg-green-600)::after {
     content: '';
     position: absolute;
-    bottom: -2px; /* 少し下にオフセット */
+    bottom: -2px;
+    /* 少し下にオフセット */
     left: 50%;
     transform: translateX(-50%);
     width: 0;
@@ -146,7 +207,8 @@ header#main-header.scrolled {
 }
 
 #main-header nav div.hidden.md\:flex a:not(.bg-green-600):hover::after {
-    width: 70%; /* 全幅ではなく、少し短めに */
+    width: 70%;
+    /* 全幅ではなく、少し短めに */
 }
 
 #main-header nav div.hidden.md\:flex a:not(.bg-green-600):hover {
@@ -156,11 +218,13 @@ header#main-header.scrolled {
 
 /* 団員専用ボタン (既存のTailwindクラスにスタイルを重ねる) */
 #main-header nav a.bg-green-600 {
-    background-color: var(--primary-color) !important; /* Tailwindを上書き */
+    background-color: var(--primary-color) !important;
+    /* Tailwindを上書き */
     color: var(--text-color-inverted) !important;
     box-shadow: var(--shadow-sm);
     transition: var(--transition-base);
 }
+
 #main-header nav a.bg-green-600:hover {
     background-color: var(--primary-color-hover) !important;
     box-shadow: var(--shadow-md);
@@ -171,20 +235,26 @@ header#main-header.scrolled {
 #mobile-menu-button-alpine svg {
     transition: transform 0.3s ease-in-out;
 }
+
 #mobile-menu-button-alpine .line {
     transition: transform 0.3s ease-in-out, opacity 0.2s ease-in-out;
     transform-origin: center;
 }
+
 #mobile-menu-button-alpine.open .line1 {
     transform: translateY(7px) rotate(45deg);
 }
+
 #mobile-menu-button-alpine.open .line2 {
     opacity: 0;
-    transform: translateX(-10px); /* 少しアニメーション追加 */
+    transform: translateX(-10px);
+    /* 少しアニメーション追加 */
 }
+
 #mobile-menu-button-alpine.open .line3 {
     transform: translateY(-7px) rotate(-45deg);
 }
+
 /* モバイルメニュー自体のスタイルはTailwindで制御されていると想定 */
 /* #mobile-menu-alpine a { ... } などで微調整可能 */
 
@@ -208,6 +278,7 @@ header#main-header.scrolled {
     transform-origin: bottom center;
     transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1), transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
+
 /* JS側で transition-delay がインラインスタイルで設定される想定 */
 
 /* タイピングアニメーション用のカーソル表示 */
@@ -225,32 +296,47 @@ header#main-header.scrolled {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 /* ヒーローセクションのボタン (既存の .hero-title-char[href] に適用) */
 #hero .hero-title-char[href] {
-    padding: 0.875rem 2.25rem; /* 少し横幅調整 */
-    border-radius: var(--border-radius-full); /* 角を完全に丸く */
+    padding: 0.875rem 2.25rem;
+    /* 少し横幅調整 */
+    border-radius: var(--border-radius-full);
+    /* 角を完全に丸く */
     font-weight: 700;
     text-align: center;
     /* transition は .hero-title-char と共通 + 個別のtransform */
     transition: var(--transition-base), opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1), transform 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
     box-shadow: var(--shadow-md);
     text-decoration: none !important;
-    letter-spacing: 0.025em; /* 少し文字間隔 */
+    letter-spacing: 0.025em;
+    /* 少し文字間隔 */
 }
+
 #hero .hero-title-char[href]:hover {
-    transform: translateY(-3px) scale(1.05); /* ホバー時の動きを調整 */
+    transform: translateY(-3px) scale(1.05);
+    /* ホバー時の動きを調整 */
     box-shadow: var(--shadow-lg);
 }
 
 /* 「体験プログラムを探す」ボタン */
-#hero a[href="join.html"].hero-title-char { /* セレクタの具体性を上げる */
+#hero a[href="join.html"].hero-title-char {
+    /* セレクタの具体性を上げる */
     background-color: var(--secondary-color);
-    color: var(--primary-color-darker); /* 黄色背景に濃い緑文字でコントラスト */
+    color: var(--primary-color-darker);
+    /* 黄色背景に濃い緑文字でコントラスト */
 }
+
 #hero a[href="join.html"].hero-title-char:hover {
     background-color: var(--secondary-color-hover);
 }
@@ -261,6 +347,7 @@ header#main-header.scrolled {
     color: var(--text-color-inverted);
     border: 2px solid var(--text-color-inverted);
 }
+
 #hero a[href="activity-log.html"].hero-title-char:hover {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: var(--text-color-inverted);
@@ -271,37 +358,48 @@ header#main-header.scrolled {
 /* CARD STYLES                                    */
 /* ============================================== */
 .card-hover-effect {
-    border-radius: var(--border-radius-lg); /* 角丸を少し大きく */
+    border-radius: var(--border-radius-lg);
+    /* 角丸を少し大きく */
     background-color: var(--bg-color-base);
     box-shadow: var(--shadow-md);
     transition: box-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
     overflow: hidden;
 }
+
 .card-hover-effect:hover {
-    box-shadow: var(--shadow-xl); /* よりはっきりした影 */
+    box-shadow: var(--shadow-xl);
+    /* よりはっきりした影 */
     transform: translateY(-6px);
 }
 
 /* カード内コンテンツエリア (必要ならHTML側でこのクラスをdivに付与) */
 .card-content-area {
-    padding: 1.5rem; /* p-6 相当 */
+    padding: 1.5rem;
+    /* p-6 相当 */
 }
-.card-content-area h3 { /* カード内のH3 */
+
+.card-content-area h3 {
+    /* カード内のH3 */
     margin-top: 0;
-    font-size: 1.25rem; /* text-xl */
+    font-size: 1.25rem;
+    /* text-xl */
     color: var(--text-color-heading);
     margin-bottom: 0.75rem;
 }
+
 .card-content-area p {
-    font-size: 0.925rem; /* 少し小さめ */
+    font-size: 0.925rem;
+    /* 少し小さめ */
     line-height: 1.65;
     color: var(--text-color-muted);
 }
 
 /* 各隊紹介カードの画像周りなど (Tiltエフェクトと併用の場合) */
-.tilt-card-effect img.rounded-full { /* placehold.co の画像 */
+.tilt-card-effect img.rounded-full {
+    /* placehold.co の画像 */
     border-width: 4px;
-    border-color: var(--border-color-light); /* 境界線を薄く */
+    border-color: var(--border-color-light);
+    /* 境界線を薄く */
     box-shadow: var(--shadow-sm);
 }
 
@@ -310,17 +408,26 @@ header#main-header.scrolled {
 /* ARTICLE LISTS & DETAILS                        */
 /* ============================================== */
 /* 記事一覧アイテム (news-list.html, activity-log.html) */
-.news-item, .activity-log-item { /* articleタグに付与する想定 */
+.news-item,
+.activity-log-item {
+    /* articleタグに付与する想定 */
     /* .card-hover-effect を継承・または別途スタイル定義 */
-    margin-bottom: 2rem; /* アイテム間のマージン */
+    margin-bottom: 2rem;
+    /* アイテム間のマージン */
 }
-.news-item h3, .activity-log-item h3 { /* カード内 h3 のスタイルを再利用 */
-    font-size: 1.375rem; /* 少し大きめ */
+
+.news-item h3,
+.activity-log-item h3 {
+    /* カード内 h3 のスタイルを再利用 */
+    font-size: 1.375rem;
+    /* 少し大きめ */
     font-weight: 600;
     color: var(--text-color-base);
     transition: color 0.2s ease;
 }
-.news-item:hover h3, .activity-log-item:hover h3 {
+
+.news-item:hover h3,
+.activity-log-item:hover h3 {
     color: var(--primary-color-hover);
 }
 
@@ -328,35 +435,56 @@ header#main-header.scrolled {
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.625rem; /* 4px 10px */
+    padding: 0.25rem 0.625rem;
+    /* 4px 10px */
     border-radius: var(--border-radius-full);
-    font-size: 0.8125rem; /* 13px 相当: 視認性アップ */
+    font-size: 0.8125rem;
+    /* 13px 相当: 視認性アップ */
     font-weight: 700;
     line-height: 1.2;
 }
-.badge--tag { background-color: var(--badge-tag-bg); color: var(--badge-tag-fg); }
-.badge--unit { background-color: var(--badge-unit-bg); color: var(--badge-unit-fg); }
-.badge--category { background-color: var(--badge-cat-bg); color: var(--badge-cat-fg); }
+
+.badge--tag {
+    background-color: var(--badge-tag-bg);
+    color: var(--badge-tag-fg);
+}
+
+.badge--unit {
+    background-color: var(--badge-unit-bg);
+    color: var(--badge-unit-fg);
+}
+
+.badge--category {
+    background-color: var(--badge-cat-bg);
+    color: var(--badge-cat-fg);
+}
 
 /* 記事メタ情報 (詳細ページ用) */
 .article-meta-info {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 1.25rem; /* 横の隙間を少し広げる */
+    gap: 0.5rem 1.25rem;
+    /* 横の隙間を少し広げる */
     font-size: 0.875rem;
     color: var(--text-color-muted);
     margin-bottom: 1.5rem;
 }
-.article-meta-info svg.icon { /* JSで<svg class="icon">のように挿入する場合 */
+
+.article-meta-info svg.icon {
+    /* JSで<svg class="icon">のように挿入する場合 */
     width: 1.1em;
     height: 1.1em;
     margin-right: 0.3em;
-    fill: currentColor; /* メタ情報テキストと同じ色 */
+    fill: currentColor;
+    /* メタ情報テキストと同じ色 */
 }
-.article-meta-info .category-badge { /* JSでカテゴリ表示にこのクラスを付与 */
+
+.article-meta-info .category-badge {
+    /* JSでカテゴリ表示にこのクラスを付与 */
     font-size: 0.75rem;
-    font-weight: 600; /* semibold */
+    font-weight: 600;
+    /* semibold */
     padding: 0.3rem 0.8rem;
     border-radius: var(--border-radius-full);
     color: var(--text-color-inverted);
@@ -365,54 +493,69 @@ header#main-header.scrolled {
 
 /* 記事本文 (詳細ページ用、既存の .prose-custom を拡張) */
 .prose-custom h2 {
-    font-size: 1.875rem; /* text-3xl と text-2xl の中間 */
+    font-size: 1.875rem;
+    /* text-3xl と text-2xl の中間 */
     color: var(--text-color-heading);
     margin-top: 2.8em;
     margin-bottom: 1.2em;
     padding-bottom: 0.5em;
     border-bottom: 2px solid var(--border-color-base);
 }
+
 .prose-custom h3 {
-    font-size: 1.5rem; /* text-2xl */
+    font-size: 1.5rem;
+    /* text-2xl */
     color: var(--text-color-heading);
     margin-top: 2.2em;
     margin-bottom: 1em;
 }
+
 .prose-custom p {
     line-height: 1.85;
     color: var(--text-color-base);
-    font-size: 1.05rem; /* 本文を少しだけ大きく */
+    font-size: 1.05rem;
+    /* 本文を少しだけ大きく */
 }
+
 .prose-custom a {
     color: var(--primary-color-hover);
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
-    font-weight: 500; /* リンクを少し強調 */
+    font-weight: 500;
+    /* リンクを少し強調 */
 }
+
 .prose-custom a:hover {
     color: var(--primary-color-darker);
     text-decoration-thickness: 2px;
 }
-.prose-custom ul, .prose-custom ol {
+
+.prose-custom ul,
+.prose-custom ol {
     margin-left: 1.25em;
-    padding-left: 0.75em; /* マーカーとテキストの間隔 */
+    padding-left: 0.75em;
+    /* マーカーとテキストの間隔 */
     color: var(--text-color-base);
 }
+
 .prose-custom li::marker {
     color: var(--primary-color);
     font-weight: bold;
 }
+
 .prose-custom figure {
     margin-top: 2.5em;
     margin-bottom: 2.5em;
 }
+
 .prose-custom figcaption {
     font-size: 0.9rem;
     color: var(--text-color-muted);
     text-align: center;
     margin-top: 0.75em;
 }
+
 .prose-custom blockquote {
     border-left-color: var(--primary-color);
     color: var(--text-color-muted);
@@ -428,12 +571,14 @@ header#main-header.scrolled {
 #hero a[href="activity-log.html"] {
     position: relative;
     display: inline-block;
-    text-decoration: none; /* override global hover underline */
+    text-decoration: none;
+    /* override global hover underline */
 }
 
 #hero a[href="join.html"]:hover,
 #hero a[href="activity-log.html"]:hover {
-    text-decoration: none; /* keep default underline off */
+    text-decoration: none;
+    /* keep default underline off */
 }
 
 #hero a[href="join.html"]::after,
@@ -453,12 +598,15 @@ header#main-header.scrolled {
 #hero a[href="activity-log.html"]:hover::after {
     width: 100%;
 }
+
 .fade-in-section {
     opacity: 0;
     transform: translateY(40px);
     transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    transition-delay: 0.15s; /* 遅延を少し調整 */
+    transition-delay: 0.15s;
+    /* 遅延を少し調整 */
 }
+
 .fade-in-section.is-visible {
     opacity: 1;
     transform: translateY(0);
@@ -466,7 +614,8 @@ header#main-header.scrolled {
 
 /* カウンターの数字スタイル */
 .counter {
-    font-weight: 800; /* extrabold */
+    font-weight: 800;
+    /* extrabold */
     color: var(--primary-color);
     /* サイズはHTML側のTailwindクラス (text-3xlなど) で指定 */
 }
@@ -475,7 +624,10 @@ header#main-header.scrolled {
 /* ============================================== */
 /* FORMS                                          */
 /* ============================================== */
-.form-input, .form-textarea, .form-select { /* Tailwindのクラス名に合わせて調整 */
+.form-input,
+.form-textarea,
+.form-select {
+    /* Tailwindのクラス名に合わせて調整 */
     @apply block w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50;
     /* 上記は @apply を使う場合の例。ピュアCSSで書く場合は以下のように */
     /* display: block;
@@ -486,21 +638,29 @@ header#main-header.scrolled {
     box-shadow: var(--shadow-xs);
     transition: border-color 0.2s ease, box-shadow 0.2s ease; */
 }
-.form-input:focus, .form-textarea:focus, .form-select:focus {
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 22, 163, 74), 0.25); /* var(--primary-color)のRGB値が必要 */
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 22, 163, 74), 0.25);
+    /* var(--primary-color)のRGB値が必要 */
     outline: none;
 }
+
 /* :root に --primary-color-rgb: 22, 163, 74; などを定義しておくと良い */
 
 /* フォームのボタン */
-.form-submit-button { /* HTMLの送信ボタンにこのクラスを付与 */
+.form-submit-button {
+    /* HTMLの送信ボタンにこのクラスを付与 */
     @apply inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white transition-colors duration-150;
     background-color: var(--primary-color);
 }
+
 .form-submit-button:hover {
     background-color: var(--primary-color-hover);
 }
+
 .form-submit-button:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 22, 163, 74), 0.25);
@@ -520,24 +680,37 @@ header#main-header.scrolled {
     color: var(--text-color-muted);
     transition: var(--transition-fast); */
 }
+
 .pagination-button:hover:not(.pagination-disabled):not(.pagination-active) {
     background-color: var(--bg-color-soft);
     color: var(--text-color-base);
 }
-.pagination-button:first-child { border-top-left-radius: var(--border-radius-sm); border-bottom-left-radius: var(--border-radius-sm); }
-.pagination-button:last-child { border-top-right-radius: var(--border-radius-sm); border-bottom-right-radius: var(--border-radius-sm); }
+
+.pagination-button:first-child {
+    border-top-left-radius: var(--border-radius-sm);
+    border-bottom-left-radius: var(--border-radius-sm);
+}
+
+.pagination-button:last-child {
+    border-top-right-radius: var(--border-radius-sm);
+    border-bottom-right-radius: var(--border-radius-sm);
+}
 
 .pagination-active {
     z-index: 10;
     color: var(--text-color-inverted) !important;
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
-    font-weight: 600; /* アクティブなページ番号を強調 */
+    font-weight: 600;
+    /* アクティブなページ番号を強調 */
 }
+
 .pagination-disabled {
-    color: #a8a29e !important; /* Tailwind stone-400 相当、より無効感を出す */
+    color: #a8a29e !important;
+    /* Tailwind stone-400 相当、より無効感を出す */
     pointer-events: none;
-    background-color: #f5f5f4 !important; /* Tailwind stone-100 相当 */
+    background-color: #f5f5f4 !important;
+    /* Tailwind stone-100 相当 */
     border-color: var(--border-color-light) !important;
 }
 
@@ -559,6 +732,7 @@ header#main-header.scrolled {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -567,37 +741,103 @@ header#main-header.scrolled {
 }
 
 /* Skeleton ローディング */
-.skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%); background-size: 400% 100%; animation: skeleton-loading 1.2s ease-in-out infinite; }
-.skeleton-thumb { width: 100%; height: 11rem; border-radius: var(--border-radius-lg); }
-.skeleton-text { height: 0.875rem; border-radius: 9999px; margin: 0.375rem 0; }
-@keyframes skeleton-loading { 0% { background-position: 100% 0 } 100% { background-position: 0 0 } }
+.skeleton {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.2s ease-in-out infinite;
+}
+
+.skeleton-thumb {
+    width: 100%;
+    height: 11rem;
+    border-radius: var(--border-radius-lg);
+}
+
+.skeleton-text {
+    height: 0.875rem;
+    border-radius: 9999px;
+    margin: 0.375rem 0;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 100% 0
+    }
+
+    100% {
+        background-position: 0 0
+    }
+}
 
 /* カードのホバー強化（微妙な拡大と影強化） */
-.card-hover-effect { transition: transform .2s ease, box-shadow .2s ease; }
-.card-hover-effect:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+.card-hover-effect {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
 
-/* FAQアコーディオン用スタイル (既存スタイルを維持または微調整) */
-.faq-question { /* ... */ }
-.faq-answer { /* ... */ }
-/* ... */
+.card-hover-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* FAQアコーディオン用スタイル */
+.faq-question {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.faq-question:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.faq-question.open {
+    background-color: rgba(22, 163, 74, 0.05);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 1.5rem;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.faq-answer.open {
+    max-height: 500px;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.faq-icon {
+    transition: transform 0.3s ease;
+}
+
+.faq-question.open .faq-icon {
+    transform: rotate(45deg);
+}
 
 /* SVGアイコンの基本スタイル */
 svg.icon {
     display: inline-block;
-    width: 1em; /* 親要素のフォントサイズに合わせる */
+    width: 1em;
+    /* 親要素のフォントサイズに合わせる */
     height: 1em;
-    vertical-align: -0.125em; /* テキストとのベースライン調整 */
-    fill: currentColor; /* 基本はテキストカラーを継承 */
+    vertical-align: -0.125em;
+    /* テキストとのベースライン調整 */
+    fill: currentColor;
+    /* 基本はテキストカラーを継承 */
 }
+
 /* 必要に応じて .icon-primary などの修飾クラスで色を指定 */
-.icon-primary { fill: var(--primary-color); }
+.icon-primary {
+    fill: var(--primary-color);
+}
 
 
 /* 画像ギャラリーのホバーエフェクト (既存スタイルを維持または微調整) */
 .gallery-image-hover {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    border-radius: var(--border-radius-sm); /* 角丸を追加 */
+    border-radius: var(--border-radius-sm);
+    /* 角丸を追加 */
 }
+
 .gallery-image-hover:hover {
     transform: scale(1.05);
     box-shadow: var(--shadow-lg);
@@ -606,7 +846,9 @@ svg.icon {
 /* ============================================== */
 /* OVERRIDES (No Tailwind build at runtime)       */
 /* ============================================== */
-.form-input, .form-textarea, .form-select {
+.form-input,
+.form-textarea,
+.form-select {
     display: block;
     width: 100%;
     padding: 0.75rem 1rem;
@@ -642,41 +884,42 @@ svg.icon {
 
 /* Card link styles, moved from activity-dashboard.css */
 .activity-card__link {
-  margin-top: auto;
-  font-weight: 700;
-  color: #15803d;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: transform 0.2s ease, color 0.2s ease;
+    margin-top: auto;
+    font-weight: 700;
+    color: #15803d;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .activity-card__link:hover {
-  color: #166534;
-  transform: translateX(4px);
+    color: #166534;
+    transform: translateX(4px);
 }
 
 .activity-card__link svg {
-  width: 1rem;
-  height: 1rem;
-  stroke-width: 2.2px; /* 線の太さを少し太く */
-  stroke: currentColor;
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 2.2px;
+    /* 線の太さを少し太く */
+    stroke: currentColor;
 }
 
 /* Icon wrapper in cards */
 .activity-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.9rem;
-  background: var(--icon-bg, rgba(16, 185, 129, 0.12));
-  color: var(--icon-color, #16a34a);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.9rem;
+    background: var(--icon-bg, rgba(16, 185, 129, 0.12));
+    color: var(--icon-color, #16a34a);
 }
 
 .activity-card__icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
 }

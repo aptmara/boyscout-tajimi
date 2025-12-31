@@ -589,10 +589,35 @@ header#main-header.scrolled {
 .card-hover-effect { transition: transform .2s ease, box-shadow .2s ease; }
 .card-hover-effect:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
 
-/* FAQアコーディオン用スタイル (既存スタイルを維持または微調整) */
-.faq-question { /* ... */ }
-.faq-answer { /* ... */ }
-/* ... */
+/* FAQアコーディオン用スタイル */
+.faq-question {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.faq-question:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+.faq-question.open {
+    background-color: rgba(22, 163, 74, 0.05);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 1.5rem;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+.faq-answer.open {
+    max-height: 500px;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.faq-icon {
+    transition: transform 0.3s ease;
+}
+.faq-question.open .faq-icon {
+    transform: rotate(45deg);
+}
 
 /* SVGアイコンの基本スタイル */
 svg.icon {
