@@ -145,6 +145,8 @@ Object.entries(staticPages).forEach(([page, title]) => {
       pageScripts = ['/list-dashboard-base.js', '/activity-list.js'];
     } else if (page === 'news-list') {
       pageScripts = ['/list-dashboard-base.js', '/news-list.js'];
+    } else if (page === 'contact') {
+      pageScripts = ['/contact-form.js'];
     } else if (page.startsWith('unit-')) {
       pageScripts = ['/dynamic-unit-activities.js'];
     }

@@ -103,6 +103,17 @@ if (useSqlite) {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    await run(`CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT,
+      subject TEXT,
+      message TEXT NOT NULL,
+      status TEXT DEFAULT 'unread',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Initial Admin
     const adminUser = process.env.INITIAL_ADMIN_USERNAME;
     const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
@@ -193,6 +204,10 @@ if (useSqlite) {
 
       // 5) site_settings
       await client.query(`CREATE TABLE IF NOT EXISTS site_settings (key TEXT PRIMARY KEY, value TEXT, description TEXT, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());`);
+
+      // 6) contacts
+      await client.query(`CREATE TABLE IF NOT EXISTS contacts (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT, subject TEXT, message TEXT NOT NULL, status TEXT DEFAULT 'unread', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts (created_at DESC);`);
 
       // 5-1 to 5-4) settings migration & view
       await client.query(`DROP VIEW IF EXISTS public.settings CASCADE;`);
