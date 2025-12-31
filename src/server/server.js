@@ -137,9 +137,17 @@ const contactRoutes = require('./routes/contact.routes.js');
 app.use('/api/contact', contactRoutes);
 
 // ------------------------------
-// Admin Static Files (HTML)
+// Admin UI Routes
 // ------------------------------
-// app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(projectRoot, 'src', 'views', 'admin', 'app.html'));
+});
+app.get('/admin/login', (req, res) => {
+  res.sendFile(path.join(projectRoot, 'src', 'views', 'admin', 'login.html'));
+});
+// その他のアドミン関連静的ファイル (JS, CSS等)
+app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
+
 
 // ================================================================
 // Settings Middleware (All Views)
