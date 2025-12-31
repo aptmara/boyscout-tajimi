@@ -3,7 +3,8 @@
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
             <div class="lg:col-span-2">
                 <div class="flex items-center mb-6">
-                    <img src="https://placehold.co/60x60/15803d/FFFFFF?text=BS" alt="団章" class="h-14 w-14 mr-4 rounded-full border-2 border-white/20 shadow-md bg-white">
+                    <img src="<%= siteConfig.getImage('group_crest_url', 'https://placehold.co/60x60/15803d/FFFFFF?text=BS') %>"
+                        alt="団章" class="h-14 w-14 mr-4 rounded-full border-2 border-white/20 shadow-md bg-white">
                     <div>
                         <p class="text-sm text-green-300 font-bold tracking-wider mb-1">日本ボーイスカウト岐阜県連盟</p>
                         <h4 class="text-3xl font-extrabold text-white tracking-wide">多治見第一団</h4>
@@ -14,23 +15,42 @@
                 </p>
 
                 <div class="space-y-4 mt-8">
-                     <div class="flex items-start group">
-                        <div class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
-                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <div class="flex items-start group">
+                        <div
+                            class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
+                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
                         </div>
                         <span class="contact-address text-gray-100 font-medium py-1">〒507-0017 岐阜県多治見市長瀬町２４番地の３１</span>
                     </div>
                     <div class="flex items-center group">
-                         <div class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
-                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        <div
+                            class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
+                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
+                            </svg>
                         </div>
-                        <a href="tel:0572-XX-XXXX" class="hover:text-yellow-400 contact-phone transition-colors text-white font-bold tracking-wide">0572-XX-XXXX</a>
+                        <a href="tel:0572-XX-XXXX"
+                            class="hover:text-yellow-400 contact-phone transition-colors text-white font-bold tracking-wide">0572-XX-XXXX</a>
                     </div>
                     <div class="flex items-center group">
-                        <div class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
-                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <div
+                            class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-green-700 transition-colors">
+                            <svg class="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
                         </div>
-                        <a href="mailto:tajimi1@gifu.scout.jp" class="hover:text-yellow-400 contact-email transition-colors text-gray-100">tajimi1@gifu.scout.jp</a>
+                        <a href="mailto:tajimi1@gifu.scout.jp"
+                            class="hover:text-yellow-400 contact-email transition-colors text-gray-100">tajimi1@gifu.scout.jp</a>
                     </div>
                 </div>
             </div>
@@ -38,29 +58,57 @@
             <div>
                 <h4 class="text-lg font-bold text-white mb-6 border-b-2 border-yellow-500 pb-2 inline-block">サイトマップ</h4>
                 <ul class="space-y-3">
-                    <li><a href="/about" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>団について</a></li>
-                    <li><a href="/#units" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>各隊の紹介</a></li>
-                    <li><a href="/activity-log" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>活動内容</a></li>
-                    <li><a href="/join" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>入団案内</a></li>
-                    <li><a href="/news-list" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>お知らせ</a></li>
-                    <li><a href="/contact" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>お問い合わせ</a></li>
+                    <li><a href="/about"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>団について</a></li>
+                    <li><a href="/#units"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>各隊の紹介</a></li>
+                    <li><a href="/activity-log"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>活動内容</a></li>
+                    <li><a href="/join"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>入団案内</a></li>
+                    <li><a href="/news-list"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>お知らせ</a></li>
+                    <li><a href="/contact"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>お問い合わせ</a></li>
                 </ul>
             </div>
 
             <div>
-                <h4 class="text-lg font-bold text-white mb-6 border-b-2 border-yellow-500 pb-2 inline-block">インフォメーション</h4>
+                <h4 class="text-lg font-bold text-white mb-6 border-b-2 border-yellow-500 pb-2 inline-block">インフォメーション
+                </h4>
                 <ul class="space-y-3">
-                    <li><a href="/sitemap" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>サイトマップ</a></li>
-                    <li><a href="/privacy" class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span class="text-green-400 mr-2">›</span>プライバシーポリシー</a></li>
+                    <li><a href="/sitemap"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>サイトマップ</a></li>
+                    <li><a href="/privacy"
+                            class="text-gray-200 hover:text-green-200 hover:translate-x-1 transition-all duration-300 inline-block flex items-center"><span
+                                class="text-green-400 mr-2">›</span>プライバシーポリシー</a></li>
                 </ul>
 
-                 <h4 class="text-lg font-bold text-white mt-10 mb-6 border-b-2 border-yellow-500 pb-2 inline-block">SNS</h4>
+                <h4 class="text-lg font-bold text-white mt-10 mb-6 border-b-2 border-yellow-500 pb-2 inline-block">SNS
+                </h4>
                 <div class="flex space-x-4">
-                    <a href="#" aria-label="Facebook" class="bg-green-800 hover:bg-[#1877F2] text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"></path></svg>
+                    <a href="#" aria-label="Facebook"
+                        class="bg-green-800 hover:bg-[#1877F2] text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z">
+                            </path>
+                        </svg>
                     </a>
-                    <a href="#" aria-label="Instagram" class="bg-green-800 hover:bg-[#E4405F] text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.059 1.689.073 4.948.073 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+                    <a href="#" aria-label="Instagram"
+                        class="bg-green-800 hover:bg-[#E4405F] text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.059 1.689.073 4.948.073 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z">
+                            </path>
+                        </svg>
                     </a>
                 </div>
             </div>

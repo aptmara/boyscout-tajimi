@@ -1,12 +1,12 @@
 // admin-views.js
-(function(){
+(function () {
   const Admin = (window.Admin = window.Admin || {});
   const { state, utils, api, actions } = Admin;
 
   // --- Views Management ---
   const views = Admin.views = {};
 
-  views.setActiveView = async function(viewId, params = {}) {
+  views.setActiveView = async function (viewId, params = {}) {
     const { id, force } = params;
     if (!force && state.activeView === viewId && !id) return;
 
@@ -102,7 +102,7 @@
   function createListView(config) {
     return async (root) => {
       root.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-      
+
       let items = [];
       try {
         const data = await config.api();
@@ -123,11 +123,11 @@
 
       const render = () => {
         root.innerHTML = '';
-        
+
         // 1. Toolbar (Search & Filter)
         const toolbar = document.createElement('div');
         toolbar.className = 'view-toolbar filter-bar';
-        
+
         // Search
         const searchWrapper = Components.searchBar((q) => {
           viewState.query = q;
@@ -168,7 +168,7 @@
         // 3. Render Body Function
         const renderBody = () => {
           listContainer.innerHTML = '';
-          
+
           // Filter
           let filtered = items.filter(item => {
             const text = config.getSearchableText(item).toLowerCase();
@@ -192,7 +192,7 @@
           // Table / Card List
           const table = document.createElement('table');
           table.className = 'data-table';
-          
+
           const thead = document.createElement('thead');
           thead.innerHTML = `<tr>${config.columns.map(c => `<th>${utils.escapeHtml(c.label)}</th>`).join('')}<th>操作</th></tr>`;
           table.appendChild(thead);
@@ -205,15 +205,15 @@
               td.innerHTML = col.render(item);
               tr.appendChild(td);
             });
-            
+
             // Actions
             const actionTd = document.createElement('td');
             actionTd.className = 'table-actions';
-            
+
             const editBtn = document.createElement('button');
             editBtn.textContent = '編集';
             editBtn.onclick = () => config.openEditor(item.id);
-            
+
             const delBtn = document.createElement('button');
             delBtn.textContent = '削除';
             delBtn.className = 'text-red-600 hover:bg-red-50';
@@ -256,76 +256,44 @@
     };
   }
 
-  // --- Settings View Configuration ---
-  const settingsGroups = [
-    {
-      id: 'basic', label: '基本情報',
-      description: 'サイト全体に表示される連絡先などの基本情報です。',
-      fields: [
-        { key: 'contact_address', label: '住所' },
-        { key: 'contact_phone', label: '電話番号' },
-        { key: 'contact_email', label: 'メールアドレス' },
-        { key: 'contact_person_name', label: '問い合わせ担当者名' },
-      ]
-    },
-    {
-      id: 'privacy', label: 'プライバシー',
-      description: 'プライバシーポリシーページに表示される情報です。',
-      fields: [
-        { key: 'privacy_effective_date', label: '制定日' },
-        { key: 'privacy_last_updated_date', label: '最終改定日' },
-        { key: 'privacy_contact_person', label: '個人情報担当者' },
-        { key: 'privacy_contact_phone', label: '問い合わせ電話番号' },
-        { key: 'privacy_contact_email', label: '問い合わせメール' },
-      ]
-    },
-    {
-      id: 'images', label: 'トップ画像',
-      description: 'トップページのメインビジュアルなどを設定します。',
-      fields: [
-        { key: 'index_hero_image_url', label: 'ヒーロー画像', type: 'image' },
-        { key: 'group_crest_url', label: '団章画像', type: 'image' },
-        { key: 'site_favicon_url', label: 'ファビコン', type: 'image' },
-      ]
-    },
-    {
-      id: 'units', label: '各隊設定',
-      description: '各隊のリーダー名や画像を設定します。',
-      fields: [
-        { key: 'leader_beaver', label: 'ビーバー隊リーダー' },
-        { key: 'unit_beaver_logo_url', label: 'ビーバー隊章', type: 'image' },
-        { key: 'leader_cub', label: 'カブ隊リーダー' },
-        { key: 'unit_cub_logo_url', label: 'カブ隊章', type: 'image' },
-        { key: 'leader_boy', label: 'ボーイ隊リーダー' },
-        { key: 'unit_boy_logo_url', label: 'ボーイ隊章', type: 'image' },
-        { key: 'leader_venture', label: 'ベンチャー隊リーダー' },
-        { key: 'unit_venture_logo_url', label: 'ベンチャー隊章', type: 'image' },
-        { key: 'leader_rover', label: 'ローバー隊リーダー' },
-        { key: 'unit_rover_logo_url', label: 'ローバー隊章', type: 'image' },
-      ]
-    }
-  ];
-
   // --- Settings View Logic ---
   async function renderSettingsView(root, initialTab) {
     root.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-    
+
     // Load Data
-    let settingsData = {};
+    let structuredData = {};
+    let groupsDef = {};
+    let flatData = {};
+
     try {
-      const res = await api.settings(); // /api/settings/all returns array of {key, value}
-      if (Array.isArray(res)) {
-        settingsData = res.reduce((acc, cur) => { acc[cur.key] = cur.value; return acc; }, {});
+      const res = await api.settings(); // expects { groups, settings, flat }
+      if (res.groups && res.settings) {
+        structuredData = res.settings;
+        groupsDef = res.groups;
+        flatData = res.flat;
       } else {
-        settingsData = res; // Fallback
+        // Fallback or error
+        throw new Error('Invalid API response format');
       }
     } catch (e) {
       root.innerHTML = `<div class="error-message">設定の読み込みに失敗しました: ${utils.escapeHtml(e.message)}</div>`;
       return;
     }
 
-    let currentTab = initialTab || settingsGroups[0].id;
-    if (currentTab === 'branding') currentTab = 'images'; // Alias handling
+    // グループ定義（順番制御用）- サーバー定義のキー順序が保障されないため、ここで順序を定義するか、サーバーから配列でもらうのが良いが、
+    // JavaScriptのObject.keys順序（挿入順）にある程度依存してしまう。
+    // ここでは主要なグループ順序を定義し、残りはその後に続ける。
+    const orderedGroupKeys = [
+      'COMMON', 'INDEX', 'ABOUT', 'JOIN', 'CONTACT', 'PRIVACY',
+      'BEAVER', 'CUB', 'BOY', 'VENTURE', 'ROVER'
+    ];
+    // 未定義のグループがあれば末尾に追加
+    Object.keys(groupsDef).forEach(k => {
+      if (!orderedGroupKeys.includes(k)) orderedGroupKeys.push(k);
+    });
+
+    let currentTab = initialTab || orderedGroupKeys[0];
+    if (!structuredData[currentTab]) currentTab = orderedGroupKeys.find(k => structuredData[k]) || 'COMMON';
 
     const render = () => {
       root.innerHTML = '';
@@ -333,21 +301,28 @@
       // 1. Tabs
       const tabsNav = document.createElement('div');
       tabsNav.className = 'tabs';
-      settingsGroups.forEach(group => {
+      // コンテナ幅を超える場合のスクロール対応
+      tabsNav.style.overflowX = 'auto';
+      tabsNav.style.flexWrap = 'nowrap';
+
+      orderedGroupKeys.forEach(groupId => {
+        if (!structuredData[groupId]) return; // データがないグループは表示しない
+
         const btn = document.createElement('button');
-        btn.className = `tab-btn ${group.id === currentTab ? 'active' : ''}`;
-        btn.textContent = group.label;
-        btn.onclick = () => { currentTab = group.id; render(); };
+        btn.className = `tab-btn ${groupId === currentTab ? 'active' : ''}`;
+        btn.textContent = groupsDef[groupId] || groupId;
+        btn.onclick = () => { currentTab = groupId; render(); };
+        btn.style.whiteSpace = 'nowrap';
         tabsNav.appendChild(btn);
       });
       root.appendChild(tabsNav);
 
       // 2. Content
-      const group = settingsGroups.find(g => g.id === currentTab) || settingsGroups[0];
-      
+      const fields = structuredData[currentTab] || [];
+
       const desc = document.createElement('p');
       desc.className = 'settings-description';
-      desc.textContent = group.description;
+      desc.textContent = `${groupsDef[currentTab] || currentTab} の設定項目です。画像はアップロードするとURLが自動入力されます。`;
       root.appendChild(desc);
 
       const form = document.createElement('form');
@@ -360,11 +335,11 @@
         submitBtn.textContent = '保存中...';
 
         const payload = {};
-        group.fields.forEach(field => {
+        fields.forEach(field => {
           const input = form.querySelector(`[name="${field.key}"]`);
           if (input) {
-            // Google Drive変換 (Imageタイプのみ)
             let val = input.value;
+            // Google Drive変換 (Imageタイプのみ) - 念のため
             if (field.type === 'image') {
               val = utils.convertGoogleDriveUrl(val);
             }
@@ -381,11 +356,11 @@
           });
           if (!res.ok) throw new Error('Save failed');
           utils.showToast('設定を保存しました');
-          // 更新後の値を再反映 (プレビュー更新のため)
-          group.fields.forEach(field => {
-            if (payload[field.key]) settingsData[field.key] = payload[field.key];
+          // Update local data for preview
+          fields.forEach(field => {
+            if (payload[field.key]) field.value = payload[field.key];
           });
-          render(); // Re-render to update previews
+          render();
         } catch (err) {
           utils.showToast(err.message, 'error');
         } finally {
@@ -394,38 +369,133 @@
         }
       };
 
-      group.fields.forEach(field => {
+      fields.forEach(field => {
         const div = document.createElement('div');
         div.className = 'form-group full-width';
-        
+
         const label = document.createElement('label');
-        label.textContent = field.label;
+        label.textContent = field.label || field.key;
         div.appendChild(label);
+
+        // Input Wrapper
+        const inputWrapper = document.createElement('div');
+        inputWrapper.style.display = 'flex';
+        inputWrapper.style.gap = '8px';
 
         const input = document.createElement('input');
         input.type = 'text';
         input.name = field.key;
         input.className = 'input';
-        input.value = settingsData[field.key] || '';
+        // サーバーから来る値 (field.value) を使用
+        input.value = field.value || '';
+
         if (field.type === 'image') {
-          input.placeholder = 'https://... (Google Drive URL対応)';
+          input.placeholder = 'https://... または画像をアップロード';
+          input.style.flex = '1';
+
           input.addEventListener('input', utils.debounce((e) => {
             const preview = div.querySelector('.image-preview-thumb');
             if (preview) preview.src = utils.convertGoogleDriveUrl(e.target.value);
           }, 500));
-        }
-        div.appendChild(input);
 
+          // Upload Button
+          const uploadBtn = document.createElement('button');
+          uploadBtn.type = 'button';
+          uploadBtn.className = 'btn-secondary';
+          uploadBtn.textContent = '画像を選択';
+          uploadBtn.style.whiteSpace = 'nowrap';
+
+          // Hidden File Input
+          const fileInput = document.createElement('file-input'); // dummy tag mechanism or create element
+          const hiddenInput = document.createElement('input');
+          hiddenInput.type = 'file';
+          hiddenInput.accept = 'image/*';
+          hiddenInput.style.display = 'none';
+
+          uploadBtn.onclick = () => hiddenInput.click();
+
+          hiddenInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            uploadBtn.textContent = '...';
+            uploadBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('key', field.key); // キーも送るとバックエンドで設定更新もしてくれる
+
+            try {
+              const res = await fetch('/api/settings/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+              });
+              if (!res.ok) throw new Error('Upload failed');
+              const data = await res.json();
+
+              // 成功したらURLを入力欄にセット
+              input.value = data.url;
+              field.value = data.url; // Update local state
+
+              const preview = div.querySelector('.image-preview-thumb');
+              if (preview) {
+                preview.src = data.url;
+                preview.parentElement.style.display = 'block';
+              }
+              utils.showToast('アップロード完了');
+            } catch (err) {
+              utils.showToast('アップロード失敗: ' + err.message, 'error');
+            } finally {
+              uploadBtn.textContent = '画像を選択';
+              uploadBtn.disabled = false;
+              hiddenInput.value = ''; // Reset
+            }
+          };
+
+          inputWrapper.appendChild(input);
+          inputWrapper.appendChild(uploadBtn);
+          inputWrapper.appendChild(hiddenInput); // DOMに追加しておかないと動作しないブラウザもあるかも
+        } else {
+          // テキストエリア対応 (長文の場合)
+          if (field.key.includes('message') || field.key.includes('html')) {
+            const textarea = document.createElement('textarea');
+            textarea.name = field.key;
+            textarea.className = 'textarea';
+            textarea.value = field.value || '';
+            textarea.rows = 4;
+            div.appendChild(textarea);
+            inputWrapper.style.display = 'none'; // inputWrapperを使わない
+          } else {
+            inputWrapper.appendChild(input);
+          }
+        }
+
+        if (inputWrapper.style.display !== 'none') {
+          div.appendChild(inputWrapper);
+        }
+
+        // Preview Area (Image only)
         if (field.type === 'image') {
           const previewWrapper = document.createElement('div');
           previewWrapper.className = 'image-preview-item';
+          previewWrapper.style.marginTop = '10px';
+          previewWrapper.style.maxWidth = '200px';
+
           const img = document.createElement('img');
           img.className = 'image-preview-thumb';
-          img.src = utils.convertGoogleDriveUrl(settingsData[field.key] || '');
+          img.style.width = '100%';
+          img.style.borderRadius = '8px';
+          img.style.border = '1px solid #ddd';
+
+          const val = field.value || '';
+          img.src = utils.convertGoogleDriveUrl(val);
+
           img.onerror = () => { previewWrapper.style.display = 'none'; };
           img.onload = () => { previewWrapper.style.display = 'block'; };
-          if (!settingsData[field.key]) previewWrapper.style.display = 'none';
-          
+
+          if (!val) previewWrapper.style.display = 'none';
+
           previewWrapper.appendChild(img);
           div.appendChild(previewWrapper);
         }
@@ -436,12 +506,12 @@
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'editor-actions full-width';
       actionsDiv.style.marginTop = '32px';
-      
+
       const saveBtn = document.createElement('button');
       saveBtn.type = 'submit';
       saveBtn.className = 'btn-primary';
       saveBtn.textContent = '変更を保存';
-      
+
       actionsDiv.appendChild(saveBtn);
       form.appendChild(actionsDiv);
       root.appendChild(form);
@@ -455,7 +525,7 @@
     root.innerHTML = '<div class="loading-spinner mx-auto"></div>';
     try {
       const data = await api.summary();
-      
+
       root.innerHTML = `
         <div class="view-section">
           <h2 class="section-heading">概要</h2>
@@ -475,15 +545,15 @@
 
         <div class="view-section">
           <h2 class="section-heading">設定ステータス</h2>
-          ${data.settings.missingKeys.length > 0 
-            ? `<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+          ${data.settings.missingKeys.length > 0
+          ? `<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
                  <p class="text-yellow-800 font-bold mb-2">⚠️ 未設定の項目があります</p>
                  <ul class="list-disc list-inside text-sm text-yellow-700">
                    ${data.settings.missingKeys.map(k => `<li>${utils.escapeHtml(k.label)}</li>`).join('')}
                  </ul>
                  <button class="btn-secondary mt-3 text-sm" onclick="Admin.views.setActiveView('settings')">設定画面へ</button>
-               </div>` 
-            : '<div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">✅ 重要な設定は完了しています</div>'}
+               </div>`
+          : '<div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">✅ 重要な設定は完了しています</div>'}
         </div>
       `;
     } catch (e) {
@@ -495,7 +565,7 @@
   function renderNewsEditorView(root, id) {
     root.innerHTML = ''; // Clear
     Admin.editors.openNews(id);
-    views.setActiveView('news'); 
+    views.setActiveView('news');
   }
 
   function renderActivityEditorView(root, id) {
@@ -537,28 +607,28 @@
 
   // ---- Registry ----
   views.registry = {
-    'dashboard': { title:'ダッシュボード', subtitle:'サイトの概況', render: renderDashboardView },
-    'news': { title:'お知らせ', subtitle:'ニュースの管理', render: createListView(newsViewConfig) },
-    'activities': { title:'活動記録', subtitle:'活動レポートの管理', render: createListView(activitiesViewConfig) },
-    'settings': { title:'サイト設定', subtitle:'全体設定の管理', render: renderSettingsView },
-    'branding': { title:'ブランド資産', subtitle:'ロゴ・配色の管理', render: (root) => renderSettingsView(root, 'branding') },
-    
-    'news-editor': { title:'...', subtitle:'', render: (root, id) => renderNewsEditorView(root, id) },
-    'activities-editor': { title:'...', subtitle:'', render: (root, id) => renderActivityEditorView(root, id) },
+    'dashboard': { title: 'ダッシュボード', subtitle: 'サイトの概況', render: renderDashboardView },
+    'news': { title: 'お知らせ', subtitle: 'ニュースの管理', render: createListView(newsViewConfig) },
+    'activities': { title: '活動記録', subtitle: '活動レポートの管理', render: createListView(activitiesViewConfig) },
+    'settings': { title: 'サイト設定', subtitle: '全体設定の管理', render: renderSettingsView },
+    'branding': { title: 'ブランド資産', subtitle: 'ロゴ・配色の管理', render: (root) => renderSettingsView(root, 'branding') },
+
+    'news-editor': { title: '...', subtitle: '', render: (root, id) => renderNewsEditorView(root, id) },
+    'activities-editor': { title: '...', subtitle: '', render: (root, id) => renderActivityEditorView(root, id) },
   };
 
   // ---- Main Logic ----
   document.addEventListener('DOMContentLoaded', init);
 
-  async function init(){
+  async function init() {
     try {
       await ensureSession();
       initZoom();
       await window.AdminPalette?.init();
-      
+
       const params = new URLSearchParams(location.search);
       const initialView = params.get('view') || localStorage.getItem('admin.active') || 'dashboard';
-      
+
       const parts = initialView.split('/');
       const viewId = parts[0];
       const id = parts[1];
@@ -571,29 +641,29 @@
     }
   }
 
-  async function ensureSession(){
-    const res = await fetch('/api/session', { credentials:'same-origin' });
+  async function ensureSession() {
+    const res = await fetch('/api/session', { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Network error');
     const data = await res.json();
     if (!data.loggedIn) throw new Error('unauthenticated');
   }
 
-  function initZoom(){
-    const root=document.documentElement;
-    const clamp=(v)=>Math.min(1.25,Math.max(0.85,Number(v)||1));
-    const read=()=>clamp(parseFloat(localStorage.getItem('admin.zoom')||'1'));
-    const apply=(value)=>{
-      const next=clamp(value);
+  function initZoom() {
+    const root = document.documentElement;
+    const clamp = (v) => Math.min(1.25, Math.max(0.85, Number(v) || 1));
+    const read = () => clamp(parseFloat(localStorage.getItem('admin.zoom') || '1'));
+    const apply = (value) => {
+      const next = clamp(value);
       root.style.setProperty('--zoom', next.toString());
       localStorage.setItem('admin.zoom', next.toFixed(2));
     };
     apply(read());
-    document.getElementById('zoom-inc')?.addEventListener('click', ()=>apply(read()+0.05));
-    document.getElementById('zoom-dec')?.addEventListener('click', ()=>apply(read()-0.05));
+    document.getElementById('zoom-inc')?.addEventListener('click', () => apply(read() + 0.05));
+    document.getElementById('zoom-dec')?.addEventListener('click', () => apply(read() - 0.05));
   }
 
-  function renderSkeleton(){
-    const root=document.getElementById('view-root');
+  function renderSkeleton() {
+    const root = document.getElementById('view-root');
     if (!root) return;
     root.innerHTML = `
       <div class="view-section">
@@ -603,8 +673,8 @@
   }
 
   function renderError(err) {
-    const root=document.getElementById('view-root');
-    if(root) root.innerHTML = `<div class="error-message p-8 text-center">エラーが発生しました: ${utils.escapeHtml(err.message)}</div>`;
+    const root = document.getElementById('view-root');
+    if (root) root.innerHTML = `<div class="error-message p-8 text-center">エラーが発生しました: ${utils.escapeHtml(err.message)}</div>`;
   }
 
 })();

@@ -2,19 +2,33 @@
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
         <li class="inline-flex items-center">
             <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                    </path>
+                </svg>
                 ホーム
             </a>
         </li>
         <li>
             <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"></path>
+                </svg>
                 <a href="/#units" class="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2">各隊の紹介</a>
             </div>
         </li>
         <li aria-current="page">
             <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"></path>
+                </svg>
                 <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">カブ隊</span>
             </div>
         </li>
@@ -23,7 +37,8 @@
 
 <section class="bg-green-500 text-white py-12 md:py-20 fade-in-section">
     <div class="container mx-auto px-6 text-center">
-        <img src="https://placehold.co/150x150/FFFFFF/22C55E?text=カブ隊章" alt="カブ隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg">
+        <img src="<%= siteConfig.getImage('unit_cub_logo_url', 'https://placehold.co/150x150/FFFFFF/22C55E?text=カブ隊章') %>"
+            alt="カブ隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">カブ隊のご紹介</h1>
         <p class="text-lg md:text-xl text-green-100 max-w-2xl mx-auto">
             「いつも元気」にチャレンジ！仲間と一緒に、たくさんの「できた！」を体験しよう！
@@ -63,37 +78,60 @@
                 </div>
             </div>
             <div>
-                <img src="https://placehold.co/600x450/A7F3D0/15803D?text=カブ隊の元気な活動" alt="カブ隊の活動イメージ" class="rounded-xl shadow-xl w-full">
+                <img src="<%= siteConfig.getImage('unit_cub_hero_image_url', 'https://placehold.co/600x450/A7F3D0/15803D?text=カブ隊の元気な活動') %>"
+                    alt="カブ隊の活動イメージ" class="rounded-xl shadow-xl w-full">
             </div>
         </div>
 
         <div class="mt-16">
             <h3 class="text-2xl md:text-3xl font-bold text-center text-green-600 mb-10">主な活動内容</h3>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
                     <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 text-white mb-4">
-                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 10V7m0 10a3 3 0 00-3-3H9a3 3 0 00-3 3m0 0V7" /></svg>
+                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 10V7m0 10a3 3 0 00-3-3H9a3 3 0 00-3 3m0 0V7" />
+                        </svg>
                     </div>
                     <h4 class="text-lg font-semibold text-green-700 mb-2">組集会・隊集会</h4>
                     <p class="text-sm text-gray-600">組の仲間と協力してゲームや課題に挑戦したり、隊全体で大きな活動に取り組みます。</p>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
                     <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 text-white mb-4">
-                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                     </div>
                     <h4 class="text-lg font-semibold text-green-700 mb-2">野外活動・ハイキング</h4>
                     <p class="text-sm text-gray-600">自然の中で地図読みや追跡サインを学びながら、目的地を目指します。簡単なデイキャンプも行います。</p>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
                     <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 text-white mb-4">
-                         <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.286 2.143L13 21l-2.286-6.857L5 12l5.286-2.143L13 3z" /></svg>
+                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.286 2.143L13 21l-2.286-6.857L5 12l5.286-2.143L13 3z" />
+                        </svg>
                     </div>
                     <h4 class="text-lg font-semibold text-green-700 mb-2">工作・科学実験</h4>
                     <p class="text-sm text-gray-600">身近な材料を使った工作や、簡単な科学実験を通じて、創造力や探求心を刺激します。</p>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
-                   <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 text-white mb-4">
-                       <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.789-2.756 9.356A4.5 4.5 0 0012 21c1.264 0 2.41-.452 3.244-1.192A9.974 9.974 0 0112 11zm0 0V7a2.5 2.5 0 00-5 0v4m5 0v4a2.5 2.5 0 01-5 0V7m5 4v1m0-1a2.5 2.5 0 00-2.5-2.5M12 3V1.5M12 22.5V21m0-18A10.5 10.5 0 001.5 12h21A10.5 10.5 0 0012 3z" /></svg>
+                <div
+                    class="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg shadow-md card-hover-effect">
+                    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 text-white mb-4">
+                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 11c0 3.517-1.009 6.789-2.756 9.356A4.5 4.5 0 0012 21c1.264 0 2.41-.452 3.244-1.192A9.974 9.974 0 0112 11zm0 0V7a2.5 2.5 0 00-5 0v4m5 0v4a2.5 2.5 0 01-5 0V7m5 4v1m0-1a2.5 2.5 0 00-2.5-2.5M12 3V1.5M12 22.5V21m0-18A10.5 10.5 0 001.5 12h21A10.5 10.5 0 0012 3z" />
+                        </svg>
                     </div>
                     <h4 class="text-lg font-semibold text-green-700 mb-2">奉仕活動・地域交流</h4>
                     <p class="text-sm text-gray-600">地域の清掃活動や募金活動に参加し、社会に貢献することの大切さを学びます。</p>
@@ -107,22 +145,32 @@
     <div class="container mx-auto px-6">
         <h2 class="text-3xl md:text-4xl font-bold text-center text-green-700 mb-16">カブ隊の活動の様子</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動1" data-lightbox="cub-gallery" data-title="組の仲間とハイキング">
-                <img src="https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動1" alt="カブ隊 活動写真1" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動1" data-lightbox="cub-gallery"
+                data-title="組の仲間とハイキング">
+                <img src="<%= siteConfig.getImage('unit_cub_gallery_img_1_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動1') %>"
+                    alt="カブ隊 活動写真1" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
             </a>
-            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動2" data-lightbox="cub-gallery" data-title="楽しい工作タイム">
-                <img src="https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動2" alt="カブ隊 活動写真2" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動2" data-lightbox="cub-gallery"
+                data-title="楽しい工作タイム">
+                <img src="<%= siteConfig.getImage('unit_cub_gallery_img_2_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動2') %>"
+                    alt="カブ隊 活動写真2" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
             </a>
-            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動3" data-lightbox="cub-gallery" data-title="デイキャンプで料理">
-                <img src="https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動3" alt="カブ隊 活動写真3" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動3" data-lightbox="cub-gallery"
+                data-title="デイキャンプで料理">
+                <img src="<%= siteConfig.getImage('unit_cub_gallery_img_3_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動3') %>"
+                    alt="カブ隊 活動写真3" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
             </a>
-            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動4" data-lightbox="cub-gallery" data-title="地域のお祭りに参加">
-                <img src="https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動4" alt="カブ隊 活動写真4" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+            <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動4" data-lightbox="cub-gallery"
+                data-title="地域のお祭りに参加">
+                <img src="<%= siteConfig.getImage('unit_cub_gallery_img_4_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動4') %>"
+                    alt="カブ隊 活動写真4" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
             </a>
         </div>
         <div class="text-center mt-12">
-            <a href="/activity-log?category=cub" class="text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">
-                カブ隊の活動報告をもっと見る <span class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
+            <a href="/activity-log?category=cub"
+                class="text-green-600 hover:text-green-800 font-semibold transition-colors duration-300 group">
+                カブ隊の活動報告をもっと見る <span
+                    class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
             </a>
         </div>
     </div>
@@ -139,7 +187,8 @@
 <section id="leader-message-cub" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.6s;">
     <div class="container mx-auto px-6">
         <div class="max-w-3xl mx-auto text-center">
-            <img src="https://placehold.co/200x200/6EE7B7/FFFFFF?text=リーダー顔写真" alt="カブ隊リーダー" class="w-40 h-40 rounded-full mx-auto mb-8 border-4 border-green-300 shadow-lg">
+            <img src="<%= siteConfig.getImage('unit_cub_leader_photo_url', 'https://placehold.co/200x200/6EE7B7/FFFFFF?text=リーダー顔写真') %>"
+                alt="カブ隊リーダー" class="w-40 h-40 rounded-full mx-auto mb-8 border-4 border-green-300 shadow-lg">
             <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">リーダーからのメッセージ</h2>
             <p class="text-xl text-gray-700 mb-4 italic">
                 「カブ隊では、『組』の仲間たちと力を合わせ、様々なことに挑戦します。失敗を恐れず、何度もチャレンジする中で、スカウトたちはたくましく成長していきます。元気いっぱいのカブスカウトたちと一緒に、たくさんの『できた！』を分かち合いましょう！」
@@ -155,7 +204,11 @@
         <div class="max-w-3xl mx-auto space-y-8">
             <div class="bg-white p-8 rounded-xl shadow-lg card-hover-effect">
                 <h3 class="text-2xl font-semibold text-green-600 mb-3 flex items-center">
-                    <svg class="w-7 h-7 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
+                    <svg class="w-7 h-7 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
                     コミュニケーション
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
@@ -164,7 +217,11 @@
             </div>
             <div class="bg-white p-8 rounded-xl shadow-lg card-hover-effect">
                 <h3 class="text-2xl font-semibold text-green-600 mb-3 flex items-center">
-                    <svg class="w-7 h-7 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                    <svg class="w-7 h-7 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
                     進級とチャレンジ章
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
@@ -179,8 +236,10 @@
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-10">カブ隊に興味を持ったら</h2>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
-            <a href="/#units" class="w-full sm:w-auto inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">各隊の紹介</a>
-            <a href="/join" class="w-full sm:w-auto inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">入団案内</a>
+            <a href="/#units"
+                class="w-full sm:w-auto inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">各隊の紹介</a>
+            <a href="/join"
+                class="w-full sm:w-auto inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">入団案内</a>
         </div>
     </div>
 </section>

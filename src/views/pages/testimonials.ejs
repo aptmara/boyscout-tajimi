@@ -2,19 +2,33 @@
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
         <li class="inline-flex items-center">
             <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                    </path>
+                </svg>
                 ホーム
             </a>
         </li>
         <li>
             <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"></path>
+                </svg>
                 <a href="/join" class="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2">入団案内</a>
             </div>
         </li>
         <li aria-current="page">
             <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"></path>
+                </svg>
                 <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">保護者・スカウトの声</span>
             </div>
         </li>
@@ -36,15 +50,19 @@
 
             <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-200 card-hover-effect">
                 <div class="flex items-start mb-5">
-                    <img src="https://placehold.co/80x80/FF9800/FFFFFF?text=保護者A" alt="保護者Aさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-yellow-400 object-cover">
+                    <img src="<%= siteConfig.getImage('testimonial_page_img_1_url', 'https://placehold.co/80x80/FF9800/FFFFFF?text=保護者A') %>"
+                        alt="保護者Aさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-yellow-400 object-cover">
                     <div>
                         <h3 class="text-2xl font-semibold text-gray-800">佐藤 様</h3>
                         <p class="text-sm text-yellow-600 font-medium">カブスカウト保護者 (お子様: 小学4年生)</p>
                     </div>
                 </div>
                 <blockquote class="relative">
-                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-yellow-200" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
-                        <path d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z"></path>
+                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-yellow-200"
+                        fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                        <path
+                            d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z">
+                        </path>
                     </svg>
                     <p class="text-gray-700 leading-relaxed text-lg italic">
                         「引っ込み思案だった息子が、ビーバー隊からカブ隊へと進む中で、驚くほど積極的になりました。リーダーの方々が一人ひとりの個性を尊重し、温かく見守ってくださるので、安心して活動に参加させられます。週末の活動報告を聞くのが、私の楽しみの一つです。」
@@ -54,15 +72,19 @@
 
             <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-200 card-hover-effect">
                 <div class="flex items-start mb-5">
-                    <img src="https://placehold.co/80x80/03A9F4/FFFFFF?text=スカウトB" alt="スカウトBさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-blue-400 object-cover">
+                    <img src="<%= siteConfig.getImage('testimonial_page_img_2_url', 'https://placehold.co/80x80/03A9F4/FFFFFF?text=スカウトB') %>"
+                        alt="スカウトBさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-blue-400 object-cover">
                     <div>
                         <h3 class="text-2xl font-semibold text-gray-800">田中 勇気くん</h3>
                         <p class="text-sm text-blue-600 font-medium">ボーイスカウト (中学1年生)</p>
                     </div>
                 </div>
-                 <blockquote class="relative">
-                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-blue-200" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
-                        <path d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z"></path>
+                <blockquote class="relative">
+                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-blue-200"
+                        fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                        <path
+                            d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z">
+                        </path>
                     </svg>
                     <p class="text-gray-700 leading-relaxed text-lg italic">
                         「ボーイスカウトに入って、キャンプやハイキングで色々な技術を覚えました。特に、班のみんなで協力して課題をクリアした時の達成感はすごいです。学校の友達とは違う仲間ができて、世界が広がった気がします。」
@@ -72,32 +94,42 @@
 
             <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-200 card-hover-effect">
                 <div class="flex items-start mb-5">
-                    <img src="https://placehold.co/80x80/4CAF50/FFFFFF?text=保護者C" alt="保護者Cさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-green-400 object-cover">
+                    <img src="<%= siteConfig.getImage('testimonial_page_img_3_url', 'https://placehold.co/80x80/4CAF50/FFFFFF?text=保護者C') %>"
+                        alt="保護者Cさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-green-400 object-cover">
                     <div>
                         <h3 class="text-2xl font-semibold text-gray-800">鈴木 様</h3>
                         <p class="text-sm text-green-600 font-medium">ビーバー隊保護者 (お子様: 年長)</p>
                     </div>
                 </div>
-                 <blockquote class="relative">
-                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-green-200" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
-                        <path d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z"></path>
+                <blockquote class="relative">
+                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-green-200"
+                        fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                        <path
+                            d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z">
+                        </path>
                     </svg>
                     <p class="text-gray-700 leading-relaxed text-lg italic">
                         「娘は毎週のビーバー隊の活動を心待ちにしています。自然の中で思いっきり遊んだり、新しいことに挑戦したりする中で、たくさんの笑顔が見られるようになりました。リーダーの方々も優しく、安心して預けられます。」
                     </p>
                 </blockquote>
             </div>
-             <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-200 card-hover-effect md:col-span-2 lg:col-span-1"> {/* レイアウト調整用 */}
+            <div
+                class="bg-white p-8 rounded-xl shadow-xl border border-gray-200 card-hover-effect md:col-span-2 lg:col-span-1">
+                {/* レイアウト調整用 */}
                 <div class="flex items-start mb-5">
-                    <img src="https://placehold.co/80x80/9C27B0/FFFFFF?text=スカウトD" alt="スカウトDさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-purple-400 object-cover">
+                    <img src="<%= siteConfig.getImage('testimonial_page_img_4_url', 'https://placehold.co/80x80/9C27B0/FFFFFF?text=スカウトD') %>"
+                        alt="スカウトDさんの写真" class="w-20 h-20 rounded-full mr-5 border-2 border-purple-400 object-cover">
                     <div>
                         <h3 class="text-2xl font-semibold text-gray-800">高橋 美咲さん</h3>
                         <p class="text-sm text-purple-600 font-medium">ベンチャースカウト (高校2年生)</p>
                     </div>
                 </div>
-                 <blockquote class="relative">
-                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-purple-200" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
-                        <path d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z"></path>
+                <blockquote class="relative">
+                    <svg class="absolute top-0 left-0 transform -translate-x-6 -translate-y-4 h-10 w-10 text-purple-200"
+                        fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                        <path
+                            d="M9.333 7C6.133 7 4.5 9.133 4.5 11.867c0 1.4.533 2.533 1.2 3.733C6.533 16.8 7.467 18 8.4 19.067c.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467C3.467 21.2 3.2 19.867 3.2 18.2c0-2.533.8-4.933 2.533-6.8C7.6 9.333 9.733 8.067 12.267 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2zM22.667 7c-3.2 0-4.8 2.133-4.8 4.867 0 1.4.533 2.533 1.2 3.733.667 1.267 1.6 2.4 2.533 3.467.8.8 1.467 1.467 1.867 2.2.267.6.267 1.067 0 1.733-.267.4-.8.8-1.467 1.067-.6.267-1.067.267-1.733 0-.867-.267-1.6-.8-2.2-1.467-.6-.667-.867-2-.867-3.667 0-2.533.8-4.933 2.533-6.8C20.933 9.333 23.067 8.067 25.6 7.2c.4-.133.8-.267 1.067-.267.8 0 1.067.533 1.067 1.067 0 .533-.267.8-.8 1.067-.267.267-.8.4-1.467.533-1.2.267-2.133.667-2.8 1.2z">
+                        </path>
                     </svg>
                     <p class="text-gray-700 leading-relaxed text-lg italic">
                         「ベンチャー隊では、自分たちでプロジェクトを企画して実行できるのが魅力です。地域のお祭りでブースを出したり、環境問題について学んで発表したり、色々な経験ができています。将来やりたいことを見つけるヒントにもなっています。」
@@ -107,7 +139,8 @@
         </div>
 
         <div class="mt-16 text-center">
-            <a href="/join" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-10 rounded-lg text-xl transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">入団案内</a>
+            <a href="/join"
+                class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-10 rounded-lg text-xl transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">入団案内</a>
         </div>
     </div>
 </section>

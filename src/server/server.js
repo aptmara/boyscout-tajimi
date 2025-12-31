@@ -142,10 +142,16 @@ app.use('/api/contact', contactRoutes);
 // app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
 
 // ================================================================
+// Settings Middleware (All Views)
+// ================================================================
+const { loadSiteSettings } = require('./middleware/siteConfig.middleware.js');
+
+// ================================================================
 // View Routes (SSR Pages)
 // ================================================================
 const viewRoutes = require('./routes/view.routes.js');
-app.use('/', viewRoutes);
+// Viewルートにのみ設定読み込みミドルウェアを適用
+app.use('/', loadSiteSettings, viewRoutes);
 
 // ================================================================
 // Global Error Handler (Must be the last middleware)
@@ -156,12 +162,17 @@ app.use(errorHandler);
 // ------------------------------
 // /uploads を mount（画像配信）
 // ------------------------------
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// publicディレクトリは既に静的配信されているが、uploadsフォルダの存在確認と作成を行う
+const UPLOAD_DIR = path.join(projectRoot, 'public', 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+// 追加のマウントは不要（publicがルートマウントされているため）ですが、
+// 明示的にキャッシュコントロール等をしたい場合は以下のようにしても良い。
+// 今回はpublicの設定（特にないのでデフォルト）に任せるか、以下を残すならパスを修正。
 app.use('/uploads', express.static(UPLOAD_DIR, {
-  etag: true,
-  maxAge: '7d', // 7日間キャッシュ
-  immutable: true,
+  maxAge: '7d',
+  immutable: false, // アップロード画像は変更される可能性があるためfalse推奨だが一意なファイル名ならtrueでも可
 }));
 
 // ------------------------------
