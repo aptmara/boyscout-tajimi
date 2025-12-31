@@ -17,12 +17,39 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const expressLayouts = require('express-ejs-layouts');
 
+// Security Packages
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const csurf = require('csurf');
+
 const db = require('./database.js');
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
 const { sendMail } = require('./utils/mailer');
 
 const app = express();
 app.set('trust proxy', 1);
+
+// === Security Middleware ===
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // inline scripts are used in legacy admin pgs
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
+
+// Rate limiting for login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per windowMs
+  message: 'Too many login attempts from this IP, please try again after 15 minutes'
+});
+
 // === secret fingerprint (ログ最小限)
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
@@ -70,19 +97,18 @@ if (db.useSqlite) {
   });
 }
 
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-    },
-  })
-);
+const sessionMiddleware = session({
+  store: sessionStore,
+  secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+  },
+});
+app.use(sessionMiddleware);
 
 // ------------------------------
 // Global Body Parsers
@@ -90,7 +116,13 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-
+// ------------------------------
+// CSRF Protection
+// ------------------------------
+// API endpoints called by external webhooks or public forms might need exclusion,
+// but for now we apply globally and allow exclusion via route ordering or shim.
+// However, since we have a mix of API and View, we will use it with cookie: false (default uses session).
+const csrfProtection = csurf();
 
 // ------------------------------
 // 認証ミドルウェア
@@ -101,20 +133,25 @@ const { authMiddleware, webhookAuth } = require('./middleware/auth.middleware.js
 // News API
 // ================================================================
 const newsRoutes = require('./routes/news.routes.js');
-app.use('/api/news', newsRoutes);
+// API routes often don't use CSRF checks if they are stateless, but here they are session-based.
+// We should protect mutation endpoints. For simplicity, apply to all non-GET or assume client handles token.
+// Since client is SPA-like fetching from same origin, we need to pass CSRF token in meta tag.
+// We'll apply csrfProtection to routes that need it or globally.
+// applying globally might break public APIs if they are POST (like contact form).
+app.use('/api/news', csrfProtection, newsRoutes);
 
 // ================================================================
 // Activity API
 // ================================================================
 const activityRoutes = require('./routes/activity.routes.js');
-app.use('/api/activities', activityRoutes);
+app.use('/api/activities', csrfProtection, activityRoutes);
 
 // ================================================================
 // Settings API
 // ================================================================
 const settingsRoutes = require('./routes/settings.routes.js');
 const { getPublicSettings } = require('./controllers/settings.controller.js');
-app.use('/api/settings', settingsRoutes);
+app.use('/api/settings', csrfProtection, settingsRoutes);
 // 既存フロントエンド資産は /api/public-settings を参照しているため、後方互換のために公開設定用エイリアスを追加
 app.get('/api/public-settings', getPublicSettings);
 
@@ -122,31 +159,44 @@ app.get('/api/public-settings', getPublicSettings);
 // Auth API
 // ================================================================
 const authRoutes = require('./routes/auth.routes.js');
-app.use('/api', authRoutes); // Mount at /api to handle /api/login, /api/logout, etc.
+// Login needs rate limit and CSRF
+app.use('/api/login', loginLimiter, csrfProtection);
+app.use('/api', csrfProtection, authRoutes); // Mount at /api to handle /api/login, /api/logout, etc.
 
 // ================================================================
 // Admin API
 // ================================================================
 const adminRoutes = require('./routes/admin.routes.js');
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', csrfProtection, adminRoutes);
 
 // ================================================================
 // Contact API
 // ================================================================
 const contactRoutes = require('./routes/contact.routes.js');
-app.use('/api/contact', contactRoutes);
+// Contact form is public POST. It needs CSRF.
+// Using session-based CSRF requires the user to visit the page strictly first to get a token.
+app.use('/api/contact', csrfProtection, contactRoutes);
 
 // ------------------------------
 // Admin UI Routes
 // ------------------------------
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(projectRoot, 'src', 'views', 'admin', 'app.html'));
+app.get('/admin', csrfProtection, (req, res) => {
+  // Render EJS with CSRF token, using no layout or a dedicated admin layout if preferred.
+  // The original was app.html. We use 'admin/app' (admin/app.ejs).
+  res.render('admin/app', {
+    layout: false, // Don't use the public site layout
+    csrfToken: req.csrfToken()
+  });
 });
-app.get('/admin/login', (req, res) => {
-  res.sendFile(path.join(projectRoot, 'src', 'views', 'admin', 'login.html'));
+app.get('/admin/login', csrfProtection, (req, res) => {
+  res.render('admin/login', {
+    layout: false,
+    csrfToken: req.csrfToken()
+  });
 });
 // その他のアドミン関連静的ファイル (JS, CSS等)
 app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
+
 
 
 // ================================================================

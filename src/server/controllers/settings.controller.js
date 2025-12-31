@@ -93,10 +93,19 @@ const updateSettings = asyncHandler(async (req, res) => {
   try {
     await client.query('BEGIN');
 
+    const allowedKeys = new Set(Object.keys(SITE_CONFIG.KEYS));
+
     for (const [key, value] of Object.entries(body)) {
       if (typeof key !== 'string' || !key.length) {
-        continue; // Skip invalid keys
+        continue;
       }
+
+      // Prevent Mass Assignment: Only allow predefined keys
+      if (!allowedKeys.has(key)) {
+        console.warn(`[Security] Attempted to update unauthorized setting key: ${key}`);
+        continue;
+      }
+
       const val = (value === null || value === undefined) ? '' : String(value);
 
       await client.query(

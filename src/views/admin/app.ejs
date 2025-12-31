@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= csrfToken %>">
   <title>管理コンソール</title>
   <link rel="stylesheet" href="/styles/common-styles.css">
 </head>
+
 <body class="admin-body">
   <div class="admin-app">
     <aside class="admin-sidebar" aria-label="メインメニュー">
@@ -118,4 +121,5 @@
   <script src="/admin/admin-editors.js"></script>
   <script src="/admin/admin-layout.js"></script>
 </body>
+
 </html>

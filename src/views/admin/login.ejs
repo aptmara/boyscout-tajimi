@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
     <title>管理者ログイン</title>
     <link rel="stylesheet" href="/styles/common-styles.css">
 </head>
+
 <body>
     <div class="login-container">
         <h1>管理者ログイン</h1>
@@ -30,24 +33,25 @@
                 const sessionRes = await fetch('/api/session', { credentials: 'same-origin' });
                 const sessionData = await sessionRes.json();
                 if (sessionData.loggedIn) {
-                    window.location.href = '/admin/app.html';
+                    window.location.href = '/admin'; // .html除去
                 }
             } catch (error) {
                 console.error('Session check failed:', error);
             }
         });
 
-        // 文字化け対策：タイトルとラベルを明示
+        // 文字化け対策：タイトルとラベルを明示 (EJSなら不要かもしれないが念のため残す)
         try {
             document.title = '管理者ログイン';
             const h1 = document.querySelector('.login-container h1'); if (h1) h1.textContent = '管理者ログイン';
             const u = document.querySelector('label[for="username"]'); if (u) u.textContent = 'ユーザー名';
             const p = document.querySelector('label[for="password"]'); if (p) p.textContent = 'パスワード';
             const btn = document.querySelector('button[type="submit"]'); if (btn) btn.textContent = 'ログイン';
-        } catch {}
+        } catch { }
 
         const form = document.getElementById('login-form');
         const errorMessage = document.getElementById('error-message');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -61,6 +65,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'CSRF-Token': csrfToken
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({ username, password }),
@@ -80,4 +85,5 @@
         });
     </script>
 </body>
+
 </html>

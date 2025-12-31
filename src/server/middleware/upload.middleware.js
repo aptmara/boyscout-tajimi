@@ -24,7 +24,8 @@ const storage = multer.diskStorage({
 
 // ファイルフィルター（画像のみ許可）
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
+    // SVG prohibited due to XSS risk
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const mimeType = allowedTypes.test(file.mimetype);
     const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
 

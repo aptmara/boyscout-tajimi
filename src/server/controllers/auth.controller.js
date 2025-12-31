@@ -20,8 +20,15 @@ const login = asyncHandler(async (req, res) => {
   const match = await bcrypt.compare(password, admin.password);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  req.session.user = { id: admin.id, username: admin.username };
-  res.json({ message: 'Login successful' });
+  // Prevent session fixation
+  req.session.regenerate((err) => {
+    if (err) {
+      console.error('Session regeneration failed:', err);
+      return res.status(500).json({ error: 'Login failed due to server error' });
+    }
+    req.session.user = { id: admin.id, username: admin.username };
+    res.json({ message: 'Login successful' });
+  });
 });
 
 const logout = asyncHandler(async (req, res) => {
@@ -46,7 +53,7 @@ const getSession = (req, res) => {
 };
 
 module.exports = {
-    login,
-    logout,
-    getSession,
+  login,
+  logout,
+  getSession,
 };
