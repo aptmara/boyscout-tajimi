@@ -30,15 +30,27 @@ jobs:
             deploy@${{ secrets.VPS_HOST }} <<'ENDSSH'
               set -e
               cd /var/www/boyscout-tajimi
+              
+              # デプロイ実行
               git fetch origin main
               git reset --hard origin/main
               npm ci --omit=dev
               npm run build
               pm2 restart boyscout-tajimi --update-env
-              echo "デプロイ完了: $(date '+%Y-%m-%d %H:%M:%S')"
+              
+              DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+              echo "デプロイ完了: $DEPLOY_TIME"
+              
+              # Discord通知（失敗してもスルー）
+              curl -s -X POST "https://discordapp.com/api/webhooks/1456034617097457923/tjIGGXJVrzwg2KOzR9c3D1KGVK52i_fuQLkBg7e3HebwDt01NMvJH3f0bx71Fo1Nrzw6" \
+                -H "Content-Type: application/json" \
+                -d "{\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"**boyscout-tajimi** が正常にデプロイされました\",\"color\":5763719,\"fields\":[{\"name\":\"時刻\",\"value\":\"$DEPLOY_TIME\",\"inline\":true}],\"footer\":{\"text\":\"VPS Deploy\"}}]}" \
+                || true
           ENDSSH
 
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key
+
+
 
