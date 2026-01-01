@@ -10,15 +10,24 @@ const login = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
+  console.log('Login attempt for:', username);
+
   const { rows } = await db.query(
     'SELECT id, username, password FROM admins WHERE username = $1',
     [username]
   );
   const admin = rows[0];
-  if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+
+  if (!admin) {
+    console.log('Login failed: User not found:', username);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
   const match = await bcrypt.compare(password, admin.password);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!match) {
+    console.log('Login failed: Password mismatch for:', username);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
   // Prevent session fixation
   if (!req.session) {
@@ -26,21 +35,23 @@ const login = asyncHandler(async (req, res) => {
     return res.status(500).json({ error: 'Server misconfiguration: No session' });
   }
 
+  console.log('Regenerating session for user:', admin.username);
   req.session.regenerate((err) => {
     if (err) {
       console.error('Session regeneration failed:', err);
-      // Fallback: If regeneration fails (e.g. file lock), try to proceed or just error out.
-      // For security, checking if we can just set user.
-      // return res.status(500).json({ error: 'Login failed due to server error' });
+      return res.status(500).json({ error: 'Login failed: Session error' });
     }
 
-    // Even if regeneration failed, we might want to proceed but log it.
-    // However, failing open is bad for fixation. 
-    // If it's a file locking issue on dev (sqlite), retrying might help?
-    if (err) return res.status(500).json({ error: 'Login failed: Session error' });
-
     req.session.user = { id: admin.id, username: admin.username };
-    res.json({ message: 'Login successful' });
+    console.log('Session regenerated successfully. User logged in:', admin.username);
+
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Session save failed:', saveErr);
+        return res.status(500).json({ error: 'Login failed: Session save error' });
+      }
+      res.json({ message: 'Login successful' });
+    });
   });
 });
 

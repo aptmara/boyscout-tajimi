@@ -117,15 +117,25 @@ if (useSqlite) {
     // Initial Admin
     const adminUser = process.env.INITIAL_ADMIN_USERNAME;
     const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
+
+    console.log(`[Startup] Checking admin seeding configuration...`);
     if (adminUser && adminPass) {
       try {
+        console.log(`[Startup] Initial admin configured. Checking if user '${adminUser}' exists...`);
         const { rows } = await query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
         if (rows.length === 0) {
+          console.log(`[Startup] Admin '${adminUser}' not found. Creating...`);
           const hash = await bcrypt.hash(adminPass, 12);
           await query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
-          console.log(`Admin user '${adminUser}' created.`);
+          console.log(`[Startup] Admin user '${adminUser}' created successfully.`);
+        } else {
+          console.log(`[Startup] Admin '${adminUser}' already exists. Skipping creation.`);
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error('[Startup] Failed to seed admin user:', e);
+      }
+    } else {
+      console.log('[Startup] INITIAL_ADMIN_USERNAME or PASSWORD not set. Skipping admin seeding.');
     }
     console.log('SQLite tables ready.');
   };
@@ -248,13 +258,25 @@ if (useSqlite) {
     // Admin creation
     const adminUser = process.env.INITIAL_ADMIN_USERNAME;
     const adminPass = process.env.INITIAL_ADMIN_PASSWORD;
+
+    console.log(`[Startup] (PG) Checking admin seeding configuration...`);
     if (adminUser && adminPass) {
-      const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
-      if (rows.length === 0) {
-        const hash = await bcrypt.hash(adminPass, 12);
-        await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
-        console.log(`Admin user '${adminUser}' created.`);
+      try {
+        console.log(`[Startup] (PG) Initial admin configured. Checking if user '${adminUser}' exists...`);
+        const { rows } = await pool.query(`SELECT 1 FROM admins WHERE username = $1`, [adminUser]);
+        if (rows.length === 0) {
+          console.log(`[Startup] (PG) Admin '${adminUser}' not found. Creating...`);
+          const hash = await bcrypt.hash(adminPass, 12);
+          await pool.query(`INSERT INTO admins (username, password) VALUES ($1, $2)`, [adminUser, hash]);
+          console.log(`[Startup] (PG) Admin user '${adminUser}' created successfully.`);
+        } else {
+          console.log(`[Startup] (PG) Admin '${adminUser}' already exists. Skipping creation.`);
+        }
+      } catch (err) {
+        console.error('[Startup] (PG) Failed to seed admin user:', err);
       }
+    } else {
+      console.log('[Startup] (PG) INITIAL_ADMIN_USERNAME or PASSWORD not set. Skipping admin seeding.');
     }
   };
 }
