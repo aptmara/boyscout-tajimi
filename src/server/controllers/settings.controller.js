@@ -48,17 +48,13 @@ const getSettings = asyncHandler(async (req, res) => {
   // フラットなオブジェクト（旧互換性またはEJS直接利用用）
   const flatSettings = { ...settingsMap };
 
-  // リクエストがJSONを求めている場合（管理画面API）
-  if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-    return res.status(200).json({
-      groups: SITE_CONFIG.GROUPS,
-      settings: structuredSettings,
-      flat: flatSettings
-    });
-  }
-
-  // 通常アクセスならJSON返却（現状の実装に合わせる）
-  return res.status(200).json(flatSettings);
+  // 管理画面APIでは常に構造化されたレスポンスを返す
+  // (fetchWithAuthからの呼び出しでは正しいAcceptヘッダーが設定されない場合があるため)
+  return res.status(200).json({
+    groups: SITE_CONFIG.GROUPS,
+    settings: structuredSettings,
+    flat: flatSettings
+  });
 });
 
 // 公開用の設定を取得（フロントエンド用）- 変更なしだがキー定義ファイルのリストを使用するように修正推奨

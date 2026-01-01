@@ -1,14 +1,14 @@
 // admin-layout.js
-(function(){
+(function () {
   const { state } = (window.Admin || {});
   const { showToast } = (window.Admin?.utils || {});
   const { openEditor, openSettingsPage, openBrandingPage } = (window.Admin?.actions || {});
 
   document.addEventListener('DOMContentLoaded', () => {
-    try { setupLayout(); } catch(e){ console.error(e); }
+    try { setupLayout(); } catch (e) { console.error(e); }
   });
 
-  function setupLayout(){
+  function setupLayout() {
     const sidebar = document.querySelector('.admin-sidebar');
     const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
 
@@ -22,11 +22,11 @@
 
     document.getElementById('sidebar-open')?.addEventListener('click', () => sidebar?.classList.add('open'));
     document.getElementById('sidebar-close')?.addEventListener('click', closeSidebar);
-    function closeSidebar(){ sidebar?.classList.remove('open'); }
+    function closeSidebar() { sidebar?.classList.remove('open'); }
 
     document.getElementById('logout-btn')?.addEventListener('click', async () => {
-      try { await fetch('/api/logout', { method:'POST', credentials:'same-origin' }); }
-      finally { location.replace('/admin/login.html'); }
+      try { await Admin.utils.fetchWithAuth('/api/logout', { method: 'POST' }); }
+      finally { location.replace('/admin/login'); }
     });
 
     document.getElementById('quick-actions-btn')?.addEventListener('click', toggleQuickActions);
@@ -45,7 +45,7 @@
       const panel = document.getElementById('quick-actions-panel'); panel?.classList.remove('open'); document.getElementById('quick-actions-btn')?.setAttribute('aria-expanded', 'false');
     });
 
-    function toggleQuickActions(){
+    function toggleQuickActions() {
       const panel = document.getElementById('quick-actions-panel'); const btn = document.getElementById('quick-actions-btn'); if (!panel || !btn) return;
       const willOpen = !panel.classList.contains('open'); panel.classList.toggle('open', willOpen); btn.setAttribute('aria-expanded', String(willOpen));
     }
@@ -61,10 +61,10 @@
       }
     });
 
-    window.__adminShell = { refreshView: ()=> window.Admin?.views?.setActiveView(state?.activeView, { force:true }), openEditor };
+    window.__adminShell = { refreshView: () => window.Admin?.views?.setActiveView(state?.activeView, { force: true }), openEditor };
 
-    function handleQuickAction(action){
-      switch(action){
+    function handleQuickAction(action) {
+      switch (action) {
         case 'news:new': openEditor?.('news'); break;
         case 'activities:new': openEditor?.('activity'); break;
         case 'settings': openSettingsPage?.(); break;

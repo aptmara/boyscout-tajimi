@@ -348,7 +348,7 @@
         });
 
         try {
-          const res = await fetch('/api/settings', {
+          const res = await utils.fetchWithAuth('/api/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
@@ -426,7 +426,7 @@
             formData.append('key', field.key); // キーも送るとバックエンドで設定更新もしてくれる
 
             try {
-              const res = await fetch('/api/settings/upload', {
+              const res = await utils.fetchWithAuth('/api/settings/upload', {
                 method: 'POST',
                 body: formData,
                 credentials: 'same-origin'
@@ -551,11 +551,17 @@
                  <ul class="list-disc list-inside text-sm text-yellow-700">
                    ${data.settings.missingKeys.map(k => `<li>${utils.escapeHtml(k.label)}</li>`).join('')}
                  </ul>
-                 <button class="btn-secondary mt-3 text-sm" onclick="Admin.views.setActiveView('settings')">設定画面へ</button>
+                 <button id="go-to-settings-btn" class="btn-secondary mt-3 text-sm">設定画面へ</button>
                </div>`
           : '<div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">✅ 重要な設定は完了しています</div>'}
         </div>
       `;
+
+      // イベントリスナーをDOMに追加（CSP対応）
+      const goToSettingsBtn = document.getElementById('go-to-settings-btn');
+      if (goToSettingsBtn) {
+        goToSettingsBtn.addEventListener('click', () => Admin.views.setActiveView('settings'));
+      }
     } catch (e) {
       root.innerHTML = `<div class="error-message">読み込みエラー: ${utils.escapeHtml(e.message)}</div>`;
     }
@@ -637,7 +643,7 @@
     } catch (err) {
       console.error('admin init failed', err);
       utils.showToast('セッションが無効です。再ログインしてください。', 'error');
-      setTimeout(() => location.replace('/admin/login.html'), 1000);
+      setTimeout(() => location.replace('/admin/login'), 1000);
     }
   }
 
