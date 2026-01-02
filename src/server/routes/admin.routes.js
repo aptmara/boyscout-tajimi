@@ -9,4 +9,7 @@ router.use(authMiddleware);
 // バックアップダウンロード
 router.get('/backup', downloadBackup);
 
+// ダッシュボードサマリー
+router.get('/summary', require('../controllers/admin.controller').getSummary);
+
 module.exports = router;

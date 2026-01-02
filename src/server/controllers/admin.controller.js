@@ -75,6 +75,56 @@ const downloadBackup = async (req, res) => {
   await archive.finalize();
 };
 
+downloadBackup
+};
+
+/**
+ * ダッシュボード用サマリー情報の取得
+ */
+const getSummary = async (req, res) => {
+  try {
+    // ニュース件数
+    const newsResult = await db.query('SELECT COUNT(*) as count FROM news');
+    const newsCount = parseInt(newsResult.rows[0].count);
+
+    // 活動記録件数
+    const activityResult = await db.query('SELECT COUNT(*) as count FROM activities');
+    const activityCount = parseInt(activityResult.rows[0].count);
+
+    // 設定状況チェック
+    const settingsResult = await db.query('SELECT key, value FROM site_settings');
+    const settingsMap = {};
+    settingsResult.rows.forEach(r => { settingsMap[r.key] = r.value; });
+
+    // 必須キー（簡易チェック）
+    const requiredKeys = [
+      { key: 'site_title', label: 'サイトタイトル' },
+      { key: 'contact_email', label: 'お問い合わせメールアドレス' }
+    ];
+
+    const missingKeys = requiredKeys.filter(k => !settingsMap[k.key] || settingsMap[k.key].trim() === '');
+
+    res.json({
+      news: {
+        total: newsCount,
+        trendLabel: '現在公開中の記事'
+      },
+      activities: {
+        total: activityCount,
+        trendLabel: '全期間の記録'
+      },
+      settings: {
+        missingKeys: missingKeys
+      }
+    });
+
+  } catch (err) {
+    console.error('[Admin] Summary Error:', err);
+    res.status(500).json({ error: 'Failed to fetch summary' });
+  }
+};
+
 module.exports = {
-  downloadBackup
+  downloadBackup,
+  getSummary
 };

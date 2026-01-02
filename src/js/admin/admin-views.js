@@ -35,7 +35,7 @@
     if (!root) return;
 
     // Set Title
-    const titleEl = document.querySelector('.top-bar h1');
+    const titleEl = document.querySelector('.topbar-title') || document.querySelector('.top-bar h1');
     if (titleEl) titleEl.textContent = reg.title;
 
     // Render Content
