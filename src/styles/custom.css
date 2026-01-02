@@ -702,8 +702,8 @@ header#main-header.scrolled {
     transform: rotate(45deg);
 }
 
-/* SVGアイコンの基本スタイル */
-svg.icon {
+/* SVGアイコンの基本スタイル (明示的なサイズクラスがない場合のみ適用) */
+svg.icon:not([class*="w-"]) {
     display: inline-block;
     width: 1em;
     height: 1em;
