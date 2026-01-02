@@ -81,15 +81,22 @@ const getPublicSettings = asyncHandler(async (req, res) => {
 
 const updateSettings = asyncHandler(async (req, res) => {
   const body = req.body;
+
+  // Debug log
+  console.log('[updateSettings] Received body:', typeof body, Array.isArray(body) ? 'Array' : 'Object');
+
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    console.error('[updateSettings] Invalid payload');
     return res.status(400).json({ error: 'invalid_payload' });
   }
 
-  const client = await db.getClient();
+  let client;
   try {
+    client = await db.getClient();
     await client.query('BEGIN');
 
     const allowedKeys = new Set(Object.keys(SITE_CONFIG.KEYS));
+    let updatedCount = 0;
 
     for (const [key, value] of Object.entries(body)) {
       if (typeof key !== 'string' || !key.length) {
@@ -109,22 +116,24 @@ const updateSettings = asyncHandler(async (req, res) => {
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
         [key, val]
       );
+      updatedCount++;
     }
 
     await client.query('COMMIT');
-
-    // settings.routes.js で redirect 処理をするか、ここで JSON を返すか。
-    // 管理画面からのPOST送信の場合、リダイレクトが便利かもしれないが、非同期fetchならJSON。
-
+    console.log(`[updateSettings] Successfully updated ${updatedCount} settings.`);
 
     // 常にJSONを返す（SPA管理画面用）
     return res.status(200).json({ ok: true, message: 'Settings updated successfully' });
 
   } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
+    console.error('[updateSettings] Transaction Error:', e);
+    if (client) {
+      try { await client.query('ROLLBACK'); } catch (rbErr) { console.error('Rollback error:', rbErr); }
+    }
+    // 500エラーを投げずにJSONでエラーを返す方がフロントエンドに優しい
+    return res.status(500).json({ error: 'database_error', details: e.message });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
