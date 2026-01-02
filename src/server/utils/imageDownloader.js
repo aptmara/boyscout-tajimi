@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const stream = require('stream');
 const pipeline = promisify(stream.pipeline);
+const sharp = require('sharp'); // Image processing
 
 // 保存先ディレクトリ
 const UPLOAD_DIR = path.join(__dirname, '../../../public/uploads/webhook');
@@ -47,6 +48,7 @@ function getDownloadUrl(url) {
 /**
  * URLから画像をダウンロードし、ローカルに保存してパスを返す
  * 失敗した場合は元のURLを返す
+ * 自動的にWebPに変換・リサイズする
  */
 async function downloadImage(url) {
     if (!url || !url.startsWith('http')) return url;
@@ -54,10 +56,8 @@ async function downloadImage(url) {
     try {
         const downloadUrl = getDownloadUrl(url);
 
-        // 拡張子の推定（簡易的）
-        // Driveの場合は Content-Disposition ヘッダを見るのが確実だが、ここでは一旦 .jpg とする
-        // 必要ならmime-typesライブラリなどで判定
-        const ext = '.jpg';
+        // WebPに変換して保存
+        const ext = '.webp';
         const filename = crypto.randomUUID() + ext;
         const filepath = path.join(UPLOAD_DIR, filename);
         const relativePath = `/uploads/webhook/${filename}`;
@@ -71,27 +71,39 @@ async function downloadImage(url) {
                 }
 
                 if (response.statusCode !== 200) {
-                    // 失敗時は元のURLを返す
                     console.warn(`[ImageDownload] Failed to download: ${response.statusCode} - ${url}`);
                     response.resume();
                     resolve(url);
                     return;
                 }
 
+                // Sharpストリームを作成 (リサイズ & WebP変換)
+                const transform = sharp()
+                    .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true }) // 長辺1280pxに収める
+                    .webp({ quality: 80 });
+
                 const fileStream = fs.createWriteStream(filepath);
-                response.pipe(fileStream);
+
+                // パイプライン接続: response -> transform -> fileStream
+                response.pipe(transform).pipe(fileStream);
 
                 fileStream.on('finish', () => {
-                    fileStream.close();
-                    console.log(`[ImageDownload] Saved: ${relativePath}`);
+                    console.log(`[ImageDownload] Saved (WebP): ${relativePath}`);
                     resolve(relativePath);
                 });
 
-                fileStream.on('error', (err) => {
-                    fs.unlink(filepath, () => { }); // エラー時は削除
-                    console.error('[ImageDownload] File write error:', err);
-                    resolve(url);
-                });
+                // エラーハンドリング
+                const handleError = (err) => {
+                    console.error('[ImageDownload] Stream error:', err);
+                    // 途中ファイルを削除（ファイルオープン前ならエラーになることもあるが無視）
+                    fs.unlink(filepath, () => { });
+                    resolve(url); // 元のURLを返す（フォールバック）
+                };
+
+                response.on('error', handleError);
+                transform.on('error', handleError);
+                fileStream.on('error', handleError);
+
             }).on('error', (err) => {
                 console.error('[ImageDownload] Request error:', err);
                 resolve(url);
