@@ -115,11 +115,10 @@ const updateSettings = asyncHandler(async (req, res) => {
 
     // settings.routes.js で redirect 処理をするか、ここで JSON を返すか。
     // 管理画面からのPOST送信の場合、リダイレクトが便利かもしれないが、非同期fetchならJSON。
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-      return res.status(200).json({ ok: true, message: 'Settings updated successfully' });
-    }
-    // フォーム送信の場合はリロード
-    return res.redirect('back');
+    await client.query('COMMIT');
+
+    // 常にJSONを返す（SPA管理画面用）
+    return res.status(200).json({ ok: true, message: 'Settings updated successfully' });
 
   } catch (e) {
     await client.query('ROLLBACK');

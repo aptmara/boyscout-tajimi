@@ -82,9 +82,22 @@
 
   // Small actions used by views
   Admin.actions = {
-    openEditor(type) { window.open(type === 'activity' ? '/admin/activity-edit.html' : '/admin/edit.html', '_blank', 'noopener'); },
-    openSettingsPage(options = {}) { const params = new URLSearchParams(); if (options.tab) params.set('tab', options.tab); if (options.field) params.set('field', options.field); const q = params.toString(); const url = `/admin/settings.html${q ? `?${q}` : ''}`; window.open(url, '_blank', 'noopener'); },
-    openBrandingPage() { window.open('/admin/branding.html', '_blank', 'noopener'); }
+    openEditor(type, id = null) {
+      // モーダルエディタを開く（admin-editors.jsの機能を使用）
+      if (type === 'activity') {
+        Admin.editors?.openActivity(id);
+      } else {
+        Admin.editors?.openNews(id);
+      }
+    },
+    openSettingsPage(options = {}) {
+      // 設定はビュー内で表示
+      Admin.views?.setActiveView('settings', { force: true });
+    },
+    openBrandingPage() {
+      // ブランドはビュー内で表示
+      Admin.views?.setActiveView('branding', { force: true });
+    }
   };
 
   // API
