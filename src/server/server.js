@@ -52,6 +52,13 @@ const loginLimiter = rateLimit({
   message: 'Too many login attempts from this IP, please try again after 15 minutes'
 });
 
+// Rate limiting for webhooks (緩め：1分間に10回まで)
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 1分間に10回まで
+  message: { error: 'Too many requests, please try again later' }
+});
+
 // === secret fingerprint (ログ最小限)
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
@@ -135,17 +142,25 @@ const { authMiddleware, webhookAuth } = require('./middleware/auth.middleware.js
 // News API
 // ================================================================
 const newsRoutes = require('./routes/news.routes.js');
-// API routes often don't use CSRF checks if they are stateless, but here they are session-based.
-// We should protect mutation endpoints. For simplicity, apply to all non-GET or assume client handles token.
-// Since client is SPA-like fetching from same origin, we need to pass CSRF token in meta tag.
-// We'll apply csrfProtection to routes that need it or globally.
-// applying globally might break public APIs if they are POST (like contact form).
+const { newsWebhook } = require('./controllers/news.controller.js');
+
+// Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）、raw bodyで受信
+const webhookRawJson = express.raw({ type: 'application/json', limit: '1mb' });
+app.post('/api/news/webhook', webhookLimiter, webhookRawJson, webhookAuth, newsWebhook);
+
+// その他の管理画面向けAPI：CSRF保護あり
 app.use('/api/news', csrfProtection, newsRoutes);
 
 // ================================================================
 // Activity API
 // ================================================================
 const activityRoutes = require('./routes/activity.routes.js');
+const { activityWebhook } = require('./controllers/activity.controller.js');
+
+// Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）
+app.post('/api/activities/webhook', webhookLimiter, webhookRawJson, webhookAuth, activityWebhook);
+
+// その他の管理画面向けAPI：CSRF保護あり
 app.use('/api/activities', csrfProtection, activityRoutes);
 
 // ================================================================
