@@ -1,5 +1,8 @@
 # GitHub Actions: ConoHa VPSへの自動デプロイ
 # mainブランチへのpush時にVPSへ自動デプロイを実行
+# - 詳細ログ出力
+# - 失敗時のDiscord通知
+# - ヘルスチェック
 
 name: Deploy to ConoHa VPS
 
@@ -8,49 +11,148 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  DEPLOY_PATH: /var/www/boyscout-tajimi
+  APP_NAME: boyscout-tajimi
+  SITE_URL: https://www.tajimibs.org
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 コードをチェックアウト
+        uses: actions/checkout@v4
 
-      - name: Setup SSH key
+      - name: 🔑 SSHキーをセットアップ
+        id: ssh_setup
         run: |
           set -e
+          echo "::group::SSH設定"
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY_BASE64 }}" | tr -d '\r\n ' | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          echo "✅ SSHキー設定完了"
+          echo "::endgroup::"
 
-      - name: Deploy to VPS
+      - name: 🚀 VPSへデプロイ
+        id: deploy
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=no \
-            deploy@${{ secrets.VPS_HOST }} <<'ENDSSH'
+            -o ConnectTimeout=30 \
+            deploy@${{ secrets.VPS_HOST }} << 'ENDSSH'
               set -e
+              
+              echo "=========================================="
+              echo "🚀 デプロイ開始: $(date '+%Y-%m-%d %H:%M:%S')"
+              echo "=========================================="
+              
               cd /var/www/boyscout-tajimi
               
-              # デプロイ実行
+              # Step 1: Git fetch
+              echo ""
+              echo "📦 [1/5] 最新コードを取得中..."
               git fetch origin main
+              CURRENT_COMMIT=$(git rev-parse --short HEAD)
               git reset --hard origin/main
-              npm ci --omit=dev
-              npm run build
+              NEW_COMMIT=$(git rev-parse --short HEAD)
+              echo "   ✅ 更新完了: $CURRENT_COMMIT → $NEW_COMMIT"
+              
+              # Step 2: npm install
+              echo ""
+              echo "📦 [2/5] 依存関係をインストール中..."
+              npm ci --omit=dev 2>&1 | tail -5
+              echo "   ✅ npm ci 完了"
+              
+              # Step 3: Build
+              echo ""
+              echo "🔨 [3/5] ビルド実行中..."
+              npm run build 2>&1 | tail -10
+              echo "   ✅ ビルド完了"
+              
+              # Step 4: PM2 restart
+              echo ""
+              echo "🔄 [4/5] アプリケーション再起動中..."
               pm2 restart boyscout-tajimi --update-env
+              sleep 3
+              pm2 status boyscout-tajimi
+              echo "   ✅ PM2再起動完了"
+              
+              # Step 5: Health check
+              echo ""
+              echo "🏥 [5/5] ヘルスチェック中..."
+              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ --max-time 10 || echo "000")
+              if [ "$HTTP_STATUS" = "200" ]; then
+                echo "   ✅ サーバー応答OK (HTTP $HTTP_STATUS)"
+              else
+                echo "   ⚠️ サーバー応答: HTTP $HTTP_STATUS"
+              fi
               
               DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-              echo "デプロイ完了: $DEPLOY_TIME"
+              echo ""
+              echo "=========================================="
+              echo "✅ デプロイ完了: $DEPLOY_TIME"
+              echo "   コミット: $NEW_COMMIT"
+              echo "=========================================="
               
-              # Discord通知（失敗してもスルー）
-              curl -s -X POST "https://discordapp.com/api/webhooks/1456034617097457923/tjIGGXJVrzwg2KOzR9c3D1KGVK52i_fuQLkBg7e3HebwDt01NMvJH3f0bx71Fo1Nrzw6" \
-                -H "Content-Type: application/json" \
-                -d "{\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"**boyscout-tajimi** が正常にデプロイされました\",\"color\":5763719,\"fields\":[{\"name\":\"時刻\",\"value\":\"$DEPLOY_TIME\",\"inline\":true}],\"footer\":{\"text\":\"VPS Deploy\"}}]}" \
-                || true
+              # 環境変数として出力（後続ステップで使用）
+              echo "DEPLOY_TIME=$DEPLOY_TIME" >> /tmp/deploy_env
+              echo "NEW_COMMIT=$NEW_COMMIT" >> /tmp/deploy_env
           ENDSSH
 
-      - name: Cleanup
+      - name: ✅ 成功通知 (Discord)
+        if: success()
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT_SHA:0:7}"
+          ACTOR="${{ github.actor }}"
+          
+          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"✅ デプロイ成功\",
+                \"description\": \"**${{ env.APP_NAME }}** が正常にデプロイされました\",
+                \"color\": 5763719,
+                \"fields\": [
+                  {\"name\": \"コミット\", \"value\": \"[\`${COMMIT_SHORT}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})\", \"inline\": true},
+                  {\"name\": \"実行者\", \"value\": \"${ACTOR}\", \"inline\": true},
+                  {\"name\": \"メッセージ\", \"value\": \"${COMMIT_MSG:0:100}\", \"inline\": false}
+                ],
+                \"footer\": {\"text\": \"GitHub Actions\"},
+                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+              }]
+            }" || true
+
+      - name: ❌ 失敗通知 (Discord)
+        if: failure()
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT_SHA:0:7}"
+          ACTOR="${{ github.actor }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"❌ デプロイ失敗\",
+                \"description\": \"**${{ env.APP_NAME }}** のデプロイに失敗しました\",
+                \"color\": 15158332,
+                \"fields\": [
+                  {\"name\": \"コミット\", \"value\": \"[\`${COMMIT_SHORT}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})\", \"inline\": true},
+                  {\"name\": \"実行者\", \"value\": \"${ACTOR}\", \"inline\": true},
+                  {\"name\": \"ログ\", \"value\": \"[Actions ログを確認](${RUN_URL})\", \"inline\": false}
+                ],
+                \"footer\": {\"text\": \"GitHub Actions\"},
+                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+              }]
+            }" || true
+
+      - name: 🧹 クリーンアップ
         if: always()
         run: rm -f ~/.ssh/deploy_key
-
-
-
