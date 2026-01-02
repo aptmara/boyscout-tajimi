@@ -37,9 +37,9 @@ app.use(
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "https://placehold.co"], // Allow all HTTPS images to prevent broken user content
-      frameSrc: ["'self'", "https://www.google.com"], // For Google Maps
-      connectSrc: ["'self'", "https://unpkg.com"], // Sometimes needed for fetching resources
+      imgSrc: ["'self'", "data:", "blob:", "https:", "https://placehold.co", "https://drive.google.com", "https://*.googleusercontent.com"], // Allow all HTTPS images to prevent broken user content
+      frameSrc: ["'self'", "https://www.google.com", "https://docs.google.com"], // For Google Maps & Forms
+      connectSrc: ["'self'", "https://unpkg.com", "https://*.googleapis.com"], // Sometimes needed for fetching resources
       upgradeInsecureRequests: [],
     },
   })
