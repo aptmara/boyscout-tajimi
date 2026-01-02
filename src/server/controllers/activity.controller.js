@@ -37,10 +37,11 @@ const getAllActivities = asyncHandler(async (req, res) => {
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   params.push(lim, off);
   const { rows } = await db.query(
-    FROM activities
-       ${ whereSql }
+    `SELECT id, title, content, image_urls, category, unit, tags, activity_date, created_at, display_date
+       FROM activities
+       ${whereSql}
       ORDER BY display_date DESC
-      LIMIT $${ params.length - 1 } OFFSET $${ params.length }`,
+      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
   return res.json(rows);
@@ -91,7 +92,7 @@ const updateActivity = asyncHandler(async (req, res) => {
     activity_date: activity_date,
     display_date: activity_date || undefined // Will be set to activity_date if provided. Note: complex logic if we want fallback to created_at requires DB fetch first or COALESCE in SQL. Let's handle it in SQL or assume if activity_date is set, display_date is it.
   };
-  
+
   // Logic fix: display_date should update if activity_date is updated. 
   // But if activity_date is cleared (null), it should fallback to created_at.
   // Ideally we use a trigger, but for now let's set it in SQL logic or calculate it.
@@ -99,7 +100,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   // If explicitly set to null, we need to know created_at. 
   // Since we don't fetch, let's just assume typically users update activity_date to a value.
   if (activity_date) {
-      updates.display_date = activity_date;
+    updates.display_date = activity_date;
   }
 
   if (images !== undefined) {
@@ -113,7 +114,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   const params = [];
   let i = 1;
   for (const [key, value] of Object.entries(updates)) {
-    setClauses.push(`${ key } = $${ i++}`);
+    setClauses.push(`${key} = $${i++}`);
     params.push(value);
   }
 
@@ -122,7 +123,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   }
 
   params.push(req.params.id);
-  const sql = `UPDATE activities SET ${ setClauses.join(', ') } WHERE id = $${ i }`;
+  const sql = `UPDATE activities SET ${setClauses.join(', ')} WHERE id = $${i}`;
 
   const { rowCount } = await db.query(sql, params);
 
