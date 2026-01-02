@@ -102,11 +102,11 @@ module.exports = {
         'contact_map_embed_html': { group: 'CONTACT', type: 'textarea', label: 'Google Maps埋め込みHTML（iframeタグ）' },
 
         // LEADERS（各隊リーダー名）
-        'leader_beaver': { group: 'BEAVER', type: 'text', label: 'リーダー名' },
-        'leader_cub': { group: 'CUB', type: 'text', label: 'リーダー名' },
+        'leader_beaver': { group: 'BEAVER', type: 'text', label: 'ビーバー隊隊長名' },
+        'leader_cub': { group: 'CUB', type: 'text', label: 'カブ隊隊長名' },
         'leader_boy': { group: 'BOY', type: 'text', label: '隊長名' },
         'leader_venture': { group: 'VENTURE', type: 'text', label: '隊長名' },
-        'leader_rover': { group: 'ROVER', type: 'text', label: 'アドバイザー名' },
+        'leader_rover': { group: 'ROVER', type: 'text', label: 'ローバー隊隊長名' },
 
         // PRIVACY
         'privacy_contact_person': { group: 'PRIVACY', type: 'text', label: '個人情報担当者' },
