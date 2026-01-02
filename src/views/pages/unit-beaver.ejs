@@ -203,9 +203,12 @@
                 alt="ビーバー隊隊長" class="w-40 h-40 rounded-full mx-auto mb-8 border-4 border-yellow-300 shadow-lg">
             <h2 class="text-3xl md:text-4xl font-bold text-yellow-700 mb-6">隊長からのメッセージ</h2>
             <p class="text-xl text-gray-700 mb-4 italic">
-                「ビーバー隊では、子どもたちが初めて出会う『冒険』を大切にしています。たくさんの『なぜ？』『おもしろい！』を見つけ、仲間と一緒に成長していく姿を、私たち指導者も楽しみにしています。ぜひ一度、元気なビーバーたちに会いに来てください！」
+                「<%= siteConfig.get('leader_beaver_message', 'ビーバー隊では、子どもたちが初めて出会う『冒険』を大切にしています。たくさんの『なぜ？』『おもしろい！』を見つけ、仲間と一緒に成長していく姿を、私たち指導者も楽しみにしています。ぜひ一度、元気なビーバーたちに会いに来てください！'
+                    ) %>」
             </p>
-            <p class="font-semibold text-gray-800"><span class="leader-beaver-name">読み込み中...</span> (ビーバー隊 隊長)</p>
+            <p class="font-semibold text-gray-800">
+                <%= siteConfig.get('leader_beaver', '（設定なし）' ) %> (ビーバー隊 隊長)
+            </p>
         </div>
     </div>
 </section>
