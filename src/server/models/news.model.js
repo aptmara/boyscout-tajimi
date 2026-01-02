@@ -58,7 +58,7 @@ class News {
       where.push(`to_char(created_at, 'YYYY-MM') = $${params.length}`);
     }
 
-    let orderBy = 'ORDER BY created_at DESC';
+    let orderBy = 'ORDER BY display_date DESC';
     if (sort === 'oldest') {
       orderBy = 'ORDER BY created_at ASC';
     } else if (sort === 'title') {

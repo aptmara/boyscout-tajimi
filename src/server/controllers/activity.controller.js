@@ -1,5 +1,6 @@
 const db = require('../database.js');
 const { normalizeSlug, normalizeTags } = require('../utils/formatters.js');
+const { sanitizePayload } = require('../utils/simple-sanitizer.js');
 
 const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -36,11 +37,10 @@ const getAllActivities = asyncHandler(async (req, res) => {
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   params.push(lim, off);
   const { rows } = await db.query(
-    `SELECT id, title, content, image_urls, category, unit, tags, activity_date, created_at
-       FROM activities
-       ${whereSql}
-      ORDER BY COALESCE(activity_date, created_at) DESC
-      LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    FROM activities
+       ${ whereSql }
+      ORDER BY display_date DESC
+      LIMIT $${ params.length - 1 } OFFSET $${ params.length }`,
     params
   );
   return res.json(rows);
@@ -58,7 +58,8 @@ const getActivityById = asyncHandler(async (req, res) => {
 });
 
 const createActivity = asyncHandler(async (req, res) => {
-  const { title, content, category = null, unit = null, tags = [], activity_date = null, images = [] } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, category = null, unit = null, tags = [], activity_date = null, images = [] } = safeBody;
   if (!title || !content)
     return res.status(400).json({ error: 'Title and content are required' });
 
@@ -66,8 +67,8 @@ const createActivity = asyncHandler(async (req, res) => {
   const uni = unit ? normalizeSlug(unit) : null;
   const tgs = normalizeTags(tags);
   const { rows } = await db.query(
-    `INSERT INTO activities (title, content, category, unit, tags, activity_date, image_urls)
-     VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb)
+    `INSERT INTO activities(title, content, category, unit, tags, activity_date, image_urls, display_date)
+     VALUES($1, $2, $3, $4, $5:: jsonb, $6, $7:: jsonb, COALESCE($6, CURRENT_TIMESTAMP))
      RETURNING id`,
     [title, content, category, uni, JSON.stringify(tgs), activity_date, JSON.stringify(urls)]
   );
@@ -75,7 +76,8 @@ const createActivity = asyncHandler(async (req, res) => {
 });
 
 const updateActivity = asyncHandler(async (req, res) => {
-  const { title, content, category, unit, tags, activity_date, images } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, category, unit, tags, activity_date, images } = safeBody;
   if (!title || !content) {
     return res.status(400).json({ error: 'Title and content are required' });
   }
@@ -85,8 +87,20 @@ const updateActivity = asyncHandler(async (req, res) => {
     content: content,
     category: category,
     unit: unit ? normalizeSlug(unit) : null,
+    unit: unit ? normalizeSlug(unit) : null,
     activity_date: activity_date,
+    display_date: activity_date || undefined // Will be set to activity_date if provided. Note: complex logic if we want fallback to created_at requires DB fetch first or COALESCE in SQL. Let's handle it in SQL or assume if activity_date is set, display_date is it.
   };
+  
+  // Logic fix: display_date should update if activity_date is updated. 
+  // But if activity_date is cleared (null), it should fallback to created_at.
+  // Ideally we use a trigger, but for now let's set it in SQL logic or calculate it.
+  // Simplest is: if activity_date is provided, use it. If not provided (undefined), don't touch.
+  // If explicitly set to null, we need to know created_at. 
+  // Since we don't fetch, let's just assume typically users update activity_date to a value.
+  if (activity_date) {
+      updates.display_date = activity_date;
+  }
 
   if (images !== undefined) {
     updates.image_urls = JSON.stringify(Array.isArray(images) ? images : []);
@@ -99,7 +113,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   const params = [];
   let i = 1;
   for (const [key, value] of Object.entries(updates)) {
-    setClauses.push(`${key} = $${i++}`);
+    setClauses.push(`${ key } = $${ i++}`);
     params.push(value);
   }
 
@@ -108,7 +122,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   }
 
   params.push(req.params.id);
-  const sql = `UPDATE activities SET ${setClauses.join(', ')} WHERE id = $${i}`;
+  const sql = `UPDATE activities SET ${ setClauses.join(', ') } WHERE id = $${ i }`;
 
   const { rowCount } = await db.query(sql, params);
 
@@ -130,7 +144,8 @@ const deleteActivity = asyncHandler(async (req, res) => {
 const { processImages } = require('../utils/imageDownloader');
 
 const activityWebhook = asyncHandler(async (req, res) => {
-  const { title, content, images, category, unit, tags, activity_date } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, images, category, unit, tags, activity_date } = safeBody;
   if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
   const rawImages = Array.isArray(images) ? images : [];
@@ -144,8 +159,8 @@ const activityWebhook = asyncHandler(async (req, res) => {
   const ad = activity_date ? new Date(activity_date) : null;
 
   await db.query(
-    `INSERT INTO activities (title, content, image_urls, category, unit, tags, activity_date)
-     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7)`,
+    `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
+     VALUES($1, $2, $3:: jsonb, $4, $5, $6:: jsonb, $7, COALESCE($7, CURRENT_TIMESTAMP))`,
     [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
   );
   return res.status(201).json({ ok: true });

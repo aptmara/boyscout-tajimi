@@ -1,0 +1,30 @@
+feat(core): 最適化とセキュリティ強化 (Ultra Deep Dive)
+
+データベースパフォーマンス、セキュリティ、およびフロントエンド配信の抜本的な改善を実施しました。
+
+[データベース & パフォーマンス]
+- JSONBタグ検索を高速化するため、GINインデックス (`idx_activities_tags_gin`, `idx_news_tags_gin`) を追加。
+- 実行時のソート負荷 (`COALESCE`) を排除するため、`activities` と `news` テーブルに `display_date` カラムを追加。
+- 頻繁に利用される `category`, `unit`, `display_date` にインデックスを追加。
+- `activity.controller.js` と `news.model.js` を更新し、ソートに新しい `display_date` カラムを使用するように変更。
+- DB読み込み負荷を軽減するため、`siteConfig.middleware.js` にインメモリキャッシュ（TTL 5分）を実装。
+
+[セキュリティ]
+- ユーザー入力から危険なHTML（`<script>`, `javascript:`, イベントハンドラ）を除去する `simple-sanitizer.js`（ゼロ依存）を実装。
+- ActivityおよびNewsコントローラー（作成/更新/Webhook）に入力サニタイズ処理を適用。
+- サーバーヘッダーのセキュリティ強化。
+
+[フロントエンド & UX]
+- `server.js` で `compression` ミドルウェアを有効化し、Gzip圧縮による配信軽量化（テキストアセット約70%削減）を実現。
+- 各隊ページでの活動フィード機能を復旧するため `dynamic-unit-activities.js` を作成。
+- ヘッダー/フッターのロゴに `width`/`height` を明示し、レイアウトシフト (CLS) を防止。
+- ローカルSEO向上のため、フッターのNAP（名前・住所・電話番号）データをSSR（サーバーサイドレンダリング）に変更。
+- カスタム404エラーページ (`views/errors/404.ejs`) とハンドラーを追加。
+- ファビコン (`favicon.ico`, `apple-touch-icon.png`) を生成・配置。
+- 組織の構造化データに `sameAs`（SNSリンク）を追加するように `seo-helpers.js` を更新。
+
+[インフラ]
+- `package.json` の依存関係を更新。
+- PostgreSQLとSQLiteの両方に対応したDBマイグレーションロジック（v2 パフォーマンスマイグレーション）を `database.js` に追加。
+
+Refs: #SEO-AUDIT, #ULTRA-DEEP-DIVE

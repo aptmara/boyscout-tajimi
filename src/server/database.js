@@ -167,6 +167,36 @@ if (useSqlite) {
     }
     console.log('[Startup] site_settings seeded.');
 
+    // SQLite Migration for Performance
+    try {
+      const columns = await new Promise((resolve, reject) => {
+        db.all("PRAGMA table_info(activities)", (err, rows) => err ? reject(err) : resolve(rows));
+      });
+      const hasDisplayDate = columns.some(c => c.name === 'display_date');
+
+      if (!hasDisplayDate) {
+        console.log('[Startup] Migrating SQLite schema (adding display_date)...');
+        await run(`ALTER TABLE activities ADD COLUMN display_date TEXT`);
+        await run(`UPDATE activities SET display_date = COALESCE(activity_date, created_at)`);
+
+        await run(`ALTER TABLE news ADD COLUMN display_date TEXT`);
+        await run(`UPDATE news SET display_date = created_at`);
+        console.log('[Startup] SQLite migration completed.');
+      }
+
+      // SQLite Indexes
+      await run(`CREATE INDEX IF NOT EXISTS idx_activities_category ON activities(category)`);
+      await run(`CREATE INDEX IF NOT EXISTS idx_activities_unit ON activities(unit)`);
+      await run(`CREATE INDEX IF NOT EXISTS idx_activities_display_date ON activities(display_date DESC)`);
+
+      await run(`CREATE INDEX IF NOT EXISTS idx_news_category ON news(category)`);
+      await run(`CREATE INDEX IF NOT EXISTS idx_news_unit ON news(unit)`);
+      await run(`CREATE INDEX IF NOT EXISTS idx_news_display_date ON news(display_date DESC)`);
+
+    } catch (e) {
+      console.error('[Startup] SQLite migration error:', e);
+    }
+
     console.log('SQLite tables ready.');
   };
 
@@ -320,6 +350,50 @@ if (useSqlite) {
       }
     } else {
       console.log('[Startup] (PG) INITIAL_ADMIN_USERNAME or PASSWORD not set. Skipping admin seeding.');
+    }
+    // ----------------------------------------------------------------
+    // Schema Migration: v2 (Performance & Indexes)
+    // ----------------------------------------------------------------
+    console.log('[Startup] (PG) Running v2 performance migrations...');
+    await client.query('BEGIN');
+    try {
+      // 1. Add display_date column
+      await client.query(`
+            DO $$ BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='activities' AND column_name='display_date') THEN
+                    ALTER TABLE activities ADD COLUMN display_date TIMESTAMPTZ;
+                    UPDATE activities SET display_date = COALESCE(activity_date, created_at);
+                    ALTER TABLE activities ALTER COLUMN display_date SET NOT NULL;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='news' AND column_name='display_date') THEN
+                    ALTER TABLE news ADD COLUMN display_date TIMESTAMPTZ;
+                    UPDATE news SET display_date = created_at;
+                    ALTER TABLE news ALTER COLUMN display_date SET NOT NULL;
+                END IF;
+            END$$;
+        `);
+
+      // 2. Add Indexes
+      // GIN for tags
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_tags_gin ON activities USING GIN (tags);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_news_tags_gin ON news USING GIN (tags);`);
+
+      // B-Tree for common filters
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_category ON activities (category);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_unit ON activities (unit);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_news_category ON news (category);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_news_unit ON news (unit);`);
+
+      // Sort optimization
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_activities_display_date ON activities (display_date DESC);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_news_display_date ON news (display_date DESC);`);
+
+      await client.query('COMMIT');
+      console.log('[Startup] (PG) v2 performance migrations completed.');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      console.error('[Startup] (PG) v2 migration failed:', e);
+      // Don't crash, old schema might still work for basic selects
     }
   };
 }

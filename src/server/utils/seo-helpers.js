@@ -173,7 +173,7 @@ function generateSEO(path, siteSettings = {}) {
  */
 function generateOrganizationLD(siteSettings = {}) {
     const siteUrl = siteSettings.seo_site_url || SITE_URL;
-    return {
+    const organization = {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
         "name": siteSettings.seo_organization_name || "ボーイスカウト多治見第一団",
@@ -192,6 +192,18 @@ function generateOrganizationLD(siteSettings = {}) {
         },
         "sameAs": []
     };
+
+    if (siteSettings.seo_social_facebook) organization.sameAs.push(siteSettings.seo_social_facebook);
+    if (siteSettings.seo_social_instagram) organization.sameAs.push(siteSettings.seo_social_instagram);
+
+    if (siteSettings.seo_social_links) {
+        const links = siteSettings.seo_social_links.split(',').map(s => s.trim()).filter(s => s);
+        organization.sameAs.push(...links);
+    }
+    // Remove duplicates
+    organization.sameAs = [...new Set(organization.sameAs)];
+
+    return organization;
 }
 
 /**

@@ -1,6 +1,7 @@
 const db = require('../database.js');
 const News = require('../models/news.model');
 const { normalizeSlug, normalizeTags } = require('../utils/formatters.js');
+const { sanitizePayload } = require('../utils/simple-sanitizer.js');
 
 // Utility to wrap async route handlers and catch errors
 const asyncHandler = (fn) => (req, res, next) =>
@@ -35,7 +36,8 @@ const getNewsById = asyncHandler(async (req, res) => {
 });
 
 const createNews = asyncHandler(async (req, res) => {
-  const { title, content, images = [], category = null, unit = null, tags = [] } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, images = [], category = null, unit = null, tags = [] } = safeBody;
   if (!title || !content)
     return res.status(400).json({ error: 'Title and content are required' });
 
@@ -43,8 +45,8 @@ const createNews = asyncHandler(async (req, res) => {
   const uni = unit ? normalizeSlug(unit) : null;
   const tgs = normalizeTags(tags);
   const { rows } = await db.query(
-    `INSERT INTO news (title, content, image_urls, category, unit, tags)
-     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb)
+    `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)
      RETURNING id`,
     [title, content, JSON.stringify(urls), category, uni, JSON.stringify(tgs)]
   );
@@ -52,7 +54,8 @@ const createNews = asyncHandler(async (req, res) => {
 });
 
 const updateNews = asyncHandler(async (req, res) => {
-  const { title, content, images, category, unit, tags } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, images, category, unit, tags } = safeBody;
   if (!title || !content) {
     return res.status(400).json({ error: 'Title and content are required' });
   }
@@ -105,7 +108,8 @@ const deleteNews = asyncHandler(async (req, res) => {
 const { processImages } = require('../utils/imageDownloader');
 
 const newsWebhook = asyncHandler(async (req, res) => {
-  const { title, content, images, category, unit, tags } = req.body || {};
+  const safeBody = sanitizePayload(req.body || {});
+  const { title, content, images, category, unit, tags } = safeBody;
   if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
   const rawImages = Array.isArray(images) ? images : [];
@@ -118,8 +122,8 @@ const newsWebhook = asyncHandler(async (req, res) => {
   const tgs = normalizeTags(tags);
 
   await db.query(
-    `INSERT INTO news (title, content, image_urls, category, unit, tags)
-     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb)`,
+    `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)`,
     [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
   );
   return res.status(201).json({ ok: true });

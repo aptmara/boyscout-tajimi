@@ -16,6 +16,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const expressLayouts = require('express-ejs-layouts');
+const compression = require('compression'); // Frontend Optimization
 
 // Security Packages
 const helmet = require('helmet');
@@ -27,6 +28,7 @@ const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
 const { sendMail } = require('./utils/mailer');
 
 const app = express();
+app.use(compression()); // Enable Gzip compression
 app.set('trust proxy', 1);
 
 // === Security Middleware ===
@@ -237,6 +239,18 @@ app.use('/', loadSiteSettings, sitemapRoutes);
 const viewRoutes = require('./routes/view.routes.js');
 // Viewルートにのみ設定読み込みミドルウェアを適用
 app.use('/', loadSiteSettings, viewRoutes);
+
+// ================================================================
+// 404 Handling (Must be before Global Error Handler)
+// ================================================================
+app.use((req, res, next) => {
+  // API routes return JSON
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'not_found', message: 'API endpoint not found' });
+  }
+  // View routes render 404 page
+  res.status(404).render('errors/404');
+});
 
 // ================================================================
 // Global Error Handler (Must be the last middleware)
