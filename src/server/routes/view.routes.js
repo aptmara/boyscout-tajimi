@@ -135,7 +135,7 @@ const staticPages = {
   'unit-boy': 'ボーイ隊の紹介',
   'unit-venture': 'ベンチャー隊の紹介',
   'unit-rover': 'ローバー隊の紹介',
-  'leaders-all': '指導者一覧'
+
 };
 
 Object.entries(staticPages).forEach(([page, title]) => {
