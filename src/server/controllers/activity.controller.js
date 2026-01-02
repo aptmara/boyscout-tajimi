@@ -79,7 +79,7 @@ const updateActivity = asyncHandler(async (req, res) => {
   if (!title || !content) {
     return res.status(400).json({ error: 'Title and content are required' });
   }
-  
+
   const updates = {
     title: title,
     content: content,
@@ -102,7 +102,7 @@ const updateActivity = asyncHandler(async (req, res) => {
     setClauses.push(`${key} = $${i++}`);
     params.push(value);
   }
-  
+
   if (setClauses.length === 0) {
     return res.status(400).json({ error: 'No update fields provided' });
   }
@@ -127,15 +127,21 @@ const deleteActivity = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
+const { processImages } = require('../utils/imageDownloader');
+
 const activityWebhook = asyncHandler(async (req, res) => {
   const { title, content, images, category, unit, tags, activity_date } = req.body || {};
   if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
-  const imgs = Array.isArray(images) ? images : [];
-  const cat  = (category && String(category).trim()) || '未分類';
-  const uni  = normalizeSlug(unit);
-  const tgs  = normalizeTags(tags);
-  const ad   = activity_date ? new Date(activity_date) : null;
+  const rawImages = Array.isArray(images) ? images : [];
+
+  // 画像をローカルにダウンロード
+  const imgs = await processImages(rawImages);
+
+  const cat = (category && String(category).trim()) || '未分類';
+  const uni = normalizeSlug(unit);
+  const tgs = normalizeTags(tags);
+  const ad = activity_date ? new Date(activity_date) : null;
 
   await db.query(
     `INSERT INTO activities (title, content, image_urls, category, unit, tags, activity_date)
@@ -146,10 +152,10 @@ const activityWebhook = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getAllActivities,
-    getActivityById,
-    createActivity,
-    updateActivity,
-    deleteActivity,
-    activityWebhook,
+  getAllActivities,
+  getActivityById,
+  createActivity,
+  updateActivity,
+  deleteActivity,
+  activityWebhook,
 };

@@ -102,11 +102,17 @@ const deleteNews = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
+const { processImages } = require('../utils/imageDownloader');
+
 const newsWebhook = asyncHandler(async (req, res) => {
   const { title, content, images, category, unit, tags } = req.body || {};
   if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
 
-  const imgs = Array.isArray(images) ? images : [];
+  const rawImages = Array.isArray(images) ? images : [];
+
+  // 画像をローカルにダウンロード
+  const imgs = await processImages(rawImages);
+
   const cat = (category && String(category).trim()) || '未分類';
   const uni = normalizeSlug(unit);
   const tgs = normalizeTags(tags);

@@ -555,7 +555,25 @@
                </div>`
           : '<div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">✅ 重要な設定は完了しています</div>'}
         </div>
+
+        <div class="view-section">
+          <h2 class="section-heading">システム管理</h2>
+          <div class="card p-4">
+            <h3 class="font-bold mb-2">データバックアップ</h3>
+            <p class="text-sm text-gray-600 mb-4">画像ファイルとデータベースの完全バックアップ（ZIP）をダウンロードします。</p>
+            <button id="backup-btn" class="btn-primary">📦 今すぐバックアップをダウンロード</button>
+          </div>
+        </div>
       `;
+
+      // イベントリスナーをDOMに追加（CSP対応）
+      const backupBtn = document.getElementById('backup-btn');
+      if (backupBtn) {
+        backupBtn.onclick = () => {
+          // window.open でダウンロード用APIを叩く
+          window.open('/api/admin/backup', '_blank');
+        };
+      }
 
       // イベントリスナーをDOMに追加（CSP対応）
       const goToSettingsBtn = document.getElementById('go-to-settings-btn');

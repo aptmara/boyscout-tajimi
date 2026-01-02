@@ -173,6 +173,12 @@ app.use('/api/settings', csrfProtection, settingsRoutes);
 app.get('/api/public-settings', getPublicSettings);
 
 // ================================================================
+// Admin API (Backup, etc)
+// ================================================================
+const adminRoutes = require('./routes/admin.routes.js');
+app.use('/api/admin', csrfProtection, adminRoutes);
+
+// ================================================================
 // Auth API
 // ================================================================
 const authRoutes = require('./routes/auth.routes.js');
@@ -181,10 +187,7 @@ app.use('/api/login', loginLimiter, csrfProtection);
 app.use('/api', csrfProtection, authRoutes); // Mount at /api to handle /api/login, /api/logout, etc.
 
 // ================================================================
-// Admin API
-// ================================================================
-const adminRoutes = require('./routes/admin.routes.js');
-app.use('/api/admin', csrfProtection, adminRoutes);
+
 
 // ================================================================
 // Contact API

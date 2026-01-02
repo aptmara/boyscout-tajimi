@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const { authMiddleware } = require('../middleware/auth.middleware');
+const { downloadBackup } = require('../controllers/admin.controller');
 
-const { getSummary } = require('../controllers/admin.controller.js');
-const { authMiddleware } = require('../middleware/auth.middleware.js');
-
-// All routes in this file are protected
+// 全てのエンドポイントで認証を要求
 router.use(authMiddleware);
 
-router.get('/summary', getSummary);
+// バックアップダウンロード
+router.get('/backup', downloadBackup);
 
 module.exports = router;

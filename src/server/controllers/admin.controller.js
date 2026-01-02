@@ -1,90 +1,80 @@
-const db = require('../database.js');
+const fs = require('fs');
+const path = require('path');
+const archiver = require('archiver');
+const db = require('../database');
 
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+/**
+ * フルバックアップのエクスポート
+ * public/uploads ディレクトリと database.sqlite (存在する場合) をZIP圧縮して返す
+ */
+const downloadBackup = async (req, res) => {
+  // レスポンスヘッダー設定
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `backup-${timestamp}.zip`;
 
-const getSummary = asyncHandler(async (req, res) => {
-  const [
-    newsCountRes,
-    newsRecentRes,
-    newsRecent30Res,
-    activitiesCountRes,
-    activitiesRecentRes,
-    activitiesRecent30Res,
-    settingsRowsRes
-  ] = await Promise.all([
-    db.query("SELECT COUNT(*)::int AS count FROM news"),
-    db.query(`SELECT id, title, category, unit, created_at
-               FROM news
-               ORDER BY created_at DESC
-               LIMIT 5`),
-    db.query("SELECT COUNT(*)::int AS count FROM news WHERE created_at >= now() - interval '30 days'"),
-    db.query("SELECT COUNT(*)::int AS count FROM activities"),
-    db.query(`SELECT id, title, category, unit, activity_date, created_at
-               FROM activities
-               ORDER BY COALESCE(activity_date, created_at) DESC
-               LIMIT 5`),
-    db.query("SELECT COUNT(*)::int AS count FROM activities WHERE COALESCE(activity_date, created_at) >= now() - interval '30 days'"),
-    db.query('SELECT key, value FROM settings')
-  ]);
+  res.attachment(filename);
 
-  const toNumber = (row) => Number(row?.count || 0);
-  const newsTotal = toNumber(newsCountRes.rows[0]);
-  const newsRecent30 = toNumber(newsRecent30Res.rows[0]);
-  const activitiesTotal = toNumber(activitiesCountRes.rows[0]);
-  const activitiesRecent30 = toNumber(activitiesRecent30Res.rows[0]);
+  const archive = archiver('zip', {
+    zlib: { level: 9 } // 最高圧縮率
+  });
 
-  const settingsMap = Object.create(null);
-  for (const row of settingsRowsRes.rows) {
-    settingsMap[row.key] = row.value || '';
+  archive.on('warning', (err) => {
+    if (err.code === 'ENOENT') {
+      console.warn('[Backup] Warning:', err);
+    } else {
+      console.error('[Backup] Error:', err);
+      // ヘッダー送信後なのでエラーレスポンスは難しいが、ログには残す
+    }
+  });
+
+  archive.on('error', (err) => {
+    console.error('[Backup] Archive Error:', err);
+    if (!res.headersSent) {
+      res.status(500).send({ error: 'zip_error' });
+    } else {
+      res.end();
+    }
+  });
+
+  // パイプ接続
+  archive.pipe(res);
+
+  // 1. 画像ディレクトリ (public/uploads)
+  const uploadsDir = path.join(__dirname, '../../../public/uploads');
+  if (fs.existsSync(uploadsDir)) {
+    archive.directory(uploadsDir, 'uploads');
   }
 
-  const importantKeys = [
-    { key: 'site_favicon_url', label: 'ファビコンURL' },
-    { key: 'group_crest_url', label: '団章画像URL' },
-    { key: 'contact_address', label: '代表住所' },
-    { key: 'contact_phone', label: '代表電話番号' },
-    { key: 'contact_email', label: '代表メールアドレス' },
-    { key: 'index_hero_image_url', label: 'トップページヒーロー画像' },
-    { key: 'about_mission_image_url', label: '団紹介：理念セクション画像' },
-    { key: 'about_safety_image_url', label: '団紹介：安全セクション画像' }
-  ];
+  // 2. SQLiteデータベース (存在する場合)
+  // ※ DBロックの問題があるため、本番稼働中にコピーする場合は注意が必要だが、読み取り専用なら概ねOK
+  // WALモードなら checkpoint 後が良いが、簡易バックアップとしては許容
+  const sqlitePath = path.join(__dirname, '../../../database.sqlite');
+  if (fs.existsSync(sqlitePath)) {
+    archive.file(sqlitePath, { name: 'database.sqlite' });
+  }
 
-  const isPresent = (value) => Boolean(String(value || '').trim());
-  const missingKeys = importantKeys.filter(({ key }) => !isPresent(settingsMap[key]));
+  // 3. PostgreSQLの場合のデータダンプ (簡易JSONエクスポート)
+  if (!db.useSqlite) {
+    try {
+      const newsData = await db.query('SELECT * FROM news ORDER BY id DESC');
+      archive.append(JSON.stringify(newsData.rows, null, 2), { name: 'db_dump/news.json' });
 
-  res.json({
-    news: {
-      total: newsTotal,
-      trendLabel: `直近30日: ${newsRecent30}件`,
-      recent: newsRecentRes.rows.map((row) => ({
-        id: row.id,
-        title: row.title,
-        category: row.category,
-        unit: row.unit,
-        created_at: row.created_at,
-      })),
-    },
-    activities: {
-      total: activitiesTotal,
-      trendLabel: `直近30日: ${activitiesRecent30}件`,
-      recent: activitiesRecentRes.rows.map((row) => ({
-        id: row.id,
-        title: row.title,
-        category: row.category,
-        unit: row.unit,
-        activity_date: row.activity_date,
-        created_at: row.created_at,
-      })),
-    },
-    settings: {
-      missingKeys,
-      faviconConfigured: isPresent(settingsMap.site_favicon_url),
-      heroConfigured: isPresent(settingsMap.index_hero_image_url),
-    },
-  });
-});
+      const activityData = await db.query('SELECT * FROM activities ORDER BY id DESC');
+      archive.append(JSON.stringify(activityData.rows, null, 2), { name: 'db_dump/activities.json' });
+
+      const settingsData = await db.query('SELECT * FROM site_settings ORDER BY key ASC');
+      archive.append(JSON.stringify(settingsData.rows, null, 2), { name: 'db_dump/settings.json' });
+
+    } catch (e) {
+      console.error('[Backup] DB export failed:', e);
+      archive.append(JSON.stringify({ error: e.message }), { name: 'db_dump/error.log' });
+    }
+  }
+
+  // 完了
+  await archive.finalize();
+};
 
 module.exports = {
-    getSummary,
+  downloadBackup
 };
