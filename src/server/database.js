@@ -137,6 +137,36 @@ if (useSqlite) {
     } else {
       console.log('[Startup] INITIAL_ADMIN_USERNAME or PASSWORD not set. Skipping admin seeding.');
     }
+
+    // SQLite用：site_settings初期データ挿入
+    console.log('[Startup] Seeding site_settings...');
+    const initialSettings = [
+      ['contact_address', '〒507-0017 岐阜県多治見市長瀬町２４番地の３１', 'フッターや連絡先ページに表示する住所'],
+      ['contact_phone', '0572-XX-XXXX', 'フッターや連絡先ページに表示する代表電話番号'],
+      ['contact_email', 'tajimi1@gifu.scout.jp', 'フッターや連絡先ページに表示するメールアドレス'],
+      ['contact_person_name', '団委員長', '問い合わせ担当者名'],
+      ['contact_secondary_phone', '', '問い合わせ用電話番号（担当者直通など）'],
+      ['contact_map_embed_html', '', 'Google Maps埋め込みHTML'],
+      ['leader_beaver', '（設定なし）', 'ビーバー隊リーダー名'],
+      ['leader_cub', '（設定なし）', 'カブ隊リーダー名'],
+      ['leader_boy', '（設定なし）', 'ボーイ隊隊長名'],
+      ['leader_venture', '（設定なし）', 'ベンチャー隊隊長名'],
+      ['leader_rover', '（設定なし）', 'ローバー隊アドバイザー名'],
+      ['privacy_contact_person', '団委員長', 'プライバシーポリシー担当者'],
+      ['privacy_contact_phone', '', 'プライバシー担当電話番号'],
+      ['privacy_contact_email', '', 'プライバシー担当メールアドレス'],
+      ['privacy_effective_date', '2025年5月12日', 'プライバシーポリシー施行日'],
+      ['privacy_last_updated_date', '2025年5月12日', 'プライバシーポリシー最終更新日'],
+    ];
+    for (const [key, value, description] of initialSettings) {
+      try {
+        await run(`INSERT OR IGNORE INTO site_settings (key, value, description) VALUES ('${key}', '${value}', '${description}')`);
+      } catch (e) {
+        console.error(`[Startup] Failed to insert setting '${key}':`, e.message);
+      }
+    }
+    console.log('[Startup] site_settings seeded.');
+
     console.log('SQLite tables ready.');
   };
 
@@ -237,9 +267,22 @@ if (useSqlite) {
       // 5-5) Initial data
       await client.query(`
         INSERT INTO site_settings (key, value, description) VALUES
-          ('contact_address', '〒XXX-XXXX 岐阜県多治見市XX町X-X-X', 'フッターや連絡先ページに表示する住所'),
+          ('contact_address', '〒507-0017 岐阜県多治見市長瀬町２４番地の３１', 'フッターや連絡先ページに表示する住所'),
           ('contact_phone', '0572-XX-XXXX', 'フッターや連絡先ページに表示する代表電話番号'),
-          ('contact_email', 'info@bs-tajimi1.example.jp', 'フッターや連絡先ページに表示するメールアドレス')
+          ('contact_email', 'tajimi1@gifu.scout.jp', 'フッターや連絡先ページに表示するメールアドレス'),
+          ('contact_person_name', '団委員長', '問い合わせ担当者名'),
+          ('contact_secondary_phone', '', '問い合わせ用電話番号（担当者直通など）'),
+          ('contact_map_embed_html', '', 'Google Maps埋め込みHTML'),
+          ('leader_beaver', '（設定なし）', 'ビーバー隊リーダー名'),
+          ('leader_cub', '（設定なし）', 'カブ隊リーダー名'),
+          ('leader_boy', '（設定なし）', 'ボーイ隊隊長名'),
+          ('leader_venture', '（設定なし）', 'ベンチャー隊隊長名'),
+          ('leader_rover', '（設定なし）', 'ローバー隊アドバイザー名'),
+          ('privacy_contact_person', '団委員長', 'プライバシーポリシー担当者'),
+          ('privacy_contact_phone', '', 'プライバシー担当電話番号'),
+          ('privacy_contact_email', '', 'プライバシー担当メールアドレス'),
+          ('privacy_effective_date', '2025年5月12日', 'プライバシーポリシー施行日'),
+          ('privacy_last_updated_date', '2025年5月12日', 'プライバシーポリシー最終更新日')
         ON CONFLICT (key) DO NOTHING;
       `);
 

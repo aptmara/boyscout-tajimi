@@ -522,16 +522,16 @@ async function applySiteSettings() {
       if (settings.privacy_contact_person) el.textContent = settings.privacy_contact_person;
     });
     document.querySelectorAll('.privacy-contact-phone').forEach(el => {
-      if (settings.privacy_contact_phone) {
-        el.textContent = settings.privacy_contact_phone;
-        if (el.tagName === 'A') el.href = 'tel:' + settings.privacy_contact_phone.replace(/-/g, '');
-      }
+      // 専用の値がなければ共通の連絡先を使用
+      const phone = settings.privacy_contact_phone || settings.contact_phone || '（電話番号未設定）';
+      el.textContent = phone;
+      if (el.tagName === 'A') el.href = 'tel:' + phone.replace(/-/g, '');
     });
     document.querySelectorAll('.privacy-contact-email').forEach(el => {
-      if (settings.privacy_contact_email) {
-        el.textContent = settings.privacy_contact_email;
-        if (el.tagName === 'A') el.href = 'mailto:' + settings.privacy_contact_email;
-      }
+      // 専用の値がなければ共通の連絡先を使用
+      const email = settings.privacy_contact_email || settings.contact_email || '（メールアドレス未設定）';
+      el.textContent = email;
+      if (el.tagName === 'A') el.href = 'mailto:' + email;
     });
 
     // 4. お問い合わせページ専用

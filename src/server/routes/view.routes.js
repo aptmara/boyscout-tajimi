@@ -63,7 +63,7 @@ router.get('/', async (req, res, next) => {
       description: 'ボーイスカウト多治見第一団の公式ウェブサイトへようこそ。自然体験、仲間との協力、そして自己成長の機会を提供します。',
       activities,
       news,
-      pageScripts: ['/dynamic-index.js'] // ヒーローセクションのアニメーション等に必要
+      pageScripts: [] // ヒーロー等のアニメーションはcommon-scripts.jsで処理
     });
   } catch (err) {
     console.error("Error fetching data for top page:", err);
@@ -117,7 +117,7 @@ router.get('/about', (req, res) => {
   res.render('pages/about', {
     title: '私たちについて - ボーイスカウト多治見第一団',
     description: 'ボーイスカウト多治見第一団の理念、活動方針、指導者についてご紹介します。',
-    pageScripts: ['/dynamic-about.js'] // 'about.ejs'で動的に読み込まれるコンテンツがある場合
+    pageScripts: [] // 動的コンテンツはcommon-scripts.jsで処理
   });
 });
 

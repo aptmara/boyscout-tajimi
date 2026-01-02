@@ -95,12 +95,23 @@ module.exports = {
 
         // CONTACT INFO (EXISTING)
         'contact_address': { group: 'CONTACT', type: 'text', label: '住所' },
-        'contact_phone': { group: 'CONTACT', type: 'text', label: '電話番号' },
+        'contact_phone': { group: 'CONTACT', type: 'text', label: '代表電話番号' },
         'contact_email': { group: 'CONTACT', type: 'text', label: 'メールアドレス' },
         'contact_person_name': { group: 'CONTACT', type: 'text', label: '担当者名' },
+        'contact_secondary_phone': { group: 'CONTACT', type: 'text', label: '問い合わせ用電話番号（担当者直通など）' },
+        'contact_map_embed_html': { group: 'CONTACT', type: 'textarea', label: 'Google Maps埋め込みHTML（iframeタグ）' },
+
+        // LEADERS（各隊リーダー名）
+        'leader_beaver': { group: 'BEAVER', type: 'text', label: 'リーダー名' },
+        'leader_cub': { group: 'CUB', type: 'text', label: 'リーダー名' },
+        'leader_boy': { group: 'BOY', type: 'text', label: '隊長名' },
+        'leader_venture': { group: 'VENTURE', type: 'text', label: '隊長名' },
+        'leader_rover': { group: 'ROVER', type: 'text', label: 'アドバイザー名' },
 
         // PRIVACY
         'privacy_contact_person': { group: 'PRIVACY', type: 'text', label: '個人情報担当者' },
+        'privacy_contact_phone': { group: 'PRIVACY', type: 'text', label: '担当電話番号' },
+        'privacy_contact_email': { group: 'PRIVACY', type: 'text', label: '担当メールアドレス' },
         'privacy_effective_date': { group: 'PRIVACY', type: 'date', label: '施行日' },
         'privacy_last_updated_date': { group: 'PRIVACY', type: 'date', label: '最終更新日' },
     }
