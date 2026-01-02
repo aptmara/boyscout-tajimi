@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadUnitActivities(unitType) {
+    const container = document.getElementById('unit-activities');
     const cardContainer = document.getElementById('unit-activity-cards');
-    if (!cardContainer) return;
+    if (!cardContainer || !container) return;
 
     try {
         // APIからデータ取得 (limit=4)
@@ -64,7 +65,7 @@ async function loadUnitActivities(unitType) {
     } catch (error) {
         console.error('Failed to load unit activities:', error);
         // エラー時はセクションを隠す
-        document.getElementById('unit-activities').style.display = 'none';
+        if (container) container.style.display = 'none';
     }
 }
 
