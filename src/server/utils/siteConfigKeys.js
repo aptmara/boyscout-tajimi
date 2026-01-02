@@ -1,6 +1,7 @@
 // サイト内の設定キー定義（画像・テキスト含む）
 module.exports = {
     GROUPS: {
+        SEO: 'SEO設定',
         COMMON: '共通設定',
         INDEX: 'トップページ',
         ABOUT: '団について',
@@ -15,6 +16,16 @@ module.exports = {
         PRIVACY: 'プライバシーポリシー'
     },
     KEYS: {
+        // SEO設定
+        'seo_site_url': { group: 'SEO', type: 'text', label: 'サイトURL（例: https://www.tajimibs.org）' },
+        'seo_site_name': { group: 'SEO', type: 'text', label: 'サイト名' },
+        'seo_default_description': { group: 'SEO', type: 'textarea', label: 'デフォルト説明文（meta description）' },
+        'seo_default_keywords': { group: 'SEO', type: 'text', label: 'デフォルトキーワード（カンマ区切り）' },
+        'seo_og_image_url': { group: 'SEO', type: 'image', label: 'SNS共有用画像（OGP画像、1200x630px推奨）' },
+        'seo_twitter_card_type': { group: 'SEO', type: 'text', label: 'Twitter Card タイプ（summary_large_image 推奨）' },
+        'seo_organization_name': { group: 'SEO', type: 'text', label: '組織正式名称' },
+        'seo_organization_founding_date': { group: 'SEO', type: 'text', label: '創立年（例: 1964）' },
+
         // COMMON
         'site_favicon_url': { group: 'COMMON', type: 'image', label: 'ファビコン' },
         'group_crest_url': { group: 'COMMON', type: 'image', label: '団章（ロゴ）' },

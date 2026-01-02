@@ -38,7 +38,8 @@
 <section class="bg-green-500 text-white py-12 md:py-20 fade-in-section">
     <div class="container mx-auto px-6 text-center">
         <img src="<%= siteConfig.getImage('unit_cub_logo_url', 'https://placehold.co/150x150/FFFFFF/22C55E?text=カブ隊章') %>"
-            alt="カブ隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg">
+            alt="ボーイスカウト多治見第一団 カブ隊の隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg"
+            width="128" height="128">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">カブ隊のご紹介</h1>
         <p class="text-lg md:text-xl text-green-100 max-w-2xl mx-auto">
             「いつも元気」にチャレンジ！仲間と一緒に、たくさんの「できた！」を体験しよう！
@@ -51,7 +52,8 @@
         <div class="text-center mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">カブ隊ってどんなところ？</h2>
             <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                カブスカウトは、好奇心旺盛な子どもたちが集まる場所。「組」という小さなグループで協力し、様々な活動に挑戦します。
+                カブスカウトは、<strong
+                    class="text-green-700">岐阜県多治見市</strong>を拠点に活動する好奇心旺盛な子どもたちが集まる場所。「組」という小さなグループで協力し、様々な活動に挑戦します。
             </p>
         </div>
         <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -79,7 +81,8 @@
             </div>
             <div>
                 <img src="<%= siteConfig.getImage('unit_cub_hero_image_url', 'https://placehold.co/600x450/A7F3D0/15803D?text=カブ隊の元気な活動') %>"
-                    alt="カブ隊の活動イメージ" class="rounded-xl shadow-xl w-full">
+                    alt="岐阜県多治見市のカブスカウトが元気に活動している様子" class="rounded-xl shadow-xl w-full" width="600" height="450"
+                    loading="lazy">
             </div>
         </div>
 
@@ -146,22 +149,30 @@
             <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動1" data-lightbox="cub-gallery"
                 data-title="組の仲間とハイキング">
                 <img src="<%= siteConfig.getImage('unit_cub_gallery_img_1_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動1') %>"
-                    alt="カブ隊 活動写真1" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="カブスカウトが組の仲間とハイキングしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動2" data-lightbox="cub-gallery"
                 data-title="楽しい工作タイム">
                 <img src="<%= siteConfig.getImage('unit_cub_gallery_img_2_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動2') %>"
-                    alt="カブ隊 活動写真2" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="カブスカウトが楽しく工作をしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動3" data-lightbox="cub-gallery"
                 data-title="デイキャンプで料理">
                 <img src="<%= siteConfig.getImage('unit_cub_gallery_img_3_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動3') %>"
-                    alt="カブ隊 活動写真3" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="カブスカウトがデイキャンプで料理をしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/22C55E/FFFFFF?text=カブ活動4" data-lightbox="cub-gallery"
                 data-title="地域のお祭りに参加">
                 <img src="<%= siteConfig.getImage('unit_cub_gallery_img_4_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=カブ活動4') %>"
-                    alt="カブ隊 活動写真4" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="カブスカウトが地域のお祭りに参加している様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
         </div>
         <div class="text-center mt-12">
@@ -230,9 +241,31 @@
     </div>
 </section>
 
+<!-- 他の隊も見てみようセクション -->
+<section id="related-units" class="py-12 bg-gray-100 fade-in-section" style="transition-delay: 0.9s;">
+    <div class="container mx-auto px-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">他の隊も見てみよう</h2>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/unit-beaver"
+                class="flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 border-yellow-400">
+                <span class="text-yellow-600 font-bold">← ビーバー隊</span>
+                <span class="text-sm text-gray-500">（年長〜小2）</span>
+            </a>
+            <a href="/unit-boy"
+                class="flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 border-blue-500">
+                <span class="text-blue-600 font-bold">ボーイ隊 →</span>
+                <span class="text-sm text-gray-500">（小6〜中3）</span>
+            </a>
+        </div>
+    </div>
+</section>
+
 <section id="next-steps-cub" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 1.0s;">
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-10">カブ隊に興味を持ったら</h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <strong class="text-green-700">岐阜県多治見市</strong>で活動するボーイスカウト多治見第一団では、見学・体験入隊を随時受け付けています。
+        </p>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
             <a href="/#units"
                 class="w-full sm:w-auto inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">各隊の紹介</a>

@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# 管理画面はクロール禁止
+Disallow: /admin/
+Disallow: /api/
+
+# 静的リソースは許可
+Allow: /styles/
+Allow: /uploads/
+
+# サイトマップ
+Sitemap: https://www.tajimibs.org/sitemap.xml

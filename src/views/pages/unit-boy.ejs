@@ -38,7 +38,8 @@
 <section class="bg-blue-500 text-white py-12 md:py-20 fade-in-section">
     <div class="container mx-auto px-6 text-center">
         <img src="<%= siteConfig.getImage('unit_boy_logo_url', 'https://placehold.co/150x150/FFFFFF/22C55E?text=ボーイ隊章') %>"
-            alt="ボーイ隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg">
+            alt="ボーイスカウト多治見第一団 ボーイ隊の隊章" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white shadow-lg"
+            width="128" height="128">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">ボーイ隊のご紹介</h1>
         <p class="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">
             「そなえよつねに」を胸に、仲間と共に成長し、社会に貢献できる力を磨こう！
@@ -51,7 +52,8 @@
         <div class="text-center mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-blue-600 mb-4">ボーイ隊ってどんなところ？</h2>
             <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                ボーイスカウト部門は、より本格的なスカウト活動のステージ。「班」という小グループでの活動を通じて、リーダーシップや協調性、そして様々な野外技能を習得します。
+                ボーイスカウト部門は、<strong
+                    class="text-blue-700">岐阜県多治見市</strong>を拠点に活動する本格的なスカウト活動のステージ。「班」という小グループでの活動を通じて、リーダーシップや協調性、そして様々な野外技能を習得します。
             </p>
         </div>
         <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -79,7 +81,8 @@
             </div>
             <div>
                 <img src="<%= siteConfig.getImage('unit_boy_hero_image_url', 'https://placehold.co/600x450/A7F3D0/15803D?text=ボーイ隊の冒険活動') %>"
-                    alt="ボーイ隊の活動イメージ" class="rounded-xl shadow-xl w-full">
+                    alt="岐阜県多治見市のボーイスカウトがキャンプで活動している様子" class="rounded-xl shadow-xl w-full" width="600" height="450"
+                    loading="lazy">
             </div>
         </div>
 
@@ -148,22 +151,30 @@
             <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動1" data-lightbox="boy-gallery"
                 data-title="テント設営訓練" data-caption="テント設営訓練の様子">
                 <img src="<%= siteConfig.getImage('unit_boy_gallery_img_1_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動1') %>"
-                    alt="ボーイ隊 活動写真1" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="ボーイスカウトがテント設営訓練をしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動2" data-lightbox="boy-gallery"
                 data-title="長距離ハイキング" data-caption="長距離ハイキングの様子">
                 <img src="<%= siteConfig.getImage('unit_boy_gallery_img_2_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動2') %>"
-                    alt="ボーイ隊 活動写真2" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="ボーイスカウトが長距離ハイキングをしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動3" data-lightbox="boy-gallery"
                 data-title="パイオニアリング作品" data-caption="完成したパイオニアリング作品">
                 <img src="<%= siteConfig.getImage('unit_boy_gallery_img_3_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動3') %>"
-                    alt="ボーイ隊 活動写真3" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="ボーイスカウトが完成させたパイオニアリング作品"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
             <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動4" data-lightbox="boy-gallery"
                 data-title="地域奉仕活動" data-caption="地域奉仕活動の様子">
                 <img src="<%= siteConfig.getImage('unit_boy_gallery_img_4_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動4') %>"
-                    alt="ボーイ隊 活動写真4" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover">
+                    alt="ボーイスカウトが地域奉仕活動をしている様子"
+                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
+                    loading="lazy">
             </a>
         </div>
         <div class="text-center mt-12">
@@ -232,9 +243,31 @@
     </div>
 </section>
 
+<!-- 他の隊も見てみようセクション -->
+<section id="related-units" class="py-12 bg-gray-100 fade-in-section" style="transition-delay: 0.9s;">
+    <div class="container mx-auto px-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">他の隊も見てみよう</h2>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/unit-cub"
+                class="flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 border-green-500">
+                <span class="text-green-600 font-bold">← カブ隊</span>
+                <span class="text-sm text-gray-500">（小3〜小5）</span>
+            </a>
+            <a href="/unit-venture"
+                class="flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 border-purple-500">
+                <span class="text-purple-600 font-bold">ベンチャー隊 →</span>
+                <span class="text-sm text-gray-500">（高校生）</span>
+            </a>
+        </div>
+    </div>
+</section>
+
 <section id="next-steps-boy" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 1.0s;">
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-10">ボーイ隊で、新しい自分を発見しよう！</h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <strong class="text-green-700">岐阜県多治見市</strong>で活動するボーイスカウト多治見第一団では、見学・体験入隊を随時受け付けています。
+        </p>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
             <a href="/#units"
                 class="w-full sm:w-auto inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-lg transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg">各隊の紹介</a>

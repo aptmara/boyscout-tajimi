@@ -8,6 +8,38 @@ const {
   buildSummary
 } = helpers;
 
+// SEOヘルパーをインポート
+const { generateSEO, generateFullJsonLD, pageSEOConfig } = require('../utils/seo-helpers');
+
+/**
+ * SEO情報を生成するヘルパー関数
+ * siteConfigからサイト設定を取得してSEO情報を生成
+ */
+function buildSEOData(path, siteConfig) {
+  // siteConfigからDB設定を取得
+  const siteSettings = {};
+  if (siteConfig && typeof siteConfig.get === 'function') {
+    siteSettings.seo_site_url = siteConfig.get('seo_site_url') || 'https://www.tajimibs.org';
+    siteSettings.seo_site_name = siteConfig.get('seo_site_name') || 'ボーイスカウト多治見第一団';
+    siteSettings.seo_default_description = siteConfig.get('seo_default_description');
+    siteSettings.seo_default_keywords = siteConfig.get('seo_default_keywords');
+    siteSettings.seo_og_image_url = siteConfig.get('seo_og_image_url');
+    siteSettings.seo_twitter_card_type = siteConfig.get('seo_twitter_card_type');
+    siteSettings.seo_organization_name = siteConfig.get('seo_organization_name');
+    siteSettings.seo_organization_founding_date = siteConfig.get('seo_organization_founding_date');
+    siteSettings.group_crest_url = siteConfig.get('group_crest_url');
+  } else {
+    // siteConfigが無い場合のデフォルト
+    siteSettings.seo_site_url = 'https://www.tajimibs.org';
+    siteSettings.seo_site_name = 'ボーイスカウト多治見第一団';
+  }
+
+  const seo = generateSEO(path, siteSettings);
+  seo.jsonLD = generateFullJsonLD(path, siteSettings);
+
+  return seo;
+}
+
 
 // Card Data Shaper
 // DBから取得したデータをhighlightCardパーシャルが期待する形式に変換
@@ -57,10 +89,14 @@ router.get('/', async (req, res, next) => {
     const activities = activityRes.rows.map(item => shapeCardData(item, 'activity'));
     const news = newsRes.rows.map(item => shapeCardData(item, 'news'));
 
+    // SEO情報生成
+    const seo = buildSEOData('/', res.locals.siteConfig);
+
     // レンダリング
     res.render('pages/index', {
-      title: 'ボーイスカウト多治見第一団 - トップページ',
-      description: 'ボーイスカウト多治見第一団の公式ウェブサイトへようこそ。自然体験、仲間との協力、そして自己成長の機会を提供します。',
+      title: seo.title,
+      description: seo.description,
+      seo,
       activities,
       news,
       pageScripts: [] // ヒーロー等のアニメーションはcommon-scripts.jsで処理
@@ -81,9 +117,30 @@ router.get('/news/:id', async (req, res, next) => {
     if (rows.length === 0) return next();
 
     const item = rows[0];
+
+    // ニュース詳細ページ用の動的SEO
+    const siteSettings = {
+      seo_site_url: res.locals.siteConfig?.get('seo_site_url') || 'https://www.tajimibs.org',
+      seo_og_image_url: pickFirstImage(item.image_urls, item.title) || res.locals.siteConfig?.get('seo_og_image_url')
+    };
+
+    const seo = {
+      title: `${item.title} | お知らせ | ボーイスカウト多治見第一団`,
+      description: buildSummary(item.content, 150),
+      keywords: 'お知らせ,ニュース,多治見,ボーイスカウト',
+      robots: 'index, follow',
+      canonical: `${siteSettings.seo_site_url}/news/${id}`,
+      ogType: 'article',
+      ogTitle: `${item.title} | お知らせ`,
+      ogImage: siteSettings.seo_og_image_url,
+      twitterCard: 'summary_large_image',
+      siteName: 'ボーイスカウト多治見第一団'
+    };
+
     res.render('pages/news-detail', {
-      title: `${item.title} - お知らせ`,
-      description: buildSummary(item.content, 120),
+      title: seo.title,
+      description: seo.description,
+      seo,
       item,
       helpers
     });
@@ -101,9 +158,30 @@ router.get('/activity/:id', async (req, res, next) => {
     if (rows.length === 0) return next();
 
     const item = rows[0];
+
+    // 活動詳細ページ用の動的SEO
+    const siteSettings = {
+      seo_site_url: res.locals.siteConfig?.get('seo_site_url') || 'https://www.tajimibs.org',
+      seo_og_image_url: pickFirstImage(item.image_urls, item.title) || res.locals.siteConfig?.get('seo_og_image_url')
+    };
+
+    const seo = {
+      title: `${item.title} | 活動記録 | ボーイスカウト多治見第一団`,
+      description: buildSummary(item.content, 150),
+      keywords: '活動記録,キャンプ,野外活動,多治見,ボーイスカウト',
+      robots: 'index, follow',
+      canonical: `${siteSettings.seo_site_url}/activity/${id}`,
+      ogType: 'article',
+      ogTitle: `${item.title} | 活動記録`,
+      ogImage: siteSettings.seo_og_image_url,
+      twitterCard: 'summary_large_image',
+      siteName: 'ボーイスカウト多治見第一団'
+    };
+
     res.render('pages/activity-detail', {
-      title: `${item.title} - 活動記録`,
-      description: buildSummary(item.content, 120),
+      title: seo.title,
+      description: seo.description,
+      seo,
       item,
       helpers
     });
@@ -114,9 +192,11 @@ router.get('/activity/:id', async (req, res, next) => {
 
 // 「団について」ページ
 router.get('/about', (req, res) => {
+  const seo = buildSEOData('/about', res.locals.siteConfig);
   res.render('pages/about', {
-    title: '私たちについて - ボーイスカウト多治見第一団',
-    description: 'ボーイスカウト多治見第一団の理念、活動方針、指導者についてご紹介します。',
+    title: seo.title,
+    description: seo.description,
+    seo,
     pageScripts: [] // 動的コンテンツはcommon-scripts.jsで処理
   });
 });
@@ -150,9 +230,15 @@ Object.entries(staticPages).forEach(([page, title]) => {
     } else if (page.startsWith('unit-')) {
       pageScripts = ['/dynamic-unit-activities.js'];
     }
+
+    // SEO情報生成（.htmlアクセスの場合は正規化されたパスを使用）
+    const normalizedPath = `/${page}`;
+    const seo = buildSEOData(normalizedPath, res.locals.siteConfig);
+
     res.render(`pages/${page}`, {
-      title: `${title} - ボーイスカウト多治見第一団`,
-      description: `ボーイスカウト多治見第一団の${title}ページです。`,
+      title: seo.title,
+      description: seo.description,
+      seo,
       pageScripts
     });
   });

@@ -225,6 +225,13 @@ app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')
 const { loadSiteSettings } = require('./middleware/siteConfig.middleware.js');
 
 // ================================================================
+// Sitemap Route (SEO)
+// ================================================================
+const sitemapRoutes = require('./routes/sitemap.routes.js');
+// サイトマップにもsiteConfig設定を読み込む
+app.use('/', loadSiteSettings, sitemapRoutes);
+
+// ================================================================
 // View Routes (SSR Pages)
 // ================================================================
 const viewRoutes = require('./routes/view.routes.js');
