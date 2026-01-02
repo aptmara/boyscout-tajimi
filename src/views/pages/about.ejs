@@ -14,7 +14,9 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-green-700 mb-6">団の歴史と規模</h2>
                 <p class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
                     ボーイスカウト多治見第一団は、<strong>昭和39年（1964年）</strong>に発団しました。<br>
-                    地域に根ざした活動を続け、今年で<strong>61年</strong>の歴史を重ねています。
+                    地域に根ざした活動を続け、今年で<strong>
+                        <%= new Date().getFullYear() - 1964 %>年
+                    </strong>の歴史を重ねています。
                 </p>
             </div>
 
@@ -39,7 +41,9 @@
                         </div>
                         <div class="flex justify-between items-baseline pt-2">
                             <span class="text-gray-600 font-medium">活動年数</span>
-                            <span class="text-xl font-bold text-green-600">61年目</span>
+                            <span class="text-xl font-bold text-green-600">
+                                <%= new Date().getFullYear() - 1964 %>年目
+                            </span>
                         </div>
                         <p class="text-sm text-gray-500 mt-4 leading-relaxed">
                             半世紀以上にわたり、多治見の地で数多くのスカウトを育成し、輩出してきました。親子二代、三代で活動に参加されているご家庭もあります。
