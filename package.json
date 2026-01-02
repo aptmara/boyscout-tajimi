@@ -8,9 +8,9 @@
     "start": "node src/server/server.js",
     "start:dev": "set NODE_ENV=development&& node src/server/server.js",
     "start:prod": "set NODE_ENV=production&& node src/server/server.js",
-    "db:setup": "node src/server/database.js",
-    "start:json": "node src/server/server-json.js",
+    "dev": "nodemon src/server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate-images": "node src/scripts/migrate-images.js",
     "build:css": "npx tailwindcss -i ./src/styles/input.css -o ./public/styles/common-styles.css --minify",
     "build": "npm run build:css",
     "tailwind:init": "tailwindcss init"
