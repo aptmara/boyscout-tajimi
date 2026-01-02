@@ -75,8 +75,6 @@ const downloadBackup = async (req, res) => {
   await archive.finalize();
 };
 
-downloadBackup
-};
 
 /**
  * ダッシュボード用サマリー情報の取得
