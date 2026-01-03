@@ -54,12 +54,7 @@ const loginLimiter = rateLimit({
   message: 'Too many login attempts from this IP, please try again after 15 minutes'
 });
 
-// Rate limiting for webhooks (緩め：1分間に10回まで)
-const webhookLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // 1分間に10回まで
-  message: { error: 'Too many requests, please try again later' }
-});
+
 
 // === secret fingerprint (ログ最小限)
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
@@ -122,6 +117,28 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 
 // ------------------------------
+// Webhook Routes (MUST be before global body parsers)
+// ------------------------------
+// Webhookは生のbodyで署名検証するため、express.json()より前に配置
+const { webhookAuth } = require('./middleware/auth.middleware.js');
+const webhookRawJson = express.raw({ type: 'application/json', limit: '5mb' });
+
+// Rate limiting for webhooks (1分間に10回まで)
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many requests, please try again later' }
+});
+
+// News Webhook
+const { newsWebhook } = require('./controllers/news.controller.js');
+app.post('/api/news/webhook', webhookLimiter, webhookRawJson, webhookAuth, newsWebhook);
+
+// Activity Webhook
+const { activityWebhook } = require('./controllers/activity.controller.js');
+app.post('/api/activities/webhook', webhookLimiter, webhookRawJson, webhookAuth, activityWebhook);
+
+// ------------------------------
 // Global Body Parsers
 // ------------------------------
 app.use(express.json({ limit: '1mb' }));
@@ -138,32 +155,20 @@ const csrfProtection = csurf();
 // ------------------------------
 // 認証ミドルウェア
 // ------------------------------
-const { authMiddleware, webhookAuth } = require('./middleware/auth.middleware.js');
+const { authMiddleware } = require('./middleware/auth.middleware.js');
 
 // ================================================================
 // News API
 // ================================================================
 const newsRoutes = require('./routes/news.routes.js');
-const { newsWebhook } = require('./controllers/news.controller.js');
-
-// Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）、raw bodyで受信
-// Base64画像送信に対応するため5mbまで許容
-const webhookRawJson = express.raw({ type: 'application/json', limit: '5mb' });
-app.post('/api/news/webhook', webhookLimiter, webhookRawJson, webhookAuth, newsWebhook);
-
-// その他の管理画面向けAPI：CSRF保護あり
+// Webhookは上部で定義済み（グローバルボディパーサーより前）
 app.use('/api/news', csrfProtection, newsRoutes);
 
 // ================================================================
 // Activity API
 // ================================================================
 const activityRoutes = require('./routes/activity.routes.js');
-const { activityWebhook } = require('./controllers/activity.controller.js');
-
-// Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）
-app.post('/api/activities/webhook', webhookLimiter, webhookRawJson, webhookAuth, activityWebhook);
-
-// その他の管理画面向けAPI：CSRF保護あり
+// Webhookは上部で定義済み（グローバルボディパーサーより前）
 app.use('/api/activities', csrfProtection, activityRoutes);
 
 // ================================================================
