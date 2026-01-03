@@ -7,11 +7,13 @@ const {
   createActivity,
   updateActivity,
   deleteActivity,
+  getActivityFilters,
 } = require('../controllers/activity.controller.js');
 
 const { authMiddleware } = require('../middleware/auth.middleware.js');
 
 // Public routes
+router.get('/filters', getActivityFilters);
 router.get('/', getAllActivities);
 router.get('/:id', getActivityById);
 

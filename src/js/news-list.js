@@ -29,25 +29,37 @@ class NewsDashboard extends BaseListDashboard {
   }
 
   normalizeItem(item) {
-    // 基本的な正規化はサーバー側または共通化もできるが、
-    // _searchBlob や _dateObj の生成はここで行う
+    // サーバーから軽量データ（summary, thumbnail）が来る前提
     if (!item) return null;
     const normalized = { ...item };
     const tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : [];
     normalized.tags = tags;
     normalized._tagsLower = tags.map(tag => String(tag).toLowerCase());
-    
-    const div = document.createElement('div');
-    div.innerHTML = item.content || '';
-    const plain = (div.textContent || div.innerText || '').trim();
-    normalized._plain = plain;
-    
-    const summaryLength = 120;
-    normalized._summary = plain.length > summaryLength ? `${plain.slice(0, summaryLength)}…` : plain;
+
+    // サーバーからsummaryが来る場合はそのまま使用、なければcontentから生成（詳細ページ用）
+    if (item.summary !== undefined) {
+      normalized._summary = item.summary || '';
+      normalized._plain = item.summary || '';
+    } else if (item.content) {
+      const div = document.createElement('div');
+      div.innerHTML = item.content || '';
+      const plain = (div.textContent || div.innerText || '').trim();
+      normalized._plain = plain;
+      const summaryLength = 120;
+      normalized._summary = plain.length > summaryLength ? `${plain.slice(0, summaryLength)}…` : plain;
+    } else {
+      normalized._summary = '';
+      normalized._plain = '';
+    }
+
+    // 画像：thumbnailがあればimage_urlsとして扱う（一覧用）
+    if (item.thumbnail !== undefined) {
+      normalized.image_urls = Array.isArray(item.thumbnail) ? item.thumbnail : [];
+    }
 
     const searchParts = [
       String(item.title || '').toLowerCase(),
-      plain.toLowerCase(),
+      normalized._plain.toLowerCase(),
       normalized._tagsLower.join(' '),
       String(item.category || '').toLowerCase(),
       String(item.unit || '').toLowerCase()
@@ -57,7 +69,7 @@ class NewsDashboard extends BaseListDashboard {
     const dateStr = item.published_at || item.created_at;
     const dateObj = dateStr ? new Date(dateStr) : null;
     normalized._dateObj = (dateObj && !Number.isNaN(dateObj.valueOf())) ? dateObj : null;
-    
+
     // 日付表示用
     if (normalized._dateObj) {
       try {
@@ -76,24 +88,57 @@ class NewsDashboard extends BaseListDashboard {
     return normalized;
   }
 
-  renderFilterOptions(settings) {
-    // カテゴリ (固定 + 動的)
-    const categories = ['イベント', '報告', '募集', '重要', 'その他'];
-    this.renderChips(this.catSelect, categories, 'category');
+  /**
+   * フィルターAPIからオプションを取得して描画
+   * settingsは後方互換のため残すが、主にフィルターAPIを使用
+   */
+  async renderFilterOptions(settings) {
+    // 隊スラッグ→日本語ラベルのマップ
+    const unitLabels = {
+      'all': '団全体',
+      'beaver': 'ビーバー隊',
+      'cub': 'カブ隊',
+      'boy': 'ボーイ隊',
+      'venture': 'ベンチャー隊',
+      'rover': 'ローバー隊'
+    };
 
-    // 隊
     try {
-      const units = JSON.parse(settings.units_json || '[]');
-      this.renderChips(this.unitSelect, units.map(u => u.slug), 'unit', units.map(u => u.label || u.slug));
-    } catch {}
+      const res = await fetch('/api/news/filters');
+      if (res.ok) {
+        const filters = await res.json();
 
-    // タグ
-    try {
-      const tags = JSON.parse(settings.news_tags_json || '[]');
-      this.renderChips(this.tagBar, tags.map(t => t.slug), 'tag', tags.map(t => `#${t.label||t.slug}`));
-    } catch {}
+        // カテゴリ（APIから取得）
+        if (filters.categories && filters.categories.length > 0) {
+          this.renderChips(this.catSelect, filters.categories, 'category');
+        }
 
-    // ソート
+        // 隊（APIから取得、日本語ラベル付き）
+        if (filters.units && filters.units.length > 0) {
+          const unitValues = filters.units;
+          const unitDisplayLabels = unitValues.map(u => unitLabels[u] || u);
+          this.renderChips(this.unitSelect, unitValues, 'unit', unitDisplayLabels);
+        }
+
+        // タグ（APIから取得）
+        if (filters.tags && filters.tags.length > 0) {
+          this.renderChips(this.tagBar, filters.tags, 'tag', filters.tags.map(t => `#${t}`));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch news filters:', err);
+      // フォールバック: 設定から取得を試みる
+      try {
+        const units = JSON.parse(settings.units_json || '[]');
+        this.renderChips(this.unitSelect, units.map(u => u.slug), 'unit', units.map(u => u.label || u.slug));
+      } catch { }
+      try {
+        const tags = JSON.parse(settings.news_tags_json || '[]');
+        this.renderChips(this.tagBar, tags.map(t => t.slug), 'tag', tags.map(t => `#${t.label || t.slug}`));
+      } catch { }
+    }
+
+    // ソート（固定）
     this.renderChips(this.sortSelect, [
       { val: 'newest', label: '新しい順' },
       { val: 'oldest', label: '古い順' }
@@ -104,18 +149,20 @@ class NewsDashboard extends BaseListDashboard {
     const detailUrl = `/news/${news.id}`;
     const unitBadge = news.unit ? `<span class="badge badge--unit mr-2">${escapeHTML(news.unit)}</span>` : '';
     const catBadge = news.category ? `<span class="badge badge--category">${escapeHTML(news.category)}</span>` : '';
-    const tagHtml = (news.tags || []).slice(0,6).map(t=>`<span class="badge badge--tag">#${escapeHTML(t)}</span>`).join('');
-    
-    let img = `https://placehold.co/720x405/3B82F6/FFFFFF?text=${encodeURIComponent(news.category||'NEWS')}`;
-    if (Array.isArray(news.image_urls) && news.image_urls.length > 0) {
-      img = news.image_urls[0];
-    }
+    const tagHtml = (news.tags || []).slice(0, 6).map(t => `<span class="badge badge--tag">#${escapeHTML(t)}</span>`).join('');
+
+    const hasImage = Array.isArray(news.image_urls) && news.image_urls.length > 0;
+    const imgHtml = hasImage
+      ? `<img src="${escapeHTML(news.image_urls[0])}" alt="${escapeHTML(news.title || '')}" class="w-full h-48 sm:h-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy">`
+      : `<div class="w-full h-48 sm:h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+           <span class="text-white text-2xl font-bold opacity-80">${escapeHTML(news.category || 'NEWS')}</span>
+         </div>`;
 
     return `
       <article class="bg-white rounded-xl shadow-lg overflow-hidden card-hover-effect flex flex-col sm:flex-row gap-6 fade-in-section is-visible">
         <div class="sm:w-2/5 relative overflow-hidden">
           <a href="${detailUrl}" class="block h-full">
-            <img src="${img}" alt="${escapeHTML(news.title||'')}" class="w-full h-48 sm:h-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy">
+            ${imgHtml}
           </a>
         </div>
         <div class="sm:w-3/5 p-6 sm:pl-0 flex flex-col justify-center">
@@ -124,7 +171,7 @@ class NewsDashboard extends BaseListDashboard {
             <p class="text-xs text-gray-500">${news._displayDate}</p>
           </div>
           <h3 class="text-xl font-semibold text-gray-800 mb-2 line-clamp-2">
-            <a href="${detailUrl}" class="hover:text-green-700 transition-colors duration-300">${escapeHTML(news.title||'')}</a>
+            <a href="${detailUrl}" class="hover:text-green-700 transition-colors duration-300">${escapeHTML(news.title || '')}</a>
           </h3>
           <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 mb-3">${escapeHTML(news._summary)}</p>
           ${tagHtml ? `<div class="flex flex-wrap gap-2 mb-3">${tagHtml}</div>` : ''}
@@ -138,8 +185,8 @@ class NewsDashboard extends BaseListDashboard {
   }
 
   renderSkeletons() {
-    const cards = []; 
-    for(let i=0; i<this.ITEMS_PER_PAGE; i++){ 
+    const cards = [];
+    for (let i = 0; i < this.ITEMS_PER_PAGE; i++) {
       cards.push(`
         <article class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col sm:flex-row gap-6 p-4 animate-pulse">
           <div class="sm:w-2/5 bg-gray-200 h-40 rounded-lg"></div>
@@ -205,7 +252,7 @@ async function loadDynamicNewsDetail() {
 
     // 簡易正規化
     const d = new NewsDashboard(); // インスタンス化してnormalizeメソッドを借用（またはstaticメソッド化すべきだが）
-    const normalized = d.normalizeItem(news); 
+    const normalized = d.normalizeItem(news);
     // Note: 本来はnormalizeItemをstaticにするかutilsに分けるべきだが、今回は簡易対応
 
     if (breadcrumbTitle) breadcrumbTitle.textContent = normalized.title || 'ニュース';
@@ -229,8 +276,8 @@ function buildNewsDetailTemplate(item) {
   try {
     const lastQuery = sessionStorage.getItem(NEWS_HISTORY_QUERY_KEY);
     if (lastQuery) backLink += lastQuery;
-  } catch {}
-  
+  } catch { }
+
   const metaParts = [];
   if (item._displayDate) metaParts.push(`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7V3M16 7V3M4.5 11h15M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"></path></svg>${escapeHTML(item._displayDate)}</span>`);
   if (item.unit) metaParts.push(`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Z"></path><path d="M6 20a6 6 0 0 1 12 0"></path></svg>${escapeHTML(item.unit)}</span>`);

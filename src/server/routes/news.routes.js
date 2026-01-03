@@ -7,11 +7,13 @@ const {
   createNews,
   updateNews,
   deleteNews,
+  getNewsFilters,
 } = require('../controllers/news.controller.js');
 
 const { authMiddleware } = require('../middleware/auth.middleware.js');
 
 // Public routes
+router.get('/filters', getNewsFilters);
 router.get('/', getAllNews);
 router.get('/:id', getNewsById);
 

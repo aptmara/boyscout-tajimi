@@ -38,8 +38,22 @@ const getAllActivities = asyncHandler(async (req, res) => {
   }
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   params.push(lim, off);
+  // 一覧では軽量データのみ返す：content→summary、image_urls→thumbnail
   const { rows } = await db.query(
-    `SELECT id, title, content, image_urls, category, unit, tags, activity_date, created_at, display_date
+    `SELECT 
+        id,
+        title,
+        LEFT(regexp_replace(content, '<[^>]*>', '', 'g'), 150) AS summary,
+        CASE 
+          WHEN jsonb_array_length(image_urls) > 0 THEN jsonb_build_array(image_urls->0)
+          ELSE '[]'::jsonb
+        END AS thumbnail,
+        category,
+        unit,
+        tags,
+        activity_date,
+        created_at,
+        display_date
        FROM activities
        ${whereSql}
       ORDER BY display_date DESC
@@ -168,6 +182,40 @@ const activityWebhook = asyncHandler(async (req, res) => {
   return res.status(201).json({ ok: true });
 });
 
+/**
+ * フィルターオプションを取得（実際のデータから集計）
+ */
+const getActivityFilters = asyncHandler(async (req, res) => {
+  // カテゴリ
+  const catResult = await db.query(`
+    SELECT DISTINCT category FROM activities 
+    WHERE category IS NOT NULL AND category != '' 
+    ORDER BY category
+  `);
+
+  // 隊（カンマ区切りを展開）
+  const unitResult = await db.query(`
+    SELECT DISTINCT TRIM(u) as unit 
+    FROM activities, unnest(string_to_array(unit, ',')) AS u 
+    WHERE unit IS NOT NULL AND unit != ''
+    ORDER BY unit
+  `);
+
+  // タグ（JSONB配列を展開）
+  const tagResult = await db.query(`
+    SELECT DISTINCT tag 
+    FROM activities, jsonb_array_elements_text(tags) AS tag 
+    WHERE jsonb_array_length(tags) > 0
+    ORDER BY tag
+  `);
+
+  return res.json({
+    categories: catResult.rows.map(r => r.category),
+    units: unitResult.rows.map(r => r.unit),
+    tags: tagResult.rows.map(r => r.tag)
+  });
+});
+
 module.exports = {
   getAllActivities,
   getActivityById,
@@ -175,4 +223,5 @@ module.exports = {
   updateActivity,
   deleteActivity,
   activityWebhook,
+  getActivityFilters,
 };

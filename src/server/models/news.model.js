@@ -68,9 +68,20 @@ class News {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
+    // 一覧では軽量データのみ返す：content→summary、image_urls→thumbnail
     const query = `
       SELECT
-        id, title, content, image_urls, category, unit, tags, created_at,
+        id,
+        title,
+        LEFT(regexp_replace(content, '<[^>]*>', '', 'g'), 150) AS summary,
+        CASE 
+          WHEN jsonb_array_length(image_urls) > 0 THEN jsonb_build_array(image_urls->0)
+          ELSE '[]'::jsonb
+        END AS thumbnail,
+        category,
+        unit,
+        tags,
+        created_at,
         COUNT(*) OVER() AS total_count
       FROM news
       ${whereSql}

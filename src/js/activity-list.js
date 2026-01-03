@@ -29,23 +29,37 @@ class ActivityDashboard extends BaseListDashboard {
   }
 
   normalizeItem(item) {
+    // サーバーから軽量データ（summary, thumbnail）が来る前提
     if (!item) return null;
     const normalized = { ...item };
     const tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : [];
     normalized.tags = tags;
     normalized._tagsLower = tags.map(tag => String(tag).toLowerCase());
 
-    const div = document.createElement('div');
-    div.innerHTML = item.content || '';
-    const plain = (div.textContent || div.innerText || '').trim();
-    normalized._plain = plain;
+    // サーバーからsummaryが来る場合はそのまま使用、なければcontentから生成（詳細ページ用）
+    if (item.summary !== undefined) {
+      normalized._summary = item.summary || '';
+      normalized._plain = item.summary || '';
+    } else if (item.content) {
+      const div = document.createElement('div');
+      div.innerHTML = item.content || '';
+      const plain = (div.textContent || div.innerText || '').trim();
+      normalized._plain = plain;
+      const summaryLength = 140;
+      normalized._summary = plain.length > summaryLength ? `${plain.slice(0, summaryLength)}…` : plain;
+    } else {
+      normalized._summary = '';
+      normalized._plain = '';
+    }
 
-    const summaryLength = 140;
-    normalized._summary = plain.length > summaryLength ? `${plain.slice(0, summaryLength)}…` : plain;
+    // 画像：thumbnailがあればimage_urlsとして扱う（一覧用）
+    if (item.thumbnail !== undefined) {
+      normalized.image_urls = Array.isArray(item.thumbnail) ? item.thumbnail : [];
+    }
 
     const searchParts = [
       String(item.title || '').toLowerCase(),
-      plain.toLowerCase(),
+      normalized._plain.toLowerCase(),
       normalized._tagsLower.join(' '),
       String(item.category || '').toLowerCase(),
       String(item.unit || '').toLowerCase()
@@ -73,53 +87,60 @@ class ActivityDashboard extends BaseListDashboard {
     return normalized;
   }
 
-  renderFilterOptions(settings) {
-    // カテゴリ（動的生成）
-    // ベースクラスではデータ取得後にrenderFilterOptionsを呼ぶ設計にしていないため（改善の余地あり）、
-    // ここでは allItems から動的に抽出して表示するロジックを追加する、あるいは固定値にする。
-    // BaseListDashboardのfetchDataでは、settings取得 -> renderFilterOptions -> データ取得 の順。
-    // データからカテゴリを作るなら、データ取得後にもう一度renderFilterOptionsを呼ぶ必要がある。
+  /**
+   * フィルターAPIからオプションを取得して描画
+   */
+  async renderFilterOptions(settings) {
+    // 隊スラッグ→日本語ラベルのマップ
+    const unitLabels = {
+      'all': '団全体',
+      'beaver': 'ビーバー隊',
+      'cub': 'カブ隊',
+      'boy': 'ボーイ隊',
+      'venture': 'ベンチャー隊',
+      'rover': 'ローバー隊'
+    };
 
-    // 今回は固定値 + サーバー設定があればそれを使う、という形にするが、
-    // 理想的には BaseListDashboard を改修してデータロード後のフックを作るべき。
-    // ここでは簡易的に、このメソッド内ではなく、データロード完了後（renderListの直前など）に
-    // カテゴリ抽出ロジックを入れる手もあるが、UX的には先にフィルタが出ている方が良い。
-
-    const categories = ['集会', 'キャンプ', 'ハイキング', '奉仕活動', '技能訓練', 'その他'];
-    this.renderChips(this.catSelect, categories, 'category');
-
-    // 隊
     try {
-      const units = JSON.parse(settings.units_json || '[]');
-      this.renderChips(this.unitSelect, units.map(u => u.slug), 'unit', units.map(u => u.label || u.slug));
-    } catch { }
+      const res = await fetch('/api/activities/filters');
+      if (res.ok) {
+        const filters = await res.json();
 
-    // タグ
-    try {
-      const tags = JSON.parse(settings.activity_tags_json || '[]');
-      this.renderChips(this.tagBar, tags.map(t => t.slug), 'tag', tags.map(t => `#${t.label || t.slug}`));
-    } catch { }
+        // カテゴリ（APIから取得）
+        if (filters.categories && filters.categories.length > 0) {
+          this.renderChips(this.catSelect, filters.categories, 'category');
+        }
 
-    // ソート
+        // 隊（APIから取得、日本語ラベル付き）
+        if (filters.units && filters.units.length > 0) {
+          const unitValues = filters.units;
+          const unitDisplayLabels = unitValues.map(u => unitLabels[u] || u);
+          this.renderChips(this.unitSelect, unitValues, 'unit', unitDisplayLabels);
+        }
+
+        // タグ（APIから取得）
+        if (filters.tags && filters.tags.length > 0) {
+          this.renderChips(this.tagBar, filters.tags, 'tag', filters.tags.map(t => `#${t}`));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch activity filters:', err);
+      // フォールバック
+      try {
+        const units = JSON.parse(settings.units_json || '[]');
+        this.renderChips(this.unitSelect, units.map(u => u.slug), 'unit', units.map(u => u.label || u.slug));
+      } catch { }
+      try {
+        const tags = JSON.parse(settings.activity_tags_json || '[]');
+        this.renderChips(this.tagBar, tags.map(t => t.slug), 'tag', tags.map(t => `#${t.label || t.slug}`));
+      } catch { }
+    }
+
+    // ソート（固定）
     this.renderChips(this.sortSelect, [
       { val: 'newest', label: '新しい順' },
       { val: 'oldest', label: '古い順' }
     ], 'sort');
-  }
-
-  // データ取得後にカテゴリを再構築したい場合（オーバーライド）
-  async fetchData() {
-    await super.fetchData();
-    // データからユニークなカテゴリを抽出してフィルタに追加（既存の固定値に追加）
-    if (this.allItems.length) {
-      const cats = new Set();
-      this.allItems.forEach(i => { if (i.category) cats.add(i.category); });
-      // 既存のチップをクリアするか、マージするか。今回はシンプルに再描画
-      const sortedCats = Array.from(cats).sort();
-      if (sortedCats.length > 0) {
-        this.renderChips(this.catSelect, sortedCats, 'category');
-      }
-    }
   }
 
   renderItem(item) {
@@ -129,16 +150,18 @@ class ActivityDashboard extends BaseListDashboard {
     const catBadge = item.category ? `<span class="badge badge--category">${escapeHTML(item.category)}</span>` : '';
     const tagHtml = (item.tags || []).slice(0, 6).map(t => `<span class="badge badge--tag mr-2 mb-2">#${escapeHTML(t)}</span>`).join('');
 
-    let img = `https://placehold.co/720x405/4A934A/FFFFFF?text=${encodeURIComponent(item.category || 'ACTIVITY')}`;
-    if (Array.isArray(item.image_urls) && item.image_urls.length > 0) {
-      img = item.image_urls[0];
-    }
+    const hasImage = Array.isArray(item.image_urls) && item.image_urls.length > 0;
+    const imgHtml = hasImage
+      ? `<img src="${escapeHTML(item.image_urls[0])}" alt="${escapeHTML(item.title || '')}" class="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>`
+      : `<div class="w-full h-56 bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+           <span class="text-white text-2xl font-bold opacity-80">${escapeHTML(item.category || '活動報告')}</span>
+         </div>`;
 
     return `
       <div class="bg-white rounded-xl shadow-xl overflow-hidden card-hover-effect group fade-in-section is-visible">
         <div class="relative">
-          <img src="${img}" alt="${escapeHTML(item.title || '')}" class="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+          ${imgHtml}
         </div>
         <div class="p-6">
           <div class="flex items-center justify-between mb-2">
