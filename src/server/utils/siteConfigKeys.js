@@ -44,6 +44,7 @@ module.exports = {
 
         // JOIN
         'join_hero_image_url': { group: 'JOIN', type: 'image', label: '入団案内トップ画像' },
+        'join_features_image_url': { group: 'JOIN', type: 'image', label: '多治見第一団の特色イメージ' },
 
         // UNITS - LOGOS
         'unit_beaver_logo_url': { group: 'BEAVER', type: 'image', label: 'ビーバー隊章' },

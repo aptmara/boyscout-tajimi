@@ -157,6 +157,9 @@ if (useSqlite) {
       ['privacy_contact_email', '', 'プライバシー担当メールアドレス'],
       ['privacy_effective_date', '2025年5月12日', 'プライバシーポリシー施行日'],
       ['privacy_last_updated_date', '2025年5月12日', 'プライバシーポリシー最終更新日'],
+      ['about_mission_image_url', 'https://placehold.co/600x400/38A169/FFFFFF?text=団活動の様子+理念', '団について：理念セクション画像'],
+      ['about_safety_image_url', 'https://placehold.co/600x450/A5D6A7/FFFFFF?text=安全な活動の+イメージ', '団について：安全セクション画像'],
+      ['join_features_image_url', 'https://placehold.co/600x450/F9A825/FFFFFF?text=多治見第一団の特色イメージ', '入団案内ページの特色セクション画像'],
     ];
     for (const [key, value, description] of initialSettings) {
       try {
