@@ -195,6 +195,8 @@ function generateOrganizationLD(siteSettings = {}) {
 
     if (siteSettings.seo_social_facebook) organization.sameAs.push(siteSettings.seo_social_facebook);
     if (siteSettings.seo_social_instagram) organization.sameAs.push(siteSettings.seo_social_instagram);
+    if (siteSettings.seo_social_twitter) organization.sameAs.push(siteSettings.seo_social_twitter);
+    if (siteSettings.seo_social_line) organization.sameAs.push(siteSettings.seo_social_line);
 
     if (siteSettings.seo_social_links) {
         const links = siteSettings.seo_social_links.split(',').map(s => s.trim()).filter(s => s);

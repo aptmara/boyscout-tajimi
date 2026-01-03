@@ -284,7 +284,7 @@
     // JavaScriptのObject.keys順序（挿入順）にある程度依存してしまう。
     // ここでは主要なグループ順序を定義し、残りはその後に続ける。
     const orderedGroupKeys = [
-      'COMMON', 'INDEX', 'ABOUT', 'JOIN', 'CONTACT', 'PRIVACY',
+      'COMMON', 'INDEX', 'ABOUT', 'JOIN', 'CONTACT', 'SNS', 'PRIVACY',
       'BEAVER', 'CUB', 'BOY', 'VENTURE', 'ROVER'
     ];
     // 未定義のグループがあれば末尾に追加

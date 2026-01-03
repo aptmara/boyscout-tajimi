@@ -282,6 +282,15 @@ if (useSqlite) {
       await client.query(`CREATE TABLE IF NOT EXISTS contacts (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT, subject TEXT, message TEXT NOT NULL, status TEXT DEFAULT 'unread', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());`);
       await client.query(`CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts (created_at DESC);`);
 
+      // 6-1) contacts migration
+      await client.query(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='phone') THEN ALTER TABLE contacts ADD COLUMN phone TEXT; END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='subject') THEN ALTER TABLE contacts ADD COLUMN subject TEXT; END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='status') THEN ALTER TABLE contacts ADD COLUMN status TEXT DEFAULT 'unread'; END IF;
+        END$$;
+      `);
+
       // 5-1 to 5-4) settings migration & view
       await client.query(`DROP VIEW IF EXISTS public.settings CASCADE;`);
       await client.query(`CREATE VIEW public.settings AS SELECT key, value FROM public.site_settings;`);
