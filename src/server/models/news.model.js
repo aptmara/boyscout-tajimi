@@ -32,8 +32,9 @@ class News {
       where.push(`category = $${params.length}`);
     }
     if (unit && String(unit).trim()) {
-      params.push(normalizeSlug(unit));
-      where.push(`unit = $${params.length}`);
+      // unit複数選択対応: カンマ区切りで検索（部分一致）
+      params.push('%' + normalizeSlug(unit) + '%');
+      where.push(`unit LIKE $${params.length}`);
     }
     if (tags && String(tags).trim()) {
       const t = normalizeTags(tags);

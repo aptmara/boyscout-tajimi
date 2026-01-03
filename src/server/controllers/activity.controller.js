@@ -1,5 +1,5 @@
 const db = require('../database.js');
-const { normalizeSlug, normalizeTags } = require('../utils/formatters.js');
+const { normalizeSlug, normalizeTags, normalizeUnits } = require('../utils/formatters.js');
 const { sanitizePayload } = require('../utils/simple-sanitizer.js');
 
 const asyncHandler = (fn) => (req, res, next) =>
@@ -17,8 +17,10 @@ const getAllActivities = asyncHandler(async (req, res) => {
     where.push(`category = $${params.length}`);
   }
   if (unit && String(unit).trim()) {
-    params.push(normalizeSlug(unit));
-    where.push(`unit = $${params.length}`);
+    // unit複数選択対応: カンマ区切りで検索（部分一致）
+    const normalizedUnit = normalizeSlug(unit);
+    params.push('%' + normalizedUnit + '%');
+    where.push(`unit LIKE $${params.length}`);
   }
   if (tags && String(tags).trim()) {
     const t = normalizeTags(tags);
@@ -65,7 +67,7 @@ const createActivity = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Title and content are required' });
 
   const urls = Array.isArray(images) ? images : [];
-  const uni = unit ? normalizeSlug(unit) : null;
+  const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
   const { rows } = await db.query(
     `INSERT INTO activities(title, content, category, unit, tags, activity_date, image_urls, display_date)
@@ -87,8 +89,7 @@ const updateActivity = asyncHandler(async (req, res) => {
     title: title,
     content: content,
     category: category,
-    unit: unit ? normalizeSlug(unit) : null,
-    unit: unit ? normalizeSlug(unit) : null,
+    unit: normalizeUnits(unit),
     activity_date: activity_date,
     display_date: activity_date || undefined // Will be set to activity_date if provided. Note: complex logic if we want fallback to created_at requires DB fetch first or COALESCE in SQL. Let's handle it in SQL or assume if activity_date is set, display_date is it.
   };
@@ -155,7 +156,7 @@ const activityWebhook = asyncHandler(async (req, res) => {
   const imgs = await processImages(rawImages);
 
   const cat = (category && String(category).trim()) || '未分類';
-  const uni = normalizeSlug(unit);
+  const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
   const ad = activity_date ? new Date(activity_date) : null;
 

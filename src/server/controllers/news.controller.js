@@ -1,6 +1,6 @@
 const db = require('../database.js');
 const News = require('../models/news.model');
-const { normalizeSlug, normalizeTags } = require('../utils/formatters.js');
+const { normalizeSlug, normalizeTags, normalizeUnits } = require('../utils/formatters.js');
 const { sanitizePayload } = require('../utils/simple-sanitizer.js');
 
 // Utility to wrap async route handlers and catch errors
@@ -42,7 +42,7 @@ const createNews = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Title and content are required' });
 
   const urls = Array.isArray(images) ? images : [];
-  const uni = unit ? normalizeSlug(unit) : null;
+  const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
   const { rows } = await db.query(
     `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
@@ -64,7 +64,7 @@ const updateNews = asyncHandler(async (req, res) => {
     title: title,
     content: content,
     category: category,
-    unit: unit ? normalizeSlug(unit) : null,
+    unit: normalizeUnits(unit),
   };
   if (images !== undefined) {
     updates.image_urls = JSON.stringify(Array.isArray(images) ? images : []);
@@ -118,7 +118,7 @@ const newsWebhook = asyncHandler(async (req, res) => {
   const imgs = await processImages(rawImages);
 
   const cat = (category && String(category).trim()) || '未分類';
-  const uni = normalizeSlug(unit);
+  const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
 
   await db.query(

@@ -117,17 +117,67 @@ async function downloadImage(url) {
 }
 
 /**
- * 画像URLの配列を受け取り、全てローカル化して返す
+ * Base64エンコードされた画像を保存
+ * GAS Webhookから直接画像データを受信する場合に使用
+ * @param {Object} img - { data: string, contentType: string, filename?: string }
+ * @returns {Promise<string>} - 保存先パス（/uploads/webhook/xxx.webp）
  */
-async function processImages(imageUrls) {
-    if (!Array.isArray(imageUrls)) return [];
+async function saveBase64Image(img) {
+    if (!img || !img.data) {
+        console.warn('[ImageDownload] Invalid base64 image object');
+        return null;
+    }
 
-    // 並列処理でダウンロード
-    const promises = imageUrls.map(url => downloadImage(url));
-    return Promise.all(promises);
+    try {
+        const buffer = Buffer.from(img.data, 'base64');
+        const filename = crypto.randomUUID() + '.webp';
+        const filepath = path.join(UPLOAD_DIR, filename);
+        const relativePath = `/uploads/webhook/${filename}`;
+
+        // Sharp で WebP変換・リサイズ
+        await sharp(buffer)
+            .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toFile(filepath);
+
+        console.log(`[ImageDownload] Saved base64 (WebP): ${relativePath}`);
+        return relativePath;
+    } catch (error) {
+        console.error('[ImageDownload] Base64 save failed:', error);
+        return null;
+    }
+}
+
+/**
+ * 画像の配列を受け取り、全てローカル化して返す
+ * URL形式（従来）とBase64形式（新）の両方に対応
+ * @param {Array} images - URL文字列または{data, contentType}オブジェクトの配列
+ * @returns {Promise<string[]>} - 保存先パスの配列
+ */
+async function processImages(images) {
+    if (!Array.isArray(images)) return [];
+
+    const results = [];
+    for (const img of images) {
+        try {
+            if (typeof img === 'string') {
+                // 従来のURL形式（後方互換）
+                const result = await downloadImage(img);
+                if (result) results.push(result);
+            } else if (img && typeof img === 'object' && img.data) {
+                // 新しいBase64形式
+                const result = await saveBase64Image(img);
+                if (result) results.push(result);
+            }
+        } catch (err) {
+            console.error('[ImageDownload] processImages error:', err);
+        }
+    }
+    return results;
 }
 
 module.exports = {
     downloadImage,
+    saveBase64Image,
     processImages
 };

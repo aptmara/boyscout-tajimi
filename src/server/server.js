@@ -147,7 +147,8 @@ const newsRoutes = require('./routes/news.routes.js');
 const { newsWebhook } = require('./controllers/news.controller.js');
 
 // Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）、raw bodyで受信
-const webhookRawJson = express.raw({ type: 'application/json', limit: '1mb' });
+// Base64画像送信に対応するため5mbまで許容
+const webhookRawJson = express.raw({ type: 'application/json', limit: '5mb' });
 app.post('/api/news/webhook', webhookLimiter, webhookRawJson, webhookAuth, newsWebhook);
 
 // その他の管理画面向けAPI：CSRF保護あり
