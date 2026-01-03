@@ -69,7 +69,18 @@ function webhookAuth(req, res, next) {
         bodySha256: bodySha, // これと比較すればわかる
         bodyLength: bodyRaw.length
       });
-      return res.status(401).json({ error: 'invalid signature' });
+      // DEBUG: 署名エラー時に詳細を返す（本番運用時は削除すること）
+      return res.status(401).json({
+        error: 'invalid signature',
+        debug: {
+          ts: timestamp,
+          sig: sigHex,
+          bodySha: bodySha,
+          bodyLen: bodyRaw.length,
+          // bodyRawそのものは大きすぎる可能性があるので先頭のみ
+          bodyPreview: bodyRaw.substring(0, 200)
+        }
+      });
     }
 
     if (Buffer.isBuffer(req.body)) {
