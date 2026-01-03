@@ -159,7 +159,8 @@ router.get('/news/:id', async (req, res, next) => {
       seo,
       item,
       helpers,
-      breadcrumbs
+      breadcrumbs,
+      csrfToken: req.csrfToken ? req.csrfToken() : (res.locals.csrfToken || '')
     });
   } catch (err) {
     next(err);
@@ -211,7 +212,8 @@ router.get('/activity/:id', async (req, res, next) => {
       seo,
       item,
       helpers,
-      breadcrumbs
+      breadcrumbs,
+      csrfToken: req.csrfToken ? req.csrfToken() : (res.locals.csrfToken || '')
     });
   } catch (err) {
     next(err);
