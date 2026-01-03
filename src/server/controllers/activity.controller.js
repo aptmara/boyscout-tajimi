@@ -149,11 +149,29 @@ const updateActivity = asyncHandler(async (req, res) => {
 });
 
 const deleteActivity = asyncHandler(async (req, res) => {
+  // 削除前に画像URLを取得
+  const { rows } = await db.query(
+    `SELECT image_urls FROM activities WHERE id = $1`,
+    [req.params.id]
+  );
+
   const { rowCount } = await db.query(
     `DELETE FROM activities WHERE id = $1`,
     [req.params.id]
   );
   if (rowCount === 0) return res.status(404).json({ error: 'Activity not found' });
+
+  // 関連画像を削除（バックグラウンド）
+  if (rows.length > 0 && rows[0].image_urls) {
+    const { deleteImages } = require('../utils/imageDownloader');
+    const imageUrls = Array.isArray(rows[0].image_urls)
+      ? rows[0].image_urls
+      : [];
+    deleteImages(imageUrls).catch(err =>
+      console.error('[DeleteActivity] Image cleanup failed:', err)
+    );
+  }
+
   res.status(204).send();
 });
 

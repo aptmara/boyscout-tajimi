@@ -57,7 +57,24 @@ function getThumbnailUrl(url) {
 }
 
 /**
+ * Google DriveのファイルIDを抽出
+ */
+function getFileIdFromUrl(url) {
+    const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)/,
+        /[?&]id=([a-zA-Z0-9_-]+)/,
+        /open\?id=([a-zA-Z0-9_-]+)/
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) return match[1];
+    }
+    return null;
+}
+
+/**
  * URLから画像をダウンロードしてWebPに変換・保存
+ * キャッシュ対応: 同じファイルIDは再利用
  * @returns {Promise<string|null>} 成功時はローカルパス、失敗時はnull
  */
 async function downloadAndConvert(url, maxRedirects = 3) {
@@ -66,8 +83,19 @@ async function downloadAndConvert(url, maxRedirects = 3) {
         return null;
     }
 
+    // キャッシュ確認（ファイルIDベース）
+    const fileId = getFileIdFromUrl(url);
+    if (fileId) {
+        const cachedFilename = `gdrive-${fileId}.webp`;
+        const cachedPath = path.join(UPLOAD_DIR, cachedFilename);
+        if (fs.existsSync(cachedPath)) {
+            console.log(`[LocalizeDrive] Cache hit: ${cachedFilename}`);
+            return `/uploads/settings/${cachedFilename}`;
+        }
+    }
+
     const downloadUrl = getThumbnailUrl(url);
-    const filename = crypto.randomUUID() + '.webp';
+    const filename = fileId ? `gdrive-${fileId}.webp` : `${crypto.randomUUID()}.webp`;
     const filepath = path.join(UPLOAD_DIR, filename);
     const relativePath = `/uploads/settings/${filename}`;
 

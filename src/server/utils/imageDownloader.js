@@ -55,6 +55,7 @@ function getDownloadUrl(url) {
  * URLから画像をダウンロードし、ローカルに保存してパスを返す
  * 失敗した場合は元のURLを返す
  * 自動的にWebPに変換・リサイズする
+ * Google DriveファイルIDベースのキャッシュ対応
  */
 async function downloadImage(url) {
     if (!url || !url.startsWith('http')) return url;
@@ -62,9 +63,17 @@ async function downloadImage(url) {
     try {
         const downloadUrl = getDownloadUrl(url);
 
-        // WebPに変換して保存
-        const ext = '.webp';
-        const filename = crypto.randomUUID() + ext;
+        // Google DriveファイルIDを抽出してキャッシュ確認
+        const fileId = getFileIdFromUrl(url);
+        if (fileId) {
+            const cachedPath = getCachedPath(fileId, UPLOAD_DIR);
+            if (cachedPath) {
+                return cachedPath; // キャッシュヒット
+            }
+        }
+
+        // キャッシュ可能なファイル名を生成（ファイルIDがあればそれを使用）
+        const filename = fileId ? `gdrive-${fileId}.webp` : `${crypto.randomUUID()}.webp`;
         const filepath = path.join(UPLOAD_DIR, filename);
         const relativePath = `/uploads/webhook/${filename}`;
 
@@ -182,8 +191,86 @@ async function processImages(images) {
     return results;
 }
 
+/**
+ * ローカル画像ファイルを削除
+ * @param {string[]} imagePaths - /uploads/xxx/xxx.webp 形式のパス配列
+ */
+async function deleteImages(imagePaths) {
+    if (!Array.isArray(imagePaths)) return;
+
+    const PUBLIC_DIR = path.join(__dirname, '../../../public');
+
+    for (const imgPath of imagePaths) {
+        // ローカルパスのみ対象（外部URLはスキップ）
+        if (!imgPath || typeof imgPath !== 'string') continue;
+        if (!imgPath.startsWith('/uploads/')) continue;
+
+        try {
+            const fullPath = path.join(PUBLIC_DIR, imgPath);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
+                console.log(`[ImageDelete] Deleted: ${imgPath}`);
+            }
+        } catch (err) {
+            console.error(`[ImageDelete] Failed to delete ${imgPath}:`, err.message);
+        }
+    }
+}
+
+/**
+ * Google DriveのファイルIDを抽出
+ * キャッシュキーとして使用
+ */
+function getFileIdFromUrl(url) {
+    if (!url || typeof url !== 'string') return null;
+
+    const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)/,
+        /[?&]id=([a-zA-Z0-9_-]+)/,
+        /open\?id=([a-zA-Z0-9_-]+)/
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return null;
+}
+
+/**
+ * ファイルIDベースのキャッシュを確認
+ * 同一Google DriveファイルIDが既にダウンロード済みならそのパスを返す
+ */
+function getCachedPath(fileId, uploadDir = UPLOAD_DIR) {
+    if (!fileId) return null;
+
+    const expectedFilename = `gdrive-${fileId}.webp`;
+    const expectedPath = path.join(uploadDir, expectedFilename);
+
+    if (fs.existsSync(expectedPath)) {
+        const relativePath = `/uploads/${path.basename(uploadDir)}/${expectedFilename}`;
+        console.log(`[ImageCache] Hit: ${relativePath}`);
+        return relativePath;
+    }
+    return null;
+}
+
+/**
+ * キャッシュ可能なファイル名を生成
+ */
+function getCacheFilename(fileId) {
+    return fileId ? `gdrive-${fileId}.webp` : `${crypto.randomUUID()}.webp`;
+}
+
 module.exports = {
     downloadImage,
     saveBase64Image,
-    processImages
+    processImages,
+    deleteImages,
+    getFileIdFromUrl,
+    getCachedPath,
+    getCacheFilename,
+    UPLOAD_DIR
 };
