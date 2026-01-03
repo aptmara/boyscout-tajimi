@@ -31,9 +31,15 @@ function isGoogleDriveUrl(url) {
 }
 
 /**
- * Google Drive URLからファイルIDを抽出し、ダウンロードURLを生成
+ * Google Drive URLからファイルIDを抽出し、サムネイルURLを生成
+ * サムネイルURLはリダイレクトなしで直接画像を返す
  */
-function getDownloadUrl(url) {
+function getThumbnailUrl(url) {
+    // すでにサムネイル形式ならそのまま返す
+    if (url.includes('/thumbnail?')) {
+        return url;
+    }
+
     const patterns = [
         /\/file\/d\/([a-zA-Z0-9_-]+)/,
         /[?&]id=([a-zA-Z0-9_-]+)/,
@@ -43,7 +49,8 @@ function getDownloadUrl(url) {
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match && match[1]) {
-            return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            // サムネイル形式（リダイレクトなし、高解像度）
+            return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1600`;
         }
     }
     return url;
@@ -59,7 +66,7 @@ async function downloadAndConvert(url, maxRedirects = 3) {
         return null;
     }
 
-    const downloadUrl = getDownloadUrl(url);
+    const downloadUrl = getThumbnailUrl(url);
     const filename = crypto.randomUUID() + '.webp';
     const filepath = path.join(UPLOAD_DIR, filename);
     const relativePath = `/uploads/settings/${filename}`;
