@@ -283,7 +283,8 @@ Object.entries(staticPages).forEach(([page, title]) => {
       description: seo.description,
       seo,
       pageScripts,
-      recentActivities // Pass dynamic activities to the view
+      recentActivities, // Pass dynamic activities to the view
+      csrfToken: req.csrfToken ? req.csrfToken() : (res.locals.csrfToken || '')
     });
   });
 });
