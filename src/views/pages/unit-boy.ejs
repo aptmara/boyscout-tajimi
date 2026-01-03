@@ -146,54 +146,29 @@
 
 <section id="boy-gallery" class="py-16 md:py-24 bg-blue-50 fade-in-section" style="transition-delay: 0.4s;">
     <div class="container mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-blue-700 mb-16">ボーイ隊の活動の様子</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動1" data-lightbox="boy-gallery"
-                data-title="テント設営訓練" data-caption="テント設営訓練の様子">
-                <img src="<%= siteConfig.getImage('unit_boy_gallery_img_1_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動1') %>"
-                    alt="ボーイスカウトがテント設営訓練をしている様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動2" data-lightbox="boy-gallery"
-                data-title="長距離ハイキング" data-caption="長距離ハイキングの様子">
-                <img src="<%= siteConfig.getImage('unit_boy_gallery_img_2_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動2') %>"
-                    alt="ボーイスカウトが長距離ハイキングをしている様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動3" data-lightbox="boy-gallery"
-                data-title="パイオニアリング作品" data-caption="完成したパイオニアリング作品">
-                <img src="<%= siteConfig.getImage('unit_boy_gallery_img_3_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動3') %>"
-                    alt="ボーイスカウトが完成させたパイオニアリング作品"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/3B82F6/FFFFFF?text=ボーイ活動4" data-lightbox="boy-gallery"
-                data-title="地域奉仕活動" data-caption="地域奉仕活動の様子">
-                <img src="<%= siteConfig.getImage('unit_boy_gallery_img_4_url', 'https://placehold.co/400x300/22C55E/FFFFFF?text=ボーイ活動4') %>"
-                    alt="ボーイスカウトが地域奉仕活動をしている様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-        </div>
-        <div class="text-center mt-12">
-            <a href="/activity-log?category=boy"
-                class="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-300 group">
-                ボーイ隊の活動報告をもっと見る <span
-                    class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
-            </a>
-        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-blue-700 mb-16">活動の様子</h2>
+
+        <% if (recentActivities && recentActivities.length> 0) { %>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <% recentActivities.forEach(activity=> { %>
+                    <%- include('../partials/highlightCard', { card: activity }) %>
+                        <% }); %>
+            </div>
+            <% } else { %>
+                <p class="text-center text-gray-500">現在、表示できる活動記録はありません。</p>
+                <% } %>
+
+                    <div class="text-center mt-12">
+                        <a href="/activity-log?category=boy"
+                            class="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-300 group">
+                            ボーイ隊の活動報告をもっと見る <span
+                                class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
+                        </a>
+                    </div>
     </div>
 </section>
 
-<!-- 各隊の活動の様子（自動生成・最新4件、足りない場合は非表示） -->
-<section id="unit-activities" class="py-16 md:py-24 bg-gray-50 fade-in-section" data-unit="boy">
-    <div class="container mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">各隊の活動の様子</h2>
-        <div id="unit-activity-cards" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
-    </div>
-</section>
+
 
 <section id="leader-message-boy" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.6s;">
     <div class="container mx-auto px-6">

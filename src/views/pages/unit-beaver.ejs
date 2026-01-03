@@ -85,13 +85,7 @@
             </div>
         </div>
 
-        <!-- 各隊の活動の様子（自動生成・最新4件、足りない場合は非表示） -->
-        <section id="unit-activities" class="py-16 md:py-24 bg-gray-50 fade-in-section" data-unit="beaver">
-            <div class="container mx-auto px-6">
-                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">各隊の活動の様子</h2>
-                <div id="unit-activity-cards" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
-            </div>
-        </section>
+
 
         <div class="mt-16">
             <h3 class="text-2xl md:text-3xl font-bold text-center text-yellow-600 mb-10">主な活動内容</h3>
@@ -156,43 +150,25 @@
 
 <section id="beaver-gallery" class="py-16 md:py-24 bg-yellow-50 fade-in-section" style="transition-delay: 0.4s;">
     <div class="container mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-yellow-700 mb-16">ビーバー隊の活動の様子</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            <a href="https://placehold.co/800x600/FBBF24/FFFFFF?text=ビーバー活動1" data-lightbox="beaver-gallery"
-                data-title="森の探検">
-                <img src="<%= siteConfig.getImage('unit_beaver_gallery_img_1_url', 'https://placehold.co/400x300/FBBF24/FFFFFF?text=ビーバー活動1') %>"
-                    alt="ビーバースカウトが森の中を探検している様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/FBBF24/FFFFFF?text=ビーバー活動2" data-lightbox="beaver-gallery"
-                data-title="みんなで工作">
-                <img src="<%= siteConfig.getImage('unit_beaver_gallery_img_2_url', 'https://placehold.co/400x300/FBBF24/FFFFFF?text=ビーバー活動2') %>"
-                    alt="ビーバースカウトがみんなで工作を楽しんでいる様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/FBBF24/FFFFFF?text=ビーバー活動3" data-lightbox="beaver-gallery"
-                data-title="元気いっぱいゲーム">
-                <img src="<%= siteConfig.getImage('unit_beaver_gallery_img_3_url', 'https://placehold.co/400x300/FBBF24/FFFFFF?text=ビーバー活動3') %>"
-                    alt="ビーバースカウトが元気いっぱいゲームをしている様子"
-                    class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover" width="400" height="300"
-                    loading="lazy">
-            </a>
-            <a href="https://placehold.co/800x600/FBBF24/FFFFFF?text=ビーバー活動4" data-lightbox="beaver-gallery"
-                data-title="集いの時間">
-                <img src="<%= siteConfig.getImage('unit_beaver_gallery_img_4_url', 'https://placehold.co/400x300/FBBF24/FFFFFF?text=ビーバー活動4') %>"
-                    alt="ビーバースカウトの集いの時間の様子" class="rounded-lg shadow-md w-full h-auto object-cover gallery-image-hover"
-                    width="400" height="300" loading="lazy">
-            </a>
-        </div>
-        <div class="text-center mt-12">
-            <a href="/activity-log?category=beaver"
-                class="text-yellow-600 hover:text-yellow-800 font-semibold transition-colors duration-300 group">
-                ビーバー隊の活動報告をもっと見る <span
-                    class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
-            </a>
-        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-yellow-700 mb-16">活動の様子</h2>
+
+        <% if (recentActivities && recentActivities.length> 0) { %>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <% recentActivities.forEach(activity=> { %>
+                    <%- include('../partials/highlightCard', { card: activity }) %>
+                        <% }); %>
+            </div>
+            <% } else { %>
+                <p class="text-center text-gray-500">現在、表示できる活動記録はありません。</p>
+                <% } %>
+
+                    <div class="text-center mt-12">
+                        <a href="/activity-log?category=beaver"
+                            class="text-yellow-600 hover:text-yellow-800 font-semibold transition-colors duration-300 group">
+                            ビーバー隊の活動報告をもっと見る <span
+                                class="transition-transform duration-300 inline-block group-hover:translate-x-1">&rarr;</span>
+                        </a>
+                    </div>
     </div>
 </section>
 

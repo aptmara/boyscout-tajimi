@@ -236,7 +236,7 @@ const staticPages = {
   'join': '入団案内',
   'news-list': 'お知らせ一覧',
   'privacy': 'プライバシーポリシー',
-
+  'sitemap': 'サイトマップ',
   'unit-beaver': 'ビーバー隊の紹介',
   'unit-cub': 'カブ隊の紹介',
   'unit-boy': 'ボーイ隊の紹介',
@@ -246,7 +246,7 @@ const staticPages = {
 };
 
 Object.entries(staticPages).forEach(([page, title]) => {
-  router.get([`/${page}`, `/${page}.html`], (req, res) => {
+  router.get([`/${page}`, `/${page}.html`], async (req, res, next) => {
     let pageScripts = [];
     if (page === 'activity-log') {
       pageScripts = ['/list-dashboard-base.js', '/activity-list.js'];
@@ -258,6 +258,22 @@ Object.entries(staticPages).forEach(([page, title]) => {
       pageScripts = ['/dynamic-unit-activities.js'];
     }
 
+    // Unit Page Dynamic Data Fetching
+    let recentActivities = [];
+    if (page.startsWith('unit-')) {
+      try {
+        const unitName = page.replace('unit-', '');
+        const { rows } = await db.pool.query(
+          `SELECT * FROM activities WHERE unit = $1 ORDER BY display_date DESC LIMIT 4`,
+          [unitName]
+        );
+        recentActivities = rows.map(item => shapeCardData(item, 'activity'));
+      } catch (err) {
+        console.error(`Error fetching activities for ${page}:`, err);
+        // Continue rendering page even if activities fail
+      }
+    }
+
     // SEO情報生成（.htmlアクセスの場合は正規化されたパスを使用）
     const normalizedPath = `/${page}`;
     const seo = buildSEOData(normalizedPath, res.locals.siteConfig);
@@ -266,7 +282,8 @@ Object.entries(staticPages).forEach(([page, title]) => {
       title: seo.title,
       description: seo.description,
       seo,
-      pageScripts
+      pageScripts,
+      recentActivities // Pass dynamic activities to the view
     });
   });
 });
