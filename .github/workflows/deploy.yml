@@ -83,11 +83,21 @@ jobs:
               # Step 5: Health check
               echo ""
               echo "🏥 [5/5] ヘルスチェック中..."
-              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ --max-time 10 || echo "000")
+              # 起動待機
+              sleep 5
+              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ --max-time 10 || echo "000")
+              
               if [ "$HTTP_STATUS" = "200" ]; then
                 echo "   ✅ サーバー応答OK (HTTP $HTTP_STATUS)"
-              else
-                echo "   ⚠️ サーバー応答: HTTP $HTTP_STATUS"
+                echo "   ❌ サーバー応答エラー: HTTP $HTTP_STATUS"
+                echo "::group::📊 アプリケーションログ (直近50行)"
+                echo "--- Error Log ---"
+                pm2 logs boyscout-tajimi --lines 50 --err --nostream
+                echo ""
+                echo "--- Output Log ---"
+                pm2 logs boyscout-tajimi --lines 50 --out --nostream
+                echo "::endgroup::"
+                exit 1
               fi
               
               DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
