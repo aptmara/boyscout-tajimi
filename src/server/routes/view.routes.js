@@ -278,13 +278,16 @@ Object.entries(staticPages).forEach(([page, title]) => {
     const normalizedPath = `/${page}`;
     const seo = buildSEOData(normalizedPath, res.locals.siteConfig);
 
+    const token = req.csrfToken ? req.csrfToken() : (res.locals.csrfToken || '');
+
+
     res.render(`pages/${page}`, {
       title: seo.title,
       description: seo.description,
       seo,
       pageScripts,
       recentActivities, // Pass dynamic activities to the view
-      csrfToken: req.csrfToken ? req.csrfToken() : (res.locals.csrfToken || '')
+      csrfToken: token
     });
   });
 });
