@@ -169,7 +169,11 @@ class BaseListDashboard {
 
     let filtered = this.allItems.map(item => this.normalizeItem(item)).filter(item => {
       if (category && item.category !== category) return false;
-      if (unit && item.unit !== unit) return false;
+      // 隊: カンマ区切り文字列の中に選択した隊が含まれるか
+      if (unit) {
+        const itemUnits = (item.unit || '').split(',').map(u => u.trim());
+        if (!itemUnits.includes(unit)) return false;
+      }
 
       if (ym) {
         // normalizeItemで _dateObj を作っておくことを推奨
@@ -484,5 +488,28 @@ function escapeHTML(str) {
   });
 }
 
+/**
+ * 隊スラッグを日本語ラベルに変換
+ * @param {string} unitString - カンマ区切りの隊スラッグ (例: "all,cub,venture")
+ * @returns {string} - 日本語ラベル (例: "団全体・カブ隊・ベンチャー隊")
+ */
+function formatUnitLabel(unitString) {
+  if (!unitString) return '';
+  const unitLabels = {
+    'all': '団全体',
+    'beaver': 'ビーバー隊',
+    'cub': 'カブ隊',
+    'boy': 'ボーイ隊',
+    'venture': 'ベンチャー隊',
+    'rover': 'ローバー隊'
+  };
+  return unitString.split(',')
+    .map(u => u.trim())
+    .filter(Boolean)
+    .map(u => unitLabels[u] || u)
+    .join('・');
+}
+
 window.BaseListDashboard = BaseListDashboard;
-window.escapeHTML = escapeHTML; // サブクラスで使うため
+window.escapeHTML = escapeHTML;
+window.formatUnitLabel = formatUnitLabel;
