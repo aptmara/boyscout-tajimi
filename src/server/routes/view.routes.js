@@ -236,8 +236,7 @@ const staticPages = {
   'join': '入団案内',
   'news-list': 'お知らせ一覧',
   'privacy': 'プライバシーポリシー',
-  'sitemap': 'サイトマップ',
-  'testimonials': '保護者・スカウトの声',
+
   'unit-beaver': 'ビーバー隊の紹介',
   'unit-cub': 'カブ隊の紹介',
   'unit-boy': 'ボーイ隊の紹介',

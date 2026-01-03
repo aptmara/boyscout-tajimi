@@ -18,7 +18,7 @@ const staticPages = [
     { url: '/contact', priority: 0.7, changefreq: 'monthly' },
     { url: '/activity-log', priority: 0.8, changefreq: 'weekly' },
     { url: '/news-list', priority: 0.8, changefreq: 'weekly' },
-    { url: '/testimonials', priority: 0.6, changefreq: 'monthly' },
+
     { url: '/privacy', priority: 0.3, changefreq: 'yearly' },
     { url: '/sitemap', priority: 0.3, changefreq: 'monthly' },
     // 各隊ページ
