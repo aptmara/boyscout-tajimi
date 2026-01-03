@@ -43,22 +43,31 @@ function webhookAuth(req, res, next) {
     const timestamp = req.get('X-Timestamp');
     const signature = req.get('X-Signature');
 
+    // デバッグ：受信ヘッダーとbody型
+    console.log('[Webhook] Received:', {
+      timestamp,
+      signature,
+      contentType: req.get('Content-Type'),
+      bodyType: Buffer.isBuffer(req.body) ? 'Buffer' : typeof req.body,
+      bodyIsBuffer: Buffer.isBuffer(req.body)
+    });
+
     const bodyRaw = Buffer.isBuffer(req.body)
       ? req.body.toString('utf8')
       : JSON.stringify(req.body || {});
 
+    // デバッグ：Body内容（先頭のみ）
+    console.log('[Webhook] BodyRaw Preview:', bodyRaw.substring(0, 100));
+
     if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
       const bodySha = crypto.createHash('sha256').update(bodyRaw, 'utf8').digest('hex');
       const sigHex = String(signature || '').replace(/^sha256=/i, '').trim();
-      const now = Math.floor(Date.now() / 1000);
-      const ts = parseInt(String(timestamp || '0'), 10);
-      const skew = isFinite(ts) ? Math.abs(now - ts) : null;
-      console.warn('[SIG_FAIL]', {
-        ts: timestamp,
-        skew,
-        gotSigHead: (sigHex || '').slice(0, 16),
-        bodyLen: bodyRaw.length,
-        bodySha256: bodySha,
+
+      console.error('[SIG_FAIL] Validation Failed:', {
+        timestamp,
+        receivedSig: sigHex,
+        bodySha256: bodySha, // これと比較すればわかる
+        bodyLength: bodyRaw.length
       });
       return res.status(401).json({ error: 'invalid signature' });
     }
@@ -66,7 +75,8 @@ function webhookAuth(req, res, next) {
     if (Buffer.isBuffer(req.body)) {
       try {
         req.body = JSON.parse(bodyRaw);
-      } catch {
+      } catch (e) {
+        console.error('[Webhook] JSON Parse Error:', e.message);
         return res.status(400).json({ error: 'bad json' });
       }
     }
