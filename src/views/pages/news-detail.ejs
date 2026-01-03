@@ -1,7 +1,6 @@
-<% // Helper functions inside template scope or passed from locals const
-  accent=helpers.resolveNewsAccentTheme(item.category); const displayDate=helpers.formatDateJP(item.published_at ||
-  item.created_at); const tags=Array.isArray(item.tags) ? item.tags : []; const isImportant=tags.some(tag=>
-  tag.includes('重要') || tag.includes('urgent'));
+<% // Helpers are passed from the controller const accent=helpers.resolveNewsAccentTheme(item.category); const
+  displayDate=helpers.formatDateJP(item.published_at || item.created_at); const tags=Array.isArray(item.tags) ?
+  item.tags : []; const isImportant=tags.some(tag=> tag.includes('重要') || tag.includes('urgent'));
 
   const now = new Date();
   const createdDate = new Date(item.created_at);

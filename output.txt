@@ -1,0 +1,35 @@
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+Using SQLite for local development.
+Test server running on 3004
+[31;1mSERVER ERROR: SyntaxError: Unexpected token 'const' in C:\Users\aptma\Downloads\boyscout-tajimi\src\views\pages\news-detail.ejs while compiling ejs[0m
+[31;1m[0m
+[31;1mIf the above error is not helpful, you may want to try EJS-Lint:[0m
+[31;1mhttps://github.com/RyanZim/EJS-Lint[0m
+[31;1mOr, if you meant to create an async function, pass `async: true` as an option.[0m
+[31;1m    at new Function (<anonymous>)[0m
+[31;1m    at Template.compile (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:673:12)[0m
+[31;1m    at Object.compile (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:398:16)[0m
+[31;1m    at handleCache (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:235:18)[0m
+[31;1m    at tryHandleCache (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:274:16)[0m
+[31;1m    at exports.renderFile [as engine] (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:491:10)[0m
+[31;1m    at View.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\view.js:139:8)[0m
+[31;1m    at tryRender (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\application.js:627:10)[0m
+[31;1m    at app.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\application.js:574:3)[0m
+[31;1m    at ServerResponse.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\response.js:909:7)[0m
+GET /news/10 Status: 500
+Reproduced 500 on /news/10
+Response Body: SyntaxError: Unexpected token 'const' in C:\Users\aptma\Downloads\boyscout-tajimi\src\views\pages\news-detail.ejs while compiling ejs
+
+If the above error is not helpful, you may want to try EJS-Lint:
+https://github.com/RyanZim/EJS-Lint
+Or, if you meant to create an async function, pass `async: true` as an option.
+    at new Function (<anonymous>)
+    at Template.compile (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:673:12)
+    at Object.compile (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:398:16)
+    at handleCache (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:235:18)
+    at tryHandleCache (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:274:16)
+    at exports.renderFile [as engine] (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\view.js:139:8)
+    at tryRender (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\application.js:627:10)
+    at app.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\application.js:574:3)
+    at ServerResponse.render (C:\Users\aptma\Downloads\boyscout-tajimi\node_modules\express\lib\response.js:909:7)
