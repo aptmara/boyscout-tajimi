@@ -16,15 +16,21 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 }
 
 /**
- * Google Drive URLをダウンロード可能なURLに変換する
+ * Google Drive URLをダウンロード可能なサムネイルURLに変換する
+ * サムネイル形式はリダイレクトなしで直接画像を返す
  */
 function getDownloadUrl(url) {
     if (!url || typeof url !== 'string') return url;
 
+    // すでにサムネイル形式ならそのまま返す
+    if (url.includes('/thumbnail?')) {
+        return url;
+    }
+
     // Google DriveのファイルIDを抽出
     const patterns = [
         /\/file\/d\/([a-zA-Z0-9_-]+)/,
-        /id=([a-zA-Z0-9_-]+)/,
+        /[?&]id=([a-zA-Z0-9_-]+)/,
         /open\?id=([a-zA-Z0-9_-]+)/
     ];
 
@@ -38,8 +44,8 @@ function getDownloadUrl(url) {
     }
 
     if (fileId) {
-        // ダウンロード確認画面をスキップするURL形式
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+        // サムネイル形式（リダイレクトなし、高解像度）
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
     }
 
     return url;
