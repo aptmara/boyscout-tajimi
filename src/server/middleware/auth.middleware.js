@@ -43,44 +43,16 @@ function webhookAuth(req, res, next) {
     const timestamp = req.get('X-Timestamp');
     const signature = req.get('X-Signature');
 
-    // デバッグ：受信ヘッダーとbody型
-    console.log('[Webhook] Received:', {
-      timestamp,
-      signature,
-      contentType: req.get('Content-Type'),
-      bodyType: Buffer.isBuffer(req.body) ? 'Buffer' : typeof req.body,
-      bodyIsBuffer: Buffer.isBuffer(req.body)
-    });
+    // デバッグログ（本番運用中は無効化またはレベル調整）
+    // console.log('[Webhook] Received:', { ts: timestamp, len: bodyRaw.length });
 
     const bodyRaw = Buffer.isBuffer(req.body)
       ? req.body.toString('utf8')
       : JSON.stringify(req.body || {});
 
-    // デバッグ：Body内容（先頭のみ）
-    console.log('[Webhook] BodyRaw Preview:', bodyRaw.substring(0, 100));
-
     if (!verifyHmacSignature({ bodyRaw, timestamp, signature })) {
-      const bodySha = crypto.createHash('sha256').update(bodyRaw, 'utf8').digest('hex');
-      const sigHex = String(signature || '').replace(/^sha256=/i, '').trim();
-
-      console.error('[SIG_FAIL] Validation Failed:', {
-        timestamp,
-        receivedSig: sigHex,
-        bodySha256: bodySha, // これと比較すればわかる
-        bodyLength: bodyRaw.length
-      });
-      // DEBUG: 署名エラー時に詳細を返す（本番運用時は削除すること）
-      return res.status(401).json({
-        error: 'invalid signature',
-        debug: {
-          ts: timestamp,
-          sig: sigHex,
-          bodySha: bodySha,
-          bodyLen: bodyRaw.length,
-          // bodyRawそのものは大きすぎる可能性があるので先頭のみ
-          bodyPreview: bodyRaw.substring(0, 200)
-        }
-      });
+      console.warn('[SIG_FAIL] Invalid Signature:', { ts: timestamp, len: bodyRaw.length });
+      return res.status(401).json({ error: 'invalid signature' });
     }
 
     if (Buffer.isBuffer(req.body)) {

@@ -575,7 +575,11 @@ function sendWebhook(url, payload, timestamp) {
     const ts = Math.floor(timestamp.getTime() / 1000);
 
     // ペイロードJSON
-    const body = JSON.stringify(payload);
+    // 署名不一致問題（GAS/Node間のマルチバイト文字エンコーディング差異）を回避するため、
+    // 非ASCII文字を全てUnicodeエスケープ(\uXXXX)してASCIIのみのbodyにする。
+    // サーバー側はJSON.parse()で自動的にデコードされるため問題ない。
+    let body = JSON.stringify(payload);
+    body = body.replace(/[^\x00-\x7F]/g, c => '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4));
 
     // 署名計算（サーバー側と同一形式）
     const message = `${ts}.${body}`;
@@ -723,4 +727,35 @@ function debugSendActivity() {
 function debugMarkdown() {
     const md = '**太字** と _斜体_ と [リンク](https://example.com)\n\n新しい段落';
     Logger.log(convertMarkdownToHtml(md));
+}
+/** 署名不一致調査用（ASCIIのみ、固定TS） */
+function debugSendAsciiFixed() {
+    const ts = 1767420000; // 固定TS
+    const payload = { "test": "abc" };
+    const body = JSON.stringify(payload);
+
+    // 署名計算
+    const props = PropertiesService.getScriptProperties();
+    const secret = props.getProperty('WEBHOOK_SECRET');
+    const message = `${ts}.${body}`;
+    const sigBytes = Utilities.computeHmacSha256Signature(message, secret);
+    const sigHex = sigBytes.map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
+
+    Logger.log(`Sending: ts=${ts}, body=${body}`);
+    Logger.log(`Calculated Sig: ${sigHex}`);
+
+    const url = CONFIG.BASE_URL + CONFIG.ENDPOINTS.NEWS;
+    const options = {
+        method: 'post',
+        contentType: 'application/json',
+        headers: {
+            'X-Timestamp': String(ts),
+            'X-Signature': `sha256=${sigHex}`
+        },
+        payload: body,
+        muteHttpExceptions: true
+    };
+
+    const res = UrlFetchApp.fetch(url, options);
+    Logger.log(`Response: ${res.getResponseCode()} ${res.getContentText()}`);
 }
