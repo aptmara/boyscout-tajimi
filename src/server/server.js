@@ -55,7 +55,6 @@ const loginLimiter = rateLimit({
 });
 
 
-
 // === secret fingerprint (ログ最小限)
 logSecretFingerprint('WEBHOOK_SECRET', process.env.WEBHOOK_SECRET);
 
@@ -121,6 +120,7 @@ app.use(sessionMiddleware);
 // ------------------------------
 // Webhookは生のbodyで署名検証するため、express.json()より前に配置
 // Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）、raw bodyで受信
+const { webhookAuth } = require('./middleware/auth.middleware.js');
 // Base64画像送信に対応するためフォーム制限に合わせて10mbまで許容
 const webhookRawJson = express.raw({ type: 'application/json', limit: '10mb' });
 
