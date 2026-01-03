@@ -162,7 +162,7 @@ const activityWebhook = asyncHandler(async (req, res) => {
 
   await db.query(
     `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
-     VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7, COALESCE($7, CURRENT_TIMESTAMP))`,
+     VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))`,
     [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
   );
   return res.status(201).json({ ok: true });
