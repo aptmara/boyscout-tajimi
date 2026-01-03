@@ -289,7 +289,7 @@ async function bootstrap() {
     // 1. DB Setup
     await db.setupDatabase();
 
-    // 2. Migration
+    // 2. Migration (URL形式変換)
     const { runMigration } = require('./migrations/convert-drive-urls.js');
     try {
       await runMigration();
@@ -298,8 +298,16 @@ async function bootstrap() {
       // Continue even if migration fails in dev
     }
 
-    // 3. Start Server
+    // 3. Start Server (先にサーバーを起動)
     startServer(app);
+
+    // 4. Background: Google Drive画像をローカルにダウンロード
+    // サーバー起動後にバックグラウンドで実行（サーバー起動をブロックしない）
+    const { runMigration: localizeDriveImages } = require('./migrations/localize-drive-images.js');
+    localizeDriveImages().catch(err => {
+      console.error('[LocalizeDrive] Background migration failed:', err);
+    });
+
   } catch (e) {
     console.error('Failed to start server:', e);
     process.exit(1);
