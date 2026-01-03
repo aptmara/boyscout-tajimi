@@ -127,6 +127,33 @@
                                             </svg>
                                         </a>
                                         <% } %>
+
+                                            <% const twitterLink=siteConfig.get('seo_social_twitter'); %>
+                                                <% if (twitterLink) { %>
+                                                    <a href="<%= twitterLink %>" aria-label="X (Twitter)"
+                                                        target="_blank" rel="noopener noreferrer"
+                                                        class="bg-green-800 hover:bg-black text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zl-1.161 17.52h1.833L7.084 4.126H5.117z">
+                                                            </path>
+                                                        </svg>
+                                                    </a>
+                                                    <% } %>
+
+                                                        <% const lineLink=siteConfig.get('seo_social_line'); %>
+                                                            <% if (lineLink) { %>
+                                                                <a href="<%= lineLink %>" aria-label="LINE"
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                    class="bg-green-800 hover:bg-[#06C755] text-white p-3 rounded-full transition-all duration-300 hover:-translate-y-1 border border-green-700">
+                                                                    <svg class="w-5 h-5" fill="currentColor"
+                                                                        viewBox="0 0 24 24">
+                                                                        <path
+                                                                            d="M12 2C6.48 2 2 5.56 2 10.12c0 2.42 1.09 4.58 2.88 6.03-.37 1.35-1.21 2.76-1.39 3.03-.13.2.06.46.29.38 3.5-1.21 5.09-2.6 5.3-2.8l.24.01c.88.08 1.78.13 2.68.13 5.52 0 10-3.56 10-8.12S17.52 2 12 2zm1.7 9.8h-5c-.4 0-.7-.3-.7-.7v-3.6c0-.4.3-.7.7-.7s.7.3.7.7v2.9h4.3c.4 0 .7.3.7.7s-.3.7-.7.7z">
+                                                                        </path>
+                                                                    </svg>
+                                                                </a>
+                                                                <% } %>
                 </div>
             </div>
         </div>

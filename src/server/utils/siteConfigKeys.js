@@ -13,7 +13,8 @@ module.exports = {
         JOIN: '入団案内',
         TESTIMONIALS: '保護者の声',
         CONTACT: 'お問い合わせ',
-        PRIVACY: 'プライバシーポリシー'
+        PRIVACY: 'プライバシーポリシー',
+        SNS: 'SNS設定'
     },
     KEYS: {
         // SEO設定
@@ -25,6 +26,13 @@ module.exports = {
         'seo_twitter_card_type': { group: 'SEO', type: 'text', label: 'Twitter Card タイプ（summary_large_image 推奨）' },
         'seo_organization_name': { group: 'SEO', type: 'text', label: '組織正式名称' },
         'seo_organization_founding_date': { group: 'SEO', type: 'text', label: '創立年（例: 1964）' },
+
+        // SNS
+        'seo_social_facebook': { group: 'SNS', type: 'text', label: 'Facebook URL' },
+        'seo_social_instagram': { group: 'SNS', type: 'text', label: 'Instagram URL' },
+        'seo_social_twitter': { group: 'SNS', type: 'text', label: 'X (Twitter) URL' },
+        'seo_social_line': { group: 'SNS', type: 'text', label: '公式LINE URL' },
+
 
         // COMMON
         'site_favicon_url': { group: 'COMMON', type: 'image', label: 'ファビコン' },
