@@ -170,9 +170,11 @@ class BaseListDashboard {
     let filtered = this.allItems.map(item => this.normalizeItem(item)).filter(item => {
       if (category && item.category !== category) return false;
       // 隊: カンマ区切り文字列の中に選択した隊が含まれるか
+      // 「団全体」(all)が含まれる場合は、どの隊でフィルタリングしてもマッチ
       if (unit) {
         const itemUnits = (item.unit || '').split(',').map(u => u.trim());
-        if (!itemUnits.includes(unit)) return false;
+        // allが含まれていれば全ての隊フィルターにマッチ
+        if (!itemUnits.includes('all') && !itemUnits.includes(unit)) return false;
       }
 
       if (ym) {
