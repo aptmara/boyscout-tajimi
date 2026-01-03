@@ -120,8 +120,9 @@ app.use(sessionMiddleware);
 // Webhook Routes (MUST be before global body parsers)
 // ------------------------------
 // Webhookは生のbodyで署名検証するため、express.json()より前に配置
-const { webhookAuth } = require('./middleware/auth.middleware.js');
-const webhookRawJson = express.raw({ type: 'application/json', limit: '5mb' });
+// Webhook（外部GAS等）：CSRF不要（HMAC認証で保護）、raw bodyで受信
+// Base64画像送信に対応するためフォーム制限に合わせて10mbまで許容
+const webhookRawJson = express.raw({ type: 'application/json', limit: '10mb' });
 
 // Rate limiting for webhooks (1分間に10回まで)
 const webhookLimiter = rateLimit({

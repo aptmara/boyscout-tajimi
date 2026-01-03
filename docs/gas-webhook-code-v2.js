@@ -69,8 +69,9 @@ const CONFIG = {
         ACTIVITY: '/api/activities/webhook'
     },
 
-    // 画像制限（サーバー側 5MB 制限を考慮）
-    MAX_IMAGE_SIZE_MB: 3,
+    // 画像制限（サーバー側 10MB 制限を考慮）
+    // Base64エンコードで約1.3倍になるため、元画像は8MB程度を上限とする
+    MAX_IMAGE_SIZE_MB: 8,
     MAX_IMAGES_COUNT: 5
 };
 
@@ -575,11 +576,9 @@ function sendWebhook(url, payload, timestamp) {
     const ts = Math.floor(timestamp.getTime() / 1000);
 
     // ペイロードJSON
-    // 署名不一致問題（GAS/Node間のマルチバイト文字エンコーディング差異）を回避するため、
-    // 非ASCII文字を全てUnicodeエスケープ(\uXXXX)してASCIIのみのbodyにする。
-    // サーバー側はJSON.parse()で自動的にデコードされるため問題ない。
-    let body = JSON.stringify(payload);
-    body = body.replace(/[^\x00-\x7F]/g, c => '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4));
+    // 署名不一致問題回避のため、非ASCII文字をUnicodeエスケープしてASCIIのみにする
+    // 詳細は escapeNonAscii() のコメントを参照
+    const body = escapeNonAscii(JSON.stringify(payload));
 
     // 署名計算（サーバー側と同一形式）
     const message = `${ts}.${body}`;
@@ -723,39 +722,31 @@ function debugSendActivity() {
     sendWebhook(CONFIG.BASE_URL + CONFIG.ENDPOINTS.ACTIVITY, payload, new Date());
 }
 
+// ============================================================================
+// その他のユーティリティ
+// ============================================================================
+
+/**
+ * 重要: 署名計算におけるエンコーディング問題について
+ * 
+ * Google Apps Script (Javaベース) と Node.js (V8/C++) 間で、
+ * 日本語（マルチバイト文字）を含むJSON文字列のバイナリ表現が微妙に異なるケースがあり、
+ * HMAC-SHA256署名が一致しない問題が発生します。
+ * 
+ * これを回避するため、送信するJSONペイロード内の全ての非ASCII文字を
+ * Unicodeエスケープ形式 (\u30c6\u30b9\u30c8...) に変換し、
+ * 通信経路上では「ASCII文字のみ」の状態にします。
+ * 
+ * サーバー側(Node.js)は JSON.parse() する際に自動的にこれをデコードするため、
+ *特別な対応は不要で、署名検証もASCIIベースで行われるため確実に一致します。
+ */
+function escapeNonAscii(str) {
+    return str.replace(/[^\x00-\x7F]/g, c => '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4));
+}
+
 /** Markdown変換テスト */
 function debugMarkdown() {
     const md = '**太字** と _斜体_ と [リンク](https://example.com)\n\n新しい段落';
     Logger.log(convertMarkdownToHtml(md));
 }
-/** 署名不一致調査用（ASCIIのみ、固定TS） */
-function debugSendAsciiFixed() {
-    const ts = 1767420000; // 固定TS
-    const payload = { "test": "abc" };
-    const body = JSON.stringify(payload);
-
-    // 署名計算
-    const props = PropertiesService.getScriptProperties();
-    const secret = props.getProperty('WEBHOOK_SECRET');
-    const message = `${ts}.${body}`;
-    const sigBytes = Utilities.computeHmacSha256Signature(message, secret);
-    const sigHex = sigBytes.map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
-
-    Logger.log(`Sending: ts=${ts}, body=${body}`);
-    Logger.log(`Calculated Sig: ${sigHex}`);
-
-    const url = CONFIG.BASE_URL + CONFIG.ENDPOINTS.NEWS;
-    const options = {
-        method: 'post',
-        contentType: 'application/json',
-        headers: {
-            'X-Timestamp': String(ts),
-            'X-Signature': `sha256=${sigHex}`
-        },
-        payload: body,
-        muteHttpExceptions: true
-    };
-
-    const res = UrlFetchApp.fetch(url, options);
-    Logger.log(`Response: ${res.getResponseCode()} ${res.getContentText()}`);
-}
+```
