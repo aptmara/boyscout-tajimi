@@ -1,50 +1,66 @@
-<%
-// このパーシャルは、以下のプロパティを持つ`card`オブジェクトを期待します:
-// card.imageUrl (string)
-// card.altText (string)
-// card.dateText (string, optional)
-// card.badges (array of objects {text, className}, optional)
-// card.title (string)
-// card.detailUrl (string)
-// card.summary (string)
-// card.ctaText (string)
-%>
-<div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden card-hover-effect group border border-gray-100 flex flex-col h-full">
-  <div class="relative overflow-hidden aspect-video">
-    <img src="<%= card.imageUrl %>" alt="<%= card.altText %>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy">
-    <%# 画像の上に重ねるオーバーレイ %>
-    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+<% // このパーシャルは、以下のプロパティを持つ`card`オブジェクトを期待します: // card.imageUrl (string | null) // card.altText (string) // card.dateText
+  (string, optional) // card.badges (array of objects {text, className}, optional) // card.title (string) //
+  card.detailUrl (string) // card.summary (string) // card.ctaText (string) // card.placeholderText (string, optional) -
+  画像がない場合に表示するテキスト %>
+  <div
+    class="bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden card-hover-effect group border border-gray-100 flex flex-col h-full">
+    <div class="relative overflow-hidden aspect-video">
+      <% if (card.imageUrl) { %>
+        <img src="<%= card.imageUrl %>" alt="<%= card.altText %>"
+          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy">
+        <% } else { %>
+          <div class="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+            <span class="text-white text-2xl font-bold opacity-80">
+              <%= card.placeholderText || card.altText || '記事' %>
+            </span>
+          </div>
+          <% } %>
+            <%# 画像の上に重ねるオーバーレイ %>
+              <% if (card.imageUrl) { %>
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300">
+                </div>
+                <% } %>
 
-    <%# 日付バッジ（画像の上に配置する場合） %>
-    <% if (card.dateText && card.dateText.length > 0) { %>
-      <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-        <%= card.dateText %>
-      </div>
-    <% } %>
-  </div>
-
-  <div class="p-6 flex flex-col flex-grow">
-    <% if (card.badges && card.badges.length > 0) { %>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <% card.badges.forEach(badge => { %>
-          <span class="<%= badge.className %>"><%= badge.text %></span>
-        <% }) %>
-      </div>
-    <% } %>
-
-    <h3 class="text-xl font-bold mb-3 text-gray-800 group-hover:text-green-700 transition-colors line-clamp-2">
-      <a href="<%= card.detailUrl %>"><%= card.title %></a>
-    </h3>
-
-    <div class="text-gray-600 mb-6 text-sm leading-relaxed line-clamp-3 flex-grow">
-        <%- card.summary %>
+                  <%# 日付バッジ（画像の上に配置する場合） %>
+                    <% if (card.dateText && card.dateText.length> 0) { %>
+                      <div
+                        class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                        <%= card.dateText %>
+                      </div>
+                      <% } %>
     </div>
 
-    <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-        <a href="<%= card.detailUrl %>" class="text-green-600 font-bold text-sm hover:text-green-800 transition-colors flex items-center">
-            <%= card.ctaText %>
-            <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </a>
+    <div class="p-6 flex flex-col flex-grow">
+      <% if (card.badges && card.badges.length> 0) { %>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <% card.badges.forEach(badge=> { %>
+            <span class="<%= badge.className %>">
+              <%= badge.text %>
+            </span>
+            <% }) %>
+        </div>
+        <% } %>
+
+          <h3 class="text-xl font-bold mb-3 text-gray-800 group-hover:text-green-700 transition-colors line-clamp-2">
+            <a href="<%= card.detailUrl %>">
+              <%= card.title %>
+            </a>
+          </h3>
+
+          <div class="text-gray-600 mb-6 text-sm leading-relaxed line-clamp-3 flex-grow">
+            <%- card.summary %>
+          </div>
+
+          <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+            <a href="<%= card.detailUrl %>"
+              class="text-green-600 font-bold text-sm hover:text-green-800 transition-colors flex items-center">
+              <%= card.ctaText %>
+                <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+          </div>
     </div>
   </div>
-</div>

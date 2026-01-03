@@ -48,6 +48,7 @@ const shapeCardData = (item, type) => {
     return {
       imageUrl: pickFirstImage(item.image_urls, item.category || item.title || '活動'),
       altText: item.title,
+      placeholderText: item.category || '活動',
       dateText: item.activity_date ? formatDateJP(item.activity_date) : (item.created_at ? formatDateJP(item.created_at) : ''),
       badges: [],
       title: item.title,
@@ -64,6 +65,7 @@ const shapeCardData = (item, type) => {
     return {
       imageUrl: pickFirstImage(item.image_urls, item.category || item.title || 'NEWS', '3B82F6'),
       altText: item.title,
+      placeholderText: item.category || 'NEWS',
       dateText: item.created_at ? formatDateJP(item.created_at) : '',
       badges,
       title: item.title,

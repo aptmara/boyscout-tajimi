@@ -8,8 +8,9 @@ function pickFirstImage(imageUrls, fallbackText, fallbackColor = '4A934A', textC
   if (Array.isArray(imageUrls) && imageUrls.length && typeof imageUrls[0] === 'string' && imageUrls[0].trim()) {
     return imageUrls[0];
   }
-  const text = encodeURIComponent((fallbackText || '活動').slice(0, 16));
-  return `https://placehold.co/600x400/${fallbackColor}/${textColor}?text=${text}`;
+  // 画像がない場合はnullを返し、テンプレート側でプレースホルダを表示する
+  // 外部サービス(placehold.co)への依存を削減
+  return null;
 }
 
 function buildSummary(raw, maxLength = 120) {
