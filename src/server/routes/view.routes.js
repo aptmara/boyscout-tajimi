@@ -143,12 +143,23 @@ router.get('/news/:id', async (req, res, next) => {
       siteName: 'ボーイスカウト多治見第一団'
     };
 
+    // パンくずリスト
+    const breadcrumbs = [
+      { name: 'ホーム', url: '/' },
+      { name: 'お知らせ一覧', url: '/news-list' },
+      { name: item.title, url: `/news/${id}` }
+    ];
+
+    // JSON-LD生成 (breadcrumbsを含む)
+    seo.jsonLD = generateFullJsonLD(`/news/${id}`, siteSettings, breadcrumbs);
+
     res.render('pages/news-detail', {
       title: seo.title,
       description: seo.description,
       seo,
       item,
-      helpers
+      helpers,
+      breadcrumbs
     });
   } catch (err) {
     next(err);
@@ -184,12 +195,23 @@ router.get('/activity/:id', async (req, res, next) => {
       siteName: 'ボーイスカウト多治見第一団'
     };
 
+    // パンくずリスト
+    const breadcrumbs = [
+      { name: 'ホーム', url: '/' },
+      { name: '活動記録一覧', url: '/activity-log' }, // 一覧ページ
+      { name: item.title, url: `/activity/${id}` }
+    ];
+
+    // JSON-LD生成 (breadcrumbsを含む)
+    seo.jsonLD = generateFullJsonLD(`/activity/${id}`, siteSettings, breadcrumbs);
+
     res.render('pages/activity-detail', {
       title: seo.title,
       description: seo.description,
       seo,
       item,
-      helpers
+      helpers,
+      breadcrumbs
     });
   } catch (err) {
     next(err);

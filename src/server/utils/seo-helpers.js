@@ -210,10 +210,11 @@ function generateOrganizationLD(siteSettings = {}) {
  * パンくずリストの構造化データを生成
  * @param {string} path - ページパス
  * @param {object} siteSettings - DB設定
+ * @param {Array} dynamicBreadcrumbs - 動的に生成されたパンくずリスト項目 [{name, url}]
  * @returns {object|null} BreadcrumbList JSON-LD
  */
-function generateBreadcrumbLD(path, siteSettings = {}) {
-    const items = breadcrumbConfig[path];
+function generateBreadcrumbLD(path, siteSettings = {}, dynamicBreadcrumbs = null) {
+    const items = dynamicBreadcrumbs || breadcrumbConfig[path];
     if (!items) return null;
 
     const siteUrl = siteSettings.seo_site_url || SITE_URL;
@@ -225,7 +226,7 @@ function generateBreadcrumbLD(path, siteSettings = {}) {
             "@type": "ListItem",
             "position": index + 1,
             "name": item.name,
-            "item": `${siteUrl}${item.url}`
+            "item": item.url.startsWith('http') ? item.url : `${siteUrl}${item.url}`
         }))
     };
 }
@@ -234,9 +235,10 @@ function generateBreadcrumbLD(path, siteSettings = {}) {
  * ページの構造化データを生成
  * @param {string} path - ページパス
  * @param {object} siteSettings - DB設定
+ * @param {boolean} hasBreadcrumbs - パンくずが存在するかどうか
  * @returns {object} WebPage JSON-LD
  */
-function generateWebPageLD(path, siteSettings = {}) {
+function generateWebPageLD(path, siteSettings = {}, hasBreadcrumbs = false) {
     const config = pageSEOConfig[path] || {};
     const siteUrl = siteSettings.seo_site_url || SITE_URL;
 
@@ -251,7 +253,7 @@ function generateWebPageLD(path, siteSettings = {}) {
     };
 
     // パンくずがあれば追加
-    if (breadcrumbConfig[path]) {
+    if (breadcrumbConfig[path] || hasBreadcrumbs) {
         webPage.breadcrumb = { "@id": `${siteUrl}${path}#breadcrumb` };
     }
 
@@ -262,11 +264,13 @@ function generateWebPageLD(path, siteSettings = {}) {
  * 完全な構造化データ（@graph形式）を生成
  * @param {string} path - ページパス
  * @param {object} siteSettings - DB設定
+ * @param {Array} dynamicBreadcrumbs - 動的なパンくずリスト項目（オプション）
  * @returns {string} JSON-LD文字列
  */
-function generateFullJsonLD(path, siteSettings = {}) {
+function generateFullJsonLD(path, siteSettings = {}, dynamicBreadcrumbs = null) {
     const siteUrl = siteSettings.seo_site_url || SITE_URL;
     const siteName = siteSettings.seo_site_name || 'ボーイスカウト多治見第一団';
+    const hasBreadcrumbs = !!(dynamicBreadcrumbs || breadcrumbConfig[path]);
 
     const graph = [
         // WebSite
@@ -282,11 +286,11 @@ function generateFullJsonLD(path, siteSettings = {}) {
         // Organization
         generateOrganizationLD(siteSettings),
         // WebPage
-        generateWebPageLD(path, siteSettings)
+        generateWebPageLD(path, siteSettings, hasBreadcrumbs)
     ];
 
     // パンくずリスト追加
-    const breadcrumb = generateBreadcrumbLD(path, siteSettings);
+    const breadcrumb = generateBreadcrumbLD(path, siteSettings, dynamicBreadcrumbs);
     if (breadcrumb) {
         graph.push(breadcrumb);
     }
