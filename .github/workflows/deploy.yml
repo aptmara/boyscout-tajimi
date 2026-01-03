@@ -89,6 +89,7 @@ jobs:
               
               if [ "$HTTP_STATUS" = "200" ]; then
                 echo "   ✅ サーバー応答OK (HTTP $HTTP_STATUS)"
+              else
                 echo "   ❌ サーバー応答エラー: HTTP $HTTP_STATUS"
                 echo "::group::📊 アプリケーションログ (直近50行)"
                 echo "--- Error Log ---"
