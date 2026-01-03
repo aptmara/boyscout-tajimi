@@ -71,10 +71,29 @@ function resolveActivityAccentTheme(category) {
   };
 }
 
+// Unit Labels
+const UNIT_LABELS = {
+  beaver: 'ビーバー隊',
+  cub: 'カブ隊',
+  boy: 'ボーイ隊',
+  venture: 'ベンチャー隊',
+  rover: 'ローバー隊',
+  all: '団全体'
+};
+
+function formatUnitLabel(unitSlug) {
+  if (!unitSlug) return '';
+  // カンマ区切りの場合もあるので対応
+  return unitSlug.split(',')
+    .map(slug => UNIT_LABELS[slug.trim()] || slug)
+    .join('・');
+}
+
 module.exports = {
   formatDateJP,
   pickFirstImage,
   buildSummary,
   resolveNewsAccentTheme,
   resolveActivityAccentTheme,
+  formatUnitLabel
 };

@@ -5,7 +5,8 @@ const helpers = require('../utils/template-helpers');
 const {
   formatDateJP,
   pickFirstImage,
-  buildSummary
+  buildSummary,
+  formatUnitLabel
 } = helpers;
 
 // SEOヘルパーをインポート
@@ -45,12 +46,15 @@ function buildSEOData(path, siteConfig) {
 // DBから取得したデータをhighlightCardパーシャルが期待する形式に変換
 const shapeCardData = (item, type) => {
   if (type === 'activity') {
+    const badges = [];
+    if (item.unit) badges.push({ text: formatUnitLabel(item.unit), className: 'bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200' });
+
     return {
       imageUrl: pickFirstImage(item.image_urls, item.category || item.title || '活動'),
       altText: item.title,
       placeholderText: item.category || '活動',
       dateText: item.activity_date ? formatDateJP(item.activity_date) : (item.created_at ? formatDateJP(item.created_at) : ''),
-      badges: [],
+      badges: badges,
       title: item.title,
       detailUrl: `/activity/${item.id}`,
       summary: buildSummary(item.content, 120),
@@ -60,7 +64,7 @@ const shapeCardData = (item, type) => {
   if (type === 'news') {
     const badges = [];
     if (item.category) badges.push({ text: item.category, className: 'bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full' });
-    if (item.unit) badges.push({ text: item.unit, className: 'bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200' });
+    if (item.unit) badges.push({ text: formatUnitLabel(item.unit), className: 'bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200' });
 
     return {
       imageUrl: pickFirstImage(item.image_urls, item.category || item.title || 'NEWS', '3B82F6'),
