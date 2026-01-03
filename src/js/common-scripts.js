@@ -54,8 +54,7 @@ document.addEventListener('alpine:init', registerMobileMenuStore);
  * DOMコンテンツが読み込まれた後に初期化処理を実行
  */
 document.addEventListener('DOMContentLoaded', () => {
-  applySiteSettings(); // サイト設定をAPIから読み込み適用
-  applyUnitLogos(); // 各隊ロゴを適用
+  applySiteSettings(); // サイト設定をAPIから読み込み適用（画像URL含む）
   initSmoothScroll();
   initFooterYear();
   initIntersectionObserver();
@@ -217,62 +216,6 @@ function initActivityDetailPage() {
   }
 }
 
-
-/**
- * 各隊ロゴをタスク指定URLに差し替え
- * - index.html のユニット紹介カード最上部の円形画像
- * - 各 unit-*.html の冒頭「隊章」画像
- */
-function applyUnitLogos() {
-  try {
-    const logos = {
-      beaver: 'https://drive.google.com/thumbnail?id=1LKO_6YETXriZEw4xvUl7JwPEI0D98kuC',
-      cub: 'https://drive.google.com/thumbnail?id=1RvqNJOEjG-OXUeydNNuqX2nf81Jz2db7',
-      boy: 'https://drive.google.com/thumbnail?id=1ltXHHnuIVMS2y_0qTvxE0vCSSJEnWJof',
-      venture: 'https://drive.google.com/thumbnail?id=10p_pcQyjG14WvptqyDepEhr-bMWHLFHg',
-      rover: 'https://drive.google.com/thumbnail?id=1An9jXkpY25igqg7MpqFuAlFXMLrqEECa'
-    };
-
-    const path = (location.pathname || '').toLowerCase();
-    const unitPathMap = {
-      'unit-beaver.html': 'beaver',
-      'unit-cub.html': 'cub',
-      'unit-boy.html': 'boy',
-      'unit-venture.html': 'venture',
-      'unit-rover.html': 'rover',
-    };
-
-    // 1) トップのユニットカード
-    const unitsSection = document.getElementById('units');
-    if (unitsSection) {
-      const imgs = unitsSection.querySelectorAll('.tilt-card-effect img');
-      const order = [logos.beaver, logos.cub, logos.boy, logos.venture, logos.rover];
-      for (let i = 0; i < Math.min(imgs.length, order.length); i++) {
-        if (order[i]) imgs[i].src = order[i];
-      }
-    }
-
-    // 2) 各隊ページ & 共通ヘッダー/フッターの団章
-    for (const [file, key] of Object.entries(unitPathMap)) {
-      if (path.endsWith('/' + file) || path.endsWith(file)) {
-        // 各隊ページ: 「隊章」画像を差し替え（メイン領域のみ）
-        const crest = document.querySelector('main img[alt*="隊章"]') || document.querySelector('main img[alt*="章"]');
-        if (crest && logos[key]) crest.src = logos[key];
-        break;
-      }
-    }
-
-    // ヘッダー/フッターの団章は指定URLに差し替え（サイト共通）
-    const danCrest = 'https://drive.google.com/thumbnail?id=1MwvmVPcBdK1IOrMpvd4whbYnHIGZkDJQ';
-    const headerImg = document.querySelector('header#main-header img[alt*="団章"]');
-    if (headerImg) headerImg.src = danCrest;
-    const footerImg = document.querySelector('footer img[alt*="団章"]');
-    if (footerImg) footerImg.src = danCrest;
-
-  } catch (e) {
-    console.error('Failed to apply unit logos:', e);
-  }
-}
 
 /**
  * (実装) お問い合わせフォームの初期化
