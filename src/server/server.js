@@ -244,8 +244,11 @@ app.use('/', loadSiteSettings, sitemapRoutes);
 // View Routes (SSR Pages)
 // ================================================================
 const viewRoutes = require('./routes/view.routes.js');
-// Viewルートにのみ設定読み込みミドルウェアを適用
-app.use('/', loadSiteSettings, viewRoutes);
+// Viewルートにのみ設定読み込みミドルウェアとCSRF保護を適用
+app.use('/', loadSiteSettings, csrfProtection, (req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+}, viewRoutes);
 
 // ================================================================
 // 404 Handling (Must be before Global Error Handler)
