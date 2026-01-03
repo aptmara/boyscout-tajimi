@@ -108,7 +108,6 @@ router.get('/', async (req, res, next) => {
       pageScripts: [] // ヒーロー等のアニメーションはcommon-scripts.jsで処理
     });
   } catch (err) {
-    console.error("Error fetching data for top page:", err);
     next(err);
   }
 });

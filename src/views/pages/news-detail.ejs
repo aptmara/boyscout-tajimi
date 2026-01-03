@@ -2,6 +2,7 @@
   accent=helpers.resolveNewsAccentTheme(item.category); const displayDate=helpers.formatDateJP(item.published_at ||
   item.created_at); const tags=Array.isArray(item.tags) ? item.tags : []; const isImportant=tags.some(tag=>
   tag.includes('重要') || tag.includes('urgent'));
+
   const now = new Date();
   const createdDate = new Date(item.created_at);
   const isRecent = !isNaN(createdDate) && ((now - createdDate) / (1000 * 60 * 60 * 24)) <= 21; // Google Drive URL
@@ -102,7 +103,8 @@
                 <% tags.forEach(function(tag) { %>
                   <a href="/news-list?tags=<%= encodeURIComponent(tag) %>"
                     class="activity-card__tag px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">#
-                    <%= tag %></a>
+                    <%= tag %>
+                  </a>
                   <% }); %>
               </div>
               <% } %>

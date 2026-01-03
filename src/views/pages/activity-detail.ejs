@@ -1,6 +1,7 @@
 <% // Helpers const accent=helpers.resolveActivityAccentTheme(item.category); const
   displayDate=helpers.formatDateJP(item.activity_date || item.created_at); const tags=Array.isArray(item.tags) ?
   item.tags : []; const normalizeImageUrl=(url)=> {
+
   if (!url) return '';
   if (url.includes('drive.google.com')) {
   const match = url.match(/\/file\/d\/([^/]+)/);
