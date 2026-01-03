@@ -25,14 +25,13 @@ function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
   if (gotBuf.length !== 32) return false;
 
   const expBuf = crypto.createHmac('sha256', secret).update(`${ts}.${bodyRaw}`, 'utf8').digest();
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('[SIG_DEBUG]', {
-      expSigHead: expBuf.toString('hex').slice(0,16),
-      gotSigHead: gotBuf.toString('hex').slice(0,16),
-      ts: String(ts),
-      bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
-    });
-  }
+  // 署名デバッグログ（本番環境でも出力）
+  console.log('[SIG_DEBUG]', {
+    expSigHead: expBuf.toString('hex').slice(0, 16),
+    gotSigHead: gotBuf.toString('hex').slice(0, 16),
+    ts: String(ts),
+    bodyLen: Buffer.byteLength(bodyRaw, 'utf8')
+  });
   return gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
 }
 

@@ -7,23 +7,13 @@ const {
   createNews,
   updateNews,
   deleteNews,
-  newsWebhook,
 } = require('../controllers/news.controller.js');
 
-const {
-  authMiddleware,
-  webhookAuth,
-} = require('../middleware/auth.middleware.js');
-
-// Middleware for parsing raw JSON body for webhook
-const webhookRawJson = express.raw({ type: 'application/json', limit: '1mb' });
+const { authMiddleware } = require('../middleware/auth.middleware.js');
 
 // Public routes
 router.get('/', getAllNews);
 router.get('/:id', getNewsById);
-
-// Webhook route - Note: path is relative to where this router is mounted
-router.post('/webhook', webhookRawJson, webhookAuth, newsWebhook);
 
 // Protected (Admin) routes - Apply auth middleware individually
 router.post('/', authMiddleware, createNews);
