@@ -1,5 +1,6 @@
 const db = require('../database.js');
 const { sendMail } = require('../utils/mailer.js');
+const { getClientIP } = require('../middleware/contact-protection.js');
 
 const handleContactForm = async (req, res) => {
   const { name, email, phone, subject, message } = req.body || {};
@@ -44,11 +45,14 @@ const handleContactForm = async (req, res) => {
     });
   }
 
+  // Get client IP for logging
+  const clientIP = getClientIP(req);
+
   // Save to Database
   try {
     const insertQuery = `
-      INSERT INTO contacts (name, email, phone, subject, message, created_at)
-      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+      INSERT INTO contacts (name, email, phone, subject, message, ip_address, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
     `;
     // Note: SQLite/Postgres compatibility handled by database.js wrapper
     await db.query(insertQuery, [
@@ -56,8 +60,10 @@ const handleContactForm = async (req, res) => {
       trimmedEmail,
       trimmedPhone || '',
       trimmedSubject || '',
-      typeof message === 'string' ? message.trim() : ''
+      typeof message === 'string' ? message.trim() : '',
+      clientIP
     ]);
+    console.log(`[Contact] 新規お問い合わせ: name="${trimmedName}", ip=${clientIP}`);
   } catch (dbErr) {
     console.error('Failed to save contact to database:', dbErr);
     // Continue process or return error? 

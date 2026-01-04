@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form) return;
 
+    // ボット対策: フォーム読み込み時刻を設定
+    const formLoadedAtField = document.getElementById('_formLoadedAt');
+    if (formLoadedAtField) {
+        formLoadedAtField.value = Date.now().toString();
+    }
+
     const resetErrors = () => {
         if (nameError) nameError.classList.add('hidden');
         if (emailError) emailError.classList.add('hidden');

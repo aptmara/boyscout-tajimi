@@ -111,8 +111,23 @@ if (useSqlite) {
       subject TEXT,
       message TEXT NOT NULL,
       status TEXT DEFAULT 'unread',
+      ip_address TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    // contacts migration: add ip_address if missing
+    try {
+      const columns = await new Promise((resolve, reject) => {
+        db.all("PRAGMA table_info(contacts)", (err, rows) => err ? reject(err) : resolve(rows));
+      });
+      const hasIpAddress = columns.some(c => c.name === 'ip_address');
+      if (!hasIpAddress) {
+        await run(`ALTER TABLE contacts ADD COLUMN ip_address TEXT`);
+        console.log('[Startup] Added ip_address column to contacts table.');
+      }
+    } catch (e) {
+      console.error('[Startup] contacts migration error:', e);
+    }
 
     // Initial Admin
     const adminUser = process.env.INITIAL_ADMIN_USERNAME;
@@ -288,6 +303,7 @@ if (useSqlite) {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='phone') THEN ALTER TABLE contacts ADD COLUMN phone TEXT; END IF;
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='subject') THEN ALTER TABLE contacts ADD COLUMN subject TEXT; END IF;
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='status') THEN ALTER TABLE contacts ADD COLUMN status TEXT DEFAULT 'unread'; END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='contacts' AND column_name='ip_address') THEN ALTER TABLE contacts ADD COLUMN ip_address TEXT; END IF;
         END$$;
       `);
 
