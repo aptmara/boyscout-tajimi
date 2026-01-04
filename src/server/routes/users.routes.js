@@ -17,7 +17,10 @@ router.get('/', async (req, res) => {
         const { rows } = await db.query(
             'SELECT id, username, role FROM admins ORDER BY id ASC'
         );
-        res.json({ users: rows });
+        res.json({
+            users: rows,
+            currentUserId: req.session?.user?.id
+        });
     } catch (err) {
         console.error('[Users] List Error:', err);
         res.status(500).json({ error: 'Failed to fetch users' });
@@ -113,6 +116,19 @@ router.put('/:id', async (req, res) => {
         if (role) {
             const validRoles = ['admin', 'editor'];
             if (validRoles.includes(role)) {
+                // 自分自身の権限変更は禁止（誤って管理者権限を失うのを防ぐため）
+                if (req.session?.user?.id === Number(id) && role !== 'admin') {
+                    return res.status(400).json({ error: '自分自身の管理者権限を外すことはできません。' });
+                }
+
+                // 管理者が0人にならないかチェック (自分以外を変更する場合)
+                if (role !== 'admin') {
+                    const adminCount = await db.query("SELECT COUNT(*) as count FROM admins WHERE role = 'admin' AND id != $1", [id]);
+                    if (parseInt(adminCount.rows[0].count) === 0) {
+                        return res.status(400).json({ error: '最後の管理者を変更することはできません。' });
+                    }
+                }
+
                 updates.push(`role = $${paramIndex++}`);
                 params.push(role);
             }
@@ -160,9 +176,17 @@ router.delete('/:id', async (req, res) => {
     }
 
     try {
-        const existing = await db.query('SELECT username FROM admins WHERE id = $1', [id]);
+        const existing = await db.query('SELECT username, role FROM admins WHERE id = $1', [id]);
         if (existing.rows.length === 0) {
             return res.status(404).json({ error: 'ユーザーが見つかりません。' });
+        }
+
+        // 管理者が0人にならないかチェック
+        if (existing.rows[0].role === 'admin') {
+            const adminCount = await db.query("SELECT COUNT(*) as count FROM admins WHERE role = 'admin' AND id != $1", [id]);
+            if (parseInt(adminCount.rows[0].count) === 0) {
+                return res.status(400).json({ error: '最後の管理者を削除することはできません。' });
+            }
         }
 
         await db.query('DELETE FROM admins WHERE id = $1', [id]);

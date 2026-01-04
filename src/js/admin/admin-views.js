@@ -740,7 +740,7 @@
         }
         throw new Error('Failed to fetch users');
       }
-      const { users } = await res.json();
+      const { users, currentUserId } = await res.json();
 
       root.innerHTML = `
         <div class="view-section">
@@ -759,17 +759,19 @@
                 </tr>
               </thead>
               <tbody id="users-tbody">
-                ${users.map(user => `
+                ${users.map(user => {
+        const isSelf = user.id === currentUserId;
+        return `
                   <tr data-user-id="${user.id}">
-                    <td>${user.id}</td>
+                    <td>${user.id}${isSelf ? ' <span class="badge gray">あなた</span>' : ''}</td>
                     <td>${utils.escapeHtml(user.username)}</td>
                     <td><span class="badge ${user.role === 'admin' ? 'green' : 'blue'}">${user.role === 'admin' ? '管理者' : '編集者'}</span></td>
                     <td>
-                      <button class="btn-ghost edit-user-btn" data-id="${user.id}">編集</button>
-                      <button class="btn-ghost delete-user-btn" data-id="${user.id}" data-username="${utils.escapeHtml(user.username)}">削除</button>
+                      <button class="btn-ghost edit-user-btn" data-id="${user.id}" data-is-self="${isSelf}">編集</button>
+                      ${!isSelf ? `<button class="btn-ghost delete-user-btn" data-id="${user.id}" data-username="${utils.escapeHtml(user.username)}">削除</button>` : ''}
                     </td>
                   </tr>
-                `).join('')}
+                `}).join('')}
               </tbody>
             </table>
           </div>
@@ -790,10 +792,11 @@
       root.querySelectorAll('.edit-user-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const userId = btn.dataset.id;
+          const isSelf = btn.dataset.isSelf === 'true';
           const row = btn.closest('tr');
           const username = row?.querySelector('td:nth-child(2)')?.textContent || '';
-          const role = row?.querySelector('.badge')?.textContent === '管理者' ? 'admin' : 'editor';
-          showUserDialog({ id: userId, username, role });
+          const role = row?.querySelector('.badge.green') ? 'admin' : 'editor'; // badge class check is safer
+          showUserDialog({ id: userId, username, role, isSelf });
         });
       });
 
@@ -891,8 +894,8 @@
           <input type="password" name="password" ${isEdit ? '' : 'required'} autocomplete="new-password">
         </div>
         <div class="form-group">
-          <label>権限</label>
-          <select name="role">
+          <label>権限${existingUser?.isSelf ? ' <span class="text-xs text-gray-500">※自分自身の権限は変更できません</span>' : ''}</label>
+          <select name="role" ${existingUser?.isSelf ? 'disabled' : ''}>
             <option value="editor" ${existingUser?.role !== 'admin' ? 'selected' : ''}>編集者（コンテンツのみ）</option>
             <option value="admin" ${existingUser?.role === 'admin' ? 'selected' : ''}>管理者（全機能）</option>
           </select>
