@@ -717,11 +717,11 @@
         btn.addEventListener('click', async () => {
           const userId = btn.dataset.id;
           const username = btn.dataset.username;
-          if (!confirm(\`ユーザー "\${username}" を削除しますか？\\nこの操作は取り消せません。\`)) return;
+          if (!confirm(`ユーザー "${username}" を削除しますか？\nこの操作は取り消せません。`)) return;
 
           try {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-            const res = await fetch(\`/api/users/\${userId}\`, {
+            const res = await fetch(`/api/users/${userId}`, {
               method: 'DELETE',
               headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
               credentials: 'same-origin'
@@ -733,51 +733,51 @@
             utils.showToast('ユーザーを削除しました', 'success');
             renderUsersView(root); // Refresh
           } catch (e) {
-            utils.showToast(\`削除に失敗しました: \${e.message}\`, 'error');
+            utils.showToast(`削除に失敗しました: ${e.message}`, 'error');
           }
         });
       });
 
     } catch (e) {
-      root.innerHTML = \`<div class="error-message">ユーザー情報の取得に失敗しました: \${utils.escapeHtml(e.message)}</div>\`;
+      root.innerHTML = `<div class="error-message">ユーザー情報の取得に失敗しました: ${utils.escapeHtml(e.message)}</div>`;
     }
   }
 
   function showUserDialog(existingUser = null) {
     const isEdit = !!existingUser?.id;
     const title = isEdit ? 'ユーザー編集' : '新規ユーザー作成';
-    
+
     const dialog = document.createElement('div');
     dialog.className = 'modal-backdrop';
-    dialog.innerHTML = \`
+    dialog.innerHTML = `
       <div class="modal" style="max-width:400px;">
         <div class="modal-header">
-          <h2>\${title}</h2>
+          <h2>${title}</h2>
           <button class="modal-close">✕</button>
         </div>
         <form class="modal-body" id="user-form">
           <div class="form-group">
             <label>ユーザー名</label>
-            <input type="text" name="username" required value="\${existingUser?.username || ''}" \${isEdit ? 'readonly' : ''}>
+            <input type="text" name="username" required value="${existingUser?.username || ''}" ${isEdit ? 'readonly' : ''}>
           </div>
           <div class="form-group">
-            <label>パスワード\${isEdit ? '（変更する場合のみ入力）' : ''}</label>
-            <input type="password" name="password" \${isEdit ? '' : 'required'} autocomplete="new-password">
+            <label>パスワード${isEdit ? '（変更する場合のみ入力）' : ''}</label>
+            <input type="password" name="password" ${isEdit ? '' : 'required'} autocomplete="new-password">
           </div>
           <div class="form-group">
             <label>権限</label>
             <select name="role">
-              <option value="editor" \${existingUser?.role !== 'admin' ? 'selected' : ''}>編集者（コンテンツのみ）</option>
-              <option value="admin" \${existingUser?.role === 'admin' ? 'selected' : ''}>管理者（全機能）</option>
+              <option value="editor" ${existingUser?.role !== 'admin' ? 'selected' : ''}>編集者（コンテンツのみ）</option>
+              <option value="admin" ${existingUser?.role === 'admin' ? 'selected' : ''}>管理者（全機能）</option>
             </select>
           </div>
           <div class="form-actions">
             <button type="button" class="btn-ghost modal-cancel">キャンセル</button>
-            <button type="submit" class="btn-primary">\${isEdit ? '更新' : '作成'}</button>
+            <button type="submit" class="btn-primary">${isEdit ? '更新' : '作成'}</button>
           </div>
         </form>
       </div>
-    \`;
+    `;
 
     document.body.appendChild(dialog);
 
@@ -793,9 +793,9 @@
       const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
       try {
-        const url = isEdit ? \`/api/users/\${existingUser.id}\` : '/api/users';
+        const url = isEdit ? `/api/users/${existingUser.id}` : '/api/users';
         const method = isEdit ? 'PUT' : 'POST';
-        
+
         // Remove password if empty on edit
         if (isEdit && !data.password) delete data.password;
         // Remove username on edit (readonly)
@@ -819,7 +819,7 @@
         const root = document.getElementById('view-root');
         if (root) renderUsersView(root);
       } catch (e) {
-        utils.showToast(\`エラー: \${e.message}\`, 'error');
+        utils.showToast(`エラー: ${e.message}`, 'error');
       }
     });
   }
@@ -839,7 +839,7 @@
       }
       const { logs } = await res.json();
 
-      root.innerHTML = \`
+      root.innerHTML = `
         <div class="view-section">
           <div class="card">
             <div class="card-header">
@@ -857,23 +857,23 @@
                 </tr>
               </thead>
               <tbody>
-                \${logs.length === 0 ? '<tr><td colspan="6" style="text-align:center;">ログがありません</td></tr>' : logs.map(log => \`
+                ${logs.length === 0 ? '<tr><td colspan="6" style="text-align:center;">ログがありません</td></tr>' : logs.map(log => `
                   <tr>
-                    <td>\${utils.formatDate(log.created_at)}</td>
-                    <td><code>\${utils.escapeHtml(log.action)}</code></td>
-                    <td>\${utils.escapeHtml(log.username || '-')}</td>
-                    <td><code>\${utils.escapeHtml(log.ip_address || '-')}</code></td>
-                    <td><span class="badge \${log.status === 'success' ? 'green' : 'red'}">\${log.status}</span></td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="\${utils.escapeHtml(log.details || '')}">\${utils.escapeHtml(log.details || '-')}</td>
+                    <td>${utils.formatDate(log.created_at)}</td>
+                    <td><code>${utils.escapeHtml(log.action)}</code></td>
+                    <td>${utils.escapeHtml(log.username || '-')}</td>
+                    <td><code>${utils.escapeHtml(log.ip_address || '-')}</code></td>
+                    <td><span class="badge ${log.status === 'success' ? 'green' : 'red'}">${log.status}</span></td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${utils.escapeHtml(log.details || '')}">${utils.escapeHtml(log.details || '-')}</td>
                   </tr>
-                \`).join('')}
+                `).join('')}
               </tbody>
             </table>
           </div>
         </div>
-      \`;
+      `;
     } catch (e) {
-      root.innerHTML = \`<div class="error-message">ログの取得に失敗しました: \${utils.escapeHtml(e.message)}</div>\`;
+      root.innerHTML = `<div class="error-message">ログの取得に失敗しました: ${utils.escapeHtml(e.message)}</div>`;
     }
   }
 
@@ -934,7 +934,7 @@
 
   function renderError(err) {
     const root = document.getElementById('view-root');
-    if (root) root.innerHTML = `< div class= "error-message p-8 text-center" > エラーが発生しました: ${ utils.escapeHtml(err.message) }</div > `;
+    if (root) root.innerHTML = `< div class= "error-message p-8 text-center" > エラーが発生しました: ${utils.escapeHtml(err.message)}</div > `;
   }
 
 })();
