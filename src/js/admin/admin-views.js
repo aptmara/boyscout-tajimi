@@ -570,9 +570,93 @@
       const backupBtn = document.getElementById('backup-btn');
       if (backupBtn) {
         backupBtn.onclick = () => {
-          // window.open でダウンロード用APIを叩く
-          window.open('/api/admin/backup', '_blank');
+          // パスワード入力ダイアログを表示
+          showBackupDialog();
         };
+      }
+
+      function showBackupDialog() {
+        const dialog = document.createElement('div');
+        dialog.className = 'modal-backdrop';
+        dialog.innerHTML = `
+          <div class="modal" style="max-width:400px;">
+            <div class="modal-header">
+              <h2>バックアップダウンロード</h2>
+              <button class="modal-close">✕</button>
+            </div>
+            <form class="modal-body" id="backup-form">
+              <p style="margin-bottom:1rem;color:#666;">セキュリティのため、パスワードを再入力してください。</p>
+              <div class="form-group">
+                <label>パスワード</label>
+                <input type="password" name="password" required autocomplete="current-password">
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-ghost modal-cancel">キャンセル</button>
+                <button type="submit" class="btn-primary">ダウンロード</button>
+              </div>
+            </form>
+          </div>
+        `;
+
+        document.body.appendChild(dialog);
+
+        const closeDialog = () => dialog.remove();
+        dialog.querySelector('.modal-close')?.addEventListener('click', closeDialog);
+        dialog.querySelector('.modal-cancel')?.addEventListener('click', closeDialog);
+        dialog.addEventListener('click', (e) => { if (e.target === dialog) closeDialog(); });
+
+        dialog.querySelector('#backup-form')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const password = form.querySelector('[name="password"]').value;
+          const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+          const submitBtn = form.querySelector('[type="submit"]');
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'ダウンロード中...';
+
+          try {
+            const res = await fetch('/api/admin/backup', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrf
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify({ password })
+            });
+
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.message || err.error || 'ダウンロードに失敗しました');
+            }
+
+            // ファイルダウンロードを処理
+            const blob = await res.blob();
+            const contentDisposition = res.headers.get('content-disposition');
+            let filename = 'backup.zip';
+            if (contentDisposition) {
+              const match = contentDisposition.match(/filename="?([^"]+)"?/);
+              if (match) filename = match[1];
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            utils.showToast('バックアップをダウンロードしました', 'success');
+            closeDialog();
+          } catch (err) {
+            utils.showToast(`エラー: ${err.message}`, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'ダウンロード';
+          }
+        });
       }
 
       // イベントリスナーをDOMに追加（CSP対応）
