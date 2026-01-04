@@ -968,12 +968,25 @@
 
   async function init() {
     try {
-      await ensureSession();
+      const user = await ensureSession();
       initZoom();
       await window.AdminPalette?.init();
 
+      // ロールベースのUI制御
+      if (user.role !== 'admin') {
+        document.querySelectorAll('[data-require-admin]').forEach(el => el.remove());
+      }
+
       const params = new URLSearchParams(location.search);
-      const initialView = params.get('view') || localStorage.getItem('admin.active') || 'dashboard';
+      let initialView = params.get('view') || localStorage.getItem('admin.active') || 'dashboard';
+
+      // 管理者専用ビューへのアクセスをブロック
+      if (user.role !== 'admin') {
+        const restrictedViews = ['settings', 'users', 'audit-logs', 'branding'];
+        if (restrictedViews.includes(initialView.split('/')[0])) {
+          initialView = 'dashboard';
+        }
+      }
 
       const parts = initialView.split('/');
       const viewId = parts[0];
@@ -992,6 +1005,7 @@
     if (!res.ok) throw new Error('Network error');
     const data = await res.json();
     if (!data.loggedIn) throw new Error('unauthenticated');
+    return data.user;
   }
 
   function initZoom() {
