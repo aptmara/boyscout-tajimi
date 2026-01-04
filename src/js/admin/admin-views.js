@@ -799,33 +799,73 @@
 
       // Delete buttons
       root.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
           const userId = btn.dataset.id;
           const username = btn.dataset.username;
-          if (!confirm(`ユーザー "${username}" を削除しますか？\nこの操作は取り消せません。`)) return;
-
-          try {
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-            const res = await fetch(`/api/users/${userId}`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
-              credentials: 'same-origin'
-            });
-            if (!res.ok) {
-              const err = await res.json();
-              throw new Error(err.error || 'Delete failed');
-            }
-            utils.showToast('ユーザーを削除しました', 'success');
-            renderUsersView(root); // Refresh
-          } catch (e) {
-            utils.showToast(`削除に失敗しました: ${e.message}`, 'error');
-          }
+          showDeleteUserDialog(userId, username, root);
         });
       });
 
     } catch (e) {
       root.innerHTML = `<div class="error-message">ユーザー情報の取得に失敗しました: ${utils.escapeHtml(e.message)}</div>`;
     }
+  }
+
+  function showDeleteUserDialog(userId, username, root) {
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-backdrop';
+    dialog.style.display = 'flex'; // Ensure visibility
+    dialog.innerHTML = `
+      <div class="modal" style="max-width:400px;">
+        <div class="modal-header">
+          <h2 style="color:#e02424;">ユーザー削除の確認</h2>
+          <button class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>ユーザー <strong>${utils.escapeHtml(username)}</strong> を削除してもよろしいですか？</p>
+          <p style="margin-top:0.5rem;color:#666;font-size:0.9em;">この操作は取り消すことができません。</p>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-ghost modal-cancel">キャンセル</button>
+          <button type="button" class="btn-primary" style="background-color:#e02424;border-color:#e02424;" id="confirm-delete-btn">削除する</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    const closeDialog = () => dialog.remove();
+    dialog.querySelector('.modal-close')?.addEventListener('click', closeDialog);
+    dialog.querySelector('.modal-cancel')?.addEventListener('click', closeDialog);
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) closeDialog(); });
+
+    dialog.querySelector('#confirm-delete-btn')?.addEventListener('click', async () => {
+      const btn = dialog.querySelector('#confirm-delete-btn');
+      btn.disabled = true;
+      btn.textContent = '削除中...';
+
+      try {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        const res = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          credentials: 'same-origin'
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Delete failed');
+        }
+
+        utils.showToast('ユーザーを削除しました', 'success');
+        closeDialog();
+        renderUsersView(root); // Refresh
+      } catch (e) {
+        utils.showToast(`削除に失敗しました: ${e.message}`, 'error');
+        btn.disabled = false;
+        btn.textContent = '削除する';
+      }
+    });
   }
 
   function showUserDialog(existingUser = null) {
