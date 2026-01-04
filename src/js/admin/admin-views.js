@@ -922,7 +922,7 @@
       const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
       try {
-        const url = isEdit ? `/ api / users / ${existingUser.id} ` : '/api/users';
+        const url = isEdit ? `/api/users/${existingUser.id}` : '/api/users';
         const method = isEdit ? 'PUT' : 'POST';
 
         // Remove password if empty on edit
