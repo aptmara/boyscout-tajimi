@@ -71,7 +71,21 @@ if (useSqlite) {
 
     // Simplified Schema for SQLite
     await run(`CREATE TABLE IF NOT EXISTS session (sid TEXT PRIMARY KEY, sess TEXT, expire TEXT)`);
-    await run(`CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)`);
+    await run(`CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, role TEXT DEFAULT 'admin')`);
+
+    // admins migration: add role if missing
+    try {
+      const adminCols = await new Promise((resolve, reject) => {
+        db.all("PRAGMA table_info(admins)", (err, rows) => err ? reject(err) : resolve(rows));
+      });
+      const hasRole = adminCols.some(c => c.name === 'role');
+      if (!hasRole) {
+        await run(`ALTER TABLE admins ADD COLUMN role TEXT DEFAULT 'admin'`);
+        console.log('[Startup] Added role column to admins table.');
+      }
+    } catch (e) {
+      console.error('[Startup] admins migration error:', e);
+    }
 
     await run(`CREATE TABLE IF NOT EXISTS news (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -271,7 +285,16 @@ if (useSqlite) {
       await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");`);
 
       // 2) admins
-      await client.query(`CREATE TABLE IF NOT EXISTS admins (id BIGSERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, password TEXT);`);
+      await client.query(`CREATE TABLE IF NOT EXISTS admins (id BIGSERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, password TEXT, role TEXT DEFAULT 'admin');`);
+
+      // 2-1) admins migration
+      await client.query(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admins' AND column_name='role') THEN
+            ALTER TABLE admins ADD COLUMN role TEXT DEFAULT 'admin';
+          END IF;
+        END$$;
+      `);
 
       // 3) news
       await client.query(`CREATE TABLE IF NOT EXISTS news (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL, content TEXT NOT NULL, image_urls JSONB DEFAULT '[]'::jsonb, category TEXT, unit TEXT, tags JSONB NOT NULL DEFAULT '[]'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());`);

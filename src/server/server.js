@@ -188,6 +188,12 @@ const adminRoutes = require('./routes/admin.routes.js');
 app.use('/api/admin', csrfProtection, adminRoutes);
 
 // ================================================================
+// Users Management API (Admin Only)
+// ================================================================
+const usersRoutes = require('./routes/users.routes.js');
+app.use('/api/users', csrfProtection, usersRoutes);
+
+// ================================================================
 // Auth API
 // ================================================================
 const authRoutes = require('./routes/auth.routes.js');

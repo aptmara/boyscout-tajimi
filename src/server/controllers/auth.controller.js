@@ -13,7 +13,7 @@ const login = asyncHandler(async (req, res) => {
   console.log('Login attempt for:', username);
 
   const { rows } = await db.query(
-    'SELECT id, username, password FROM admins WHERE username = $1',
+    'SELECT id, username, password, role FROM admins WHERE username = $1',
     [username]
   );
   const admin = rows[0];
@@ -42,8 +42,8 @@ const login = asyncHandler(async (req, res) => {
       return res.status(500).json({ error: 'Login failed: Session error' });
     }
 
-    req.session.user = { id: admin.id, username: admin.username };
-    console.log('Session regenerated successfully. User logged in:', admin.username);
+    req.session.user = { id: admin.id, username: admin.username, role: admin.role || 'admin' };
+    console.log('Session regenerated successfully. User logged in:', admin.username, 'role:', admin.role);
 
     req.session.save((saveErr) => {
       if (saveErr) {

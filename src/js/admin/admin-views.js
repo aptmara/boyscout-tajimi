@@ -634,12 +634,248 @@
     'dashboard': { title: 'ダッシュボード', subtitle: 'サイトの概況', render: renderDashboardView },
     'news': { title: 'お知らせ', subtitle: 'ニュースの管理', render: createListView(newsViewConfig) },
     'activities': { title: '活動記録', subtitle: '活動レポートの管理', render: createListView(activitiesViewConfig) },
-    'settings': { title: 'サイト設定', subtitle: '全体設定の管理', render: renderSettingsView },
-    'branding': { title: 'ブランド資産', subtitle: 'ロゴ・配色の管理', render: (root) => renderSettingsView(root, 'branding') },
+    'settings': { title: 'サイト設定', subtitle: 'サイト全体・ブランドの設定', render: renderSettingsView, adminOnly: true },
+    'users': { title: 'ユーザー管理', subtitle: '管理者・編集者の管理', render: renderUsersView, adminOnly: true },
+    'audit-logs': { title: 'セキュリティログ', subtitle: '操作履歴の確認', render: renderAuditLogsView, adminOnly: true },
 
     'news-editor': { title: '...', subtitle: '', render: (root, id) => renderNewsEditorView(root, id) },
     'activities-editor': { title: '...', subtitle: '', render: (root, id) => renderActivityEditorView(root, id) },
   };
+
+  // ---- Users Management View ----
+  async function renderUsersView(root) {
+    root.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+
+    try {
+      const res = await fetch('/api/users', { credentials: 'same-origin' });
+      if (!res.ok) {
+        if (res.status === 403) {
+          root.innerHTML = '<div class="error-message">この機能は管理者のみ利用できます。</div>';
+          return;
+        }
+        throw new Error('Failed to fetch users');
+      }
+      const { users } = await res.json();
+
+      root.innerHTML = `
+        <div class="view-section">
+          <div class="card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+              <h2>ユーザー一覧</h2>
+              <button class="btn-primary" id="add-user-btn">＋ ユーザー追加</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ユーザー名</th>
+                  <th>権限</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                ${users.map(user => `
+                  <tr data-user-id="${user.id}">
+                    <td>${user.id}</td>
+                    <td>${utils.escapeHtml(user.username)}</td>
+                    <td><span class="badge ${user.role === 'admin' ? 'green' : 'blue'}">${user.role === 'admin' ? '管理者' : '編集者'}</span></td>
+                    <td>
+                      <button class="btn-ghost edit-user-btn" data-id="${user.id}">編集</button>
+                      <button class="btn-ghost delete-user-btn" data-id="${user.id}" data-username="${utils.escapeHtml(user.username)}">削除</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="card" style="margin-top:1rem;">
+            <h3>権限について</h3>
+            <ul style="margin-left:1rem;line-height:1.8;">
+              <li><strong>管理者 (admin)</strong>：すべての機能にアクセス可能（設定変更、バックアップ、ユーザー管理を含む）</li>
+              <li><strong>編集者 (editor)</strong>：お知らせ・活動記録の作成・編集のみ可能</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      // Add user button
+      document.getElementById('add-user-btn')?.addEventListener('click', () => showUserDialog());
+
+      // Edit buttons
+      root.querySelectorAll('.edit-user-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const userId = btn.dataset.id;
+          const row = btn.closest('tr');
+          const username = row?.querySelector('td:nth-child(2)')?.textContent || '';
+          const role = row?.querySelector('.badge')?.textContent === '管理者' ? 'admin' : 'editor';
+          showUserDialog({ id: userId, username, role });
+        });
+      });
+
+      // Delete buttons
+      root.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const userId = btn.dataset.id;
+          const username = btn.dataset.username;
+          if (!confirm(\`ユーザー "\${username}" を削除しますか？\\nこの操作は取り消せません。\`)) return;
+
+          try {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            const res = await fetch(\`/api/users/\${userId}\`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+              credentials: 'same-origin'
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.error || 'Delete failed');
+            }
+            utils.showToast('ユーザーを削除しました', 'success');
+            renderUsersView(root); // Refresh
+          } catch (e) {
+            utils.showToast(\`削除に失敗しました: \${e.message}\`, 'error');
+          }
+        });
+      });
+
+    } catch (e) {
+      root.innerHTML = \`<div class="error-message">ユーザー情報の取得に失敗しました: \${utils.escapeHtml(e.message)}</div>\`;
+    }
+  }
+
+  function showUserDialog(existingUser = null) {
+    const isEdit = !!existingUser?.id;
+    const title = isEdit ? 'ユーザー編集' : '新規ユーザー作成';
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-backdrop';
+    dialog.innerHTML = \`
+      <div class="modal" style="max-width:400px;">
+        <div class="modal-header">
+          <h2>\${title}</h2>
+          <button class="modal-close">✕</button>
+        </div>
+        <form class="modal-body" id="user-form">
+          <div class="form-group">
+            <label>ユーザー名</label>
+            <input type="text" name="username" required value="\${existingUser?.username || ''}" \${isEdit ? 'readonly' : ''}>
+          </div>
+          <div class="form-group">
+            <label>パスワード\${isEdit ? '（変更する場合のみ入力）' : ''}</label>
+            <input type="password" name="password" \${isEdit ? '' : 'required'} autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label>権限</label>
+            <select name="role">
+              <option value="editor" \${existingUser?.role !== 'admin' ? 'selected' : ''}>編集者（コンテンツのみ）</option>
+              <option value="admin" \${existingUser?.role === 'admin' ? 'selected' : ''}>管理者（全機能）</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-ghost modal-cancel">キャンセル</button>
+            <button type="submit" class="btn-primary">\${isEdit ? '更新' : '作成'}</button>
+          </div>
+        </form>
+      </div>
+    \`;
+
+    document.body.appendChild(dialog);
+
+    const closeDialog = () => dialog.remove();
+    dialog.querySelector('.modal-close')?.addEventListener('click', closeDialog);
+    dialog.querySelector('.modal-cancel')?.addEventListener('click', closeDialog);
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) closeDialog(); });
+
+    dialog.querySelector('#user-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+      try {
+        const url = isEdit ? \`/api/users/\${existingUser.id}\` : '/api/users';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        // Remove password if empty on edit
+        if (isEdit && !data.password) delete data.password;
+        // Remove username on edit (readonly)
+        if (isEdit) delete data.username;
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          credentials: 'same-origin',
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Request failed');
+        }
+
+        utils.showToast(isEdit ? 'ユーザーを更新しました' : 'ユーザーを作成しました', 'success');
+        closeDialog();
+        // Refresh view
+        const root = document.getElementById('view-root');
+        if (root) renderUsersView(root);
+      } catch (e) {
+        utils.showToast(\`エラー: \${e.message}\`, 'error');
+      }
+    });
+  }
+
+  // ---- Audit Logs View ----
+  async function renderAuditLogsView(root) {
+    root.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+
+    try {
+      const res = await fetch('/api/admin/audit-logs?limit=100', { credentials: 'same-origin' });
+      if (!res.ok) {
+        if (res.status === 403) {
+          root.innerHTML = '<div class="error-message">この機能は管理者のみ利用できます。</div>';
+          return;
+        }
+        throw new Error('Failed to fetch audit logs');
+      }
+      const { logs } = await res.json();
+
+      root.innerHTML = \`
+        <div class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h2>セキュリティログ（直近100件）</h2>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>日時</th>
+                  <th>操作</th>
+                  <th>ユーザー</th>
+                  <th>IPアドレス</th>
+                  <th>ステータス</th>
+                  <th>詳細</th>
+                </tr>
+              </thead>
+              <tbody>
+                \${logs.length === 0 ? '<tr><td colspan="6" style="text-align:center;">ログがありません</td></tr>' : logs.map(log => \`
+                  <tr>
+                    <td>\${utils.formatDate(log.created_at)}</td>
+                    <td><code>\${utils.escapeHtml(log.action)}</code></td>
+                    <td>\${utils.escapeHtml(log.username || '-')}</td>
+                    <td><code>\${utils.escapeHtml(log.ip_address || '-')}</code></td>
+                    <td><span class="badge \${log.status === 'success' ? 'green' : 'red'}">\${log.status}</span></td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="\${utils.escapeHtml(log.details || '')}">\${utils.escapeHtml(log.details || '-')}</td>
+                  </tr>
+                \`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      \`;
+    } catch (e) {
+      root.innerHTML = \`<div class="error-message">ログの取得に失敗しました: \${utils.escapeHtml(e.message)}</div>\`;
+    }
+  }
 
   // ---- Main Logic ----
   document.addEventListener('DOMContentLoaded', init);
@@ -690,15 +926,15 @@
     const root = document.getElementById('view-root');
     if (!root) return;
     root.innerHTML = `
-      <div class="view-section">
+            < div class= "view-section" >
         <div class="skeleton-card" style="height: 200px; margin-bottom: 20px;"></div>
         <div class="skeleton-card" style="height: 400px;"></div>
-      </div>`;
+      </div > `;
   }
 
   function renderError(err) {
     const root = document.getElementById('view-root');
-    if (root) root.innerHTML = `<div class="error-message p-8 text-center">エラーが発生しました: ${utils.escapeHtml(err.message)}</div>`;
+    if (root) root.innerHTML = `< div class= "error-message p-8 text-center" > エラーが発生しました: ${ utils.escapeHtml(err.message) }</div > `;
   }
 
 })();

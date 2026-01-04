@@ -44,16 +44,25 @@
           </button>
         </nav>
       </div>
-      <div class="sidebar-section">
+      <div class="sidebar-section" data-require-admin>
         <p class="sidebar-label">サイト設定</p>
         <nav class="sidebar-nav">
           <button type="button" data-view="settings" class="nav-btn">
             <span class="nav-icon">⚙️</span>
-            <span>設定</span>
+            <span>サイト設定</span>
           </button>
-          <button type="button" data-view="branding" class="nav-btn">
-            <span class="nav-icon">🎨</span>
-            <span>ブランド資産</span>
+        </nav>
+      </div>
+      <div class="sidebar-section" data-require-admin>
+        <p class="sidebar-label">管理</p>
+        <nav class="sidebar-nav">
+          <button type="button" data-view="users" class="nav-btn">
+            <span class="nav-icon">👥</span>
+            <span>ユーザー管理</span>
+          </button>
+          <button type="button" data-view="audit-logs" class="nav-btn">
+            <span class="nav-icon">📋</span>
+            <span>セキュリティログ</span>
           </button>
         </nav>
       </div>
@@ -108,8 +117,7 @@
   <div id="quick-actions-panel" class="quick-actions" role="menu" aria-hidden="true">
     <button type="button" data-action="news:new">📰 新しいお知らせ</button>
     <button type="button" data-action="activities:new">🎒 新しい活動</button>
-    <button type="button" data-action="settings">⚙️ サイト設定を開く</button>
-    <button type="button" data-action="branding">🎨 ブランド資産を開く</button>
+    <button type="button" data-action="settings" data-require-admin>⚙️ サイト設定を開く</button>
   </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="assertive" aria-atomic="true"></div>

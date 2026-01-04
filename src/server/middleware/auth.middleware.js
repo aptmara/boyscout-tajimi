@@ -1,11 +1,30 @@
 const crypto = require('crypto');
 
+/**
+ * 基本認証ミドルウェア
+ * セッションにユーザーがいるかチェック
+ */
 const authMiddleware = (req, res, next) => {
   if (req.session && req.session.user) return next();
   if (req.path.startsWith('/api/')) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   return res.redirect('/admin/login.html');
+};
+
+/**
+ * 管理者専用ミドルウェア
+ * role が 'admin' でなければアクセス拒否
+ */
+const adminOnlyMiddleware = (req, res, next) => {
+  const role = req.session?.user?.role || 'editor';
+  if (role !== 'admin') {
+    if (req.path.startsWith('/api/')) {
+      return res.status(403).json({ error: 'Admin access required', message: 'この操作は管理者のみ実行できます。' });
+    }
+    return res.redirect('/admin?error=forbidden');
+  }
+  return next();
 };
 
 function verifyHmacSignature({ bodyRaw, timestamp, signature }) {
@@ -72,5 +91,6 @@ function webhookAuth(req, res, next) {
 
 module.exports = {
   authMiddleware,
+  adminOnlyMiddleware,
   webhookAuth,
 };
