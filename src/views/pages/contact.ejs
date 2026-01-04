@@ -7,15 +7,16 @@
     </div>
 </section>
 
-<section id="contact-details-form" class="py-16 md:py-24 bg-white fade-in-section" style="transition-delay: 0.2s;">
-    <div class="container mx-auto px-6">
+<section id="contact-details-form" class="py-16 md:py-24 bg-white fade-in-section"
+    style="transition-delay: 0.2s; overflow-x: hidden;">
+    <div class="container mx-auto px-4 sm:px-6" style="max-width: 100%; overflow-x: hidden;">
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
             <div class="space-y-10">
                 <div>
                     <h2 class="text-3xl font-bold text-green-700 mb-6">連絡先</h2>
                     <div class="space-y-4 text-gray-700">
                         <div class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0"
+                            <svg class="text-green-600 mr-3 mt-1 flex-shrink-0" width="24" height="24"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -30,7 +31,7 @@
                             </div>
                         </div>
                         <div class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0"
+                            <svg class="text-green-600 mr-3 mt-1 flex-shrink-0" width="24" height="24"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -44,7 +45,7 @@
                             </div>
                         </div>
                         <div class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 mt-1 flex-shrink-0"
+                            <svg class="text-green-600 mr-3 mt-1 flex-shrink-0" width="24" height="24"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -59,12 +60,13 @@
                 </div>
                 <div>
                     <h3 class="text-2xl font-semibold text-green-700 mb-4">アクセスマップ</h3>
-                    <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
-                        <div id="contact-map-embed">
+                    <div class="rounded-lg overflow-hidden shadow-lg"
+                        style="position:relative;width:100%;max-width:100%;padding-bottom:56.25%;height:0;">
+                        <div id="contact-map-embed" style="position:absolute;top:0;left:0;width:100%;height:100%;">
                             <iframe
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3230.420026630898!2d137.1230183152658!3d35.3376909801507!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x600340e5764c3e71%3A0x597a7aacb613de99!2z5aWH5rKz6KaH5biC5役所!5e0!3m2!1sja!2sjp!4v1683872000000!5m2!1sja!2sjp"
-                                width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                width="100%" height="100%" style="border:0;position:absolute;top:0;left:0;"
+                                allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>
                     </div>
                 </div>
