@@ -758,7 +758,7 @@
         <form class="modal-body" id="user-form">
           <div class="form-group">
             <label>ユーザー名</label>
-            <input type="text" name="username" required value="${existingUser?.username || ''}" ${isEdit ? 'readonly' : ''}>
+            <input type="text" name="username" required value="${existingUser?.username || ''}" ${isEdit ? 'readonly' : ''} autocomplete="username">
           </div>
           <div class="form-group">
             <label>パスワード${isEdit ? '（変更する場合のみ入力）' : ''}</label>
