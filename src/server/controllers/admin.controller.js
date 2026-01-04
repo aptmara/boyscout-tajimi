@@ -2,15 +2,29 @@ const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
 const db = require('../database');
+const { logAudit, getClientIP } = require('../middleware/audit.middleware');
 
 /**
  * フルバックアップのエクスポート
  * public/uploads ディレクトリと database.sqlite (存在する場合) をZIP圧縮して返す
+ * セキュリティ: パスワード再認証必須、操作ログ記録
  */
 const downloadBackup = async (req, res) => {
-  // レスポンスヘッダー設定
+  const username = req.session?.user?.username || 'unknown';
+  const clientIP = getClientIP(req);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const filename = `backup-${timestamp}.zip`;
+
+  // 監査ログ記録（ダウンロード開始）
+  await logAudit({
+    action: 'backup_download',
+    username,
+    ipAddress: clientIP,
+    details: JSON.stringify({ filename, userAgent: req.headers['user-agent'] }),
+    status: 'success'
+  });
+
+  console.log(`[Backup] ダウンロード開始: user=${username}, ip=${clientIP}, file=${filename}`);
 
   res.attachment(filename);
 
@@ -29,6 +43,14 @@ const downloadBackup = async (req, res) => {
 
   archive.on('error', (err) => {
     console.error('[Backup] Archive Error:', err);
+    // エラーもログに記録
+    logAudit({
+      action: 'backup_download',
+      username,
+      ipAddress: clientIP,
+      details: JSON.stringify({ filename, error: err.message }),
+      status: 'failed'
+    });
     if (!res.headersSent) {
       res.status(500).send({ error: 'zip_error' });
     } else {
@@ -64,6 +86,10 @@ const downloadBackup = async (req, res) => {
 
       const settingsData = await db.query('SELECT * FROM site_settings ORDER BY key ASC');
       archive.append(JSON.stringify(settingsData.rows, null, 2), { name: 'db_dump/settings.json' });
+
+      // お問い合わせデータ（個人情報を含むので注意）
+      const contactsData = await db.query('SELECT * FROM contacts ORDER BY id DESC');
+      archive.append(JSON.stringify(contactsData.rows, null, 2), { name: 'db_dump/contacts.json' });
 
     } catch (e) {
       console.error('[Backup] DB export failed:', e);
@@ -122,7 +148,30 @@ const getSummary = async (req, res) => {
   }
 };
 
+/**
+ * 監査ログ取得
+ * 直近の操作履歴を返す
+ */
+const getAuditLogs = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const { rows } = await db.query(
+      'SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1',
+      [limit]
+    );
+
+    res.json({
+      logs: rows,
+      total: rows.length
+    });
+  } catch (err) {
+    console.error('[Admin] Audit Logs Error:', err);
+    res.status(500).json({ error: 'Failed to fetch audit logs' });
+  }
+};
+
 module.exports = {
   downloadBackup,
-  getSummary
+  getSummary,
+  getAuditLogs
 };
