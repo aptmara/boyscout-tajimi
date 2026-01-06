@@ -425,8 +425,15 @@ function convertDocToHtml(docId) {
 
             if (heading && heading !== DocumentApp.ParagraphHeading.NORMAL) {
                 const tag = getHeadingTag(heading);
+                const align = getAlignmentStyle(p.getAlignment());
                 const text = escHtml(p.getText()).trim();
-                if (text) html.push(`<${tag}>${text}</${tag}>`);
+
+                // 見出しの中身もレンダリングして装飾を維持する
+                const content = renderElement(p);
+                if (content.trim()) {
+                    const style = align ? ` style="${align}"` : '';
+                    html.push(`<${tag}${style}>${content}</${tag}>`);
+                }
             } else {
                 const pHtml = renderParagraph(p);
                 if (pHtml.trim()) html.push(pHtml);
@@ -447,10 +454,19 @@ function convertDocToHtml(docId) {
 
             html.push(`<li>${renderElement(li)}</li>`);
 
+        } else if (type === DocumentApp.ElementType.TABLE) {
+            closeAllLists(html, listStack);
+            html.push(renderTable(child.asTable()));
+
+        } else if (type === DocumentApp.ElementType.HORIZONTAL_RULE) {
+            closeAllLists(html, listStack);
+            html.push('<hr>');
+
         } else {
             closeAllLists(html, listStack);
-            const text = child.getText?.()?.trim();
-            if (text) html.push(`<p>${escHtml(text)}</p>`);
+            // その他の要素はスキップまたは簡易テキスト化
+            // const text = child.getText?.()?.trim();
+            // if (text) html.push(`<p>${escHtml(text)}</p>`);
         }
     }
 
@@ -481,21 +497,69 @@ function isUnordered(glyph) {
     ].includes(glyph);
 }
 
+function getAlignmentStyle(align) {
+    const map = {
+        [DocumentApp.HorizontalAlignment.LEFT]: 'text-align: left;',
+        [DocumentApp.HorizontalAlignment.CENTER]: 'text-align: center;',
+        [DocumentApp.HorizontalAlignment.RIGHT]: 'text-align: right;',
+        [DocumentApp.HorizontalAlignment.JUSTIFY]: 'text-align: justify;'
+    };
+    return map[align] || '';
+}
+
+function renderTable(table) {
+    let html = '<table style="border-collapse: collapse; width: 100%;" border="1">';
+    for (let r = 0; r < table.getNumRows(); r++) {
+        const row = table.getRow(r);
+        html += '<tr>';
+        for (let c = 0; c < row.getNumCells(); c++) {
+            const cell = row.getCell(c);
+            const content = renderElement(cell); // 再帰的にセル内要素をレンダリング
+            // セル背景色などの属性も取れるが、とりあえずシンプルに
+            let style = 'padding: 8px; border: 1px solid #ddd;';
+            const bgColor = cell.getBackgroundColor();
+            if (bgColor) {
+                style += ` background-color: ${bgColor};`;
+            }
+            html += `<td style="${style}">${content}</td>`;
+        }
+        html += '</tr>';
+    }
+    html += '</table>';
+    return html;
+}
+
 function renderParagraph(p) {
     const parts = [];
     for (let i = 0; i < p.getNumChildren(); i++) {
         parts.push(renderChild(p.getChild(i)));
     }
     const inner = parts.join('') || escHtml(p.getText());
-    return inner.trim() ? `<p>${inner}</p>` : '';
+
+    // アライメント
+    const align = getAlignmentStyle(p.getAlignment());
+
+    // インデント (1段階=36pt程度と仮定)
+    const indentStart = p.getIndentStart();
+    const indent = indentStart ? `padding-left: ${indentStart}pt;` : '';
+
+    const style = [align, indent].filter(Boolean).join(' ');
+    const styleAttr = style ? ` style="${style}"` : '';
+
+    return inner.trim() ? `<p${styleAttr}>${inner}</p>` : '';
 }
 
 function renderElement(el) {
     const parts = [];
-    for (let i = 0; i < el.getNumChildren(); i++) {
-        parts.push(renderChild(el.getChild(i)));
+    // 要素によってはgetNumChildrenを持たない場合があるのでチェック
+    if (el.getNumChildren) {
+        for (let i = 0; i < el.getNumChildren(); i++) {
+            parts.push(renderChild(el.getChild(i)));
+        }
+    } else if (el.getText) {
+        return escHtml(el.getText());
     }
-    return parts.join('') || escHtml(el.getText());
+    return parts.join('');
 }
 
 function renderChild(child) {
@@ -536,11 +600,33 @@ function renderText(textEl) {
         const attrs = textEl.getAttributes(start);
         let chunk = escHtml(text.substring(start, end));
 
+        // リンク
         if (attrs[DocumentApp.Attribute.LINK_URL]) {
             chunk = `<a href="${escHtml(attrs[DocumentApp.Attribute.LINK_URL])}">${chunk}</a>`;
         }
+
+        // 基本スタイル
         if (attrs[DocumentApp.Attribute.BOLD]) chunk = `<strong>${chunk}</strong>`;
         if (attrs[DocumentApp.Attribute.ITALIC]) chunk = `<em>${chunk}</em>`;
+        if (attrs[DocumentApp.Attribute.UNDERLINE]) chunk = `<u>${chunk}</u>`;
+        if (attrs[DocumentApp.Attribute.STRIKETHROUGH]) chunk = `<s>${chunk}</s>`;
+
+        // 上付き・下付き
+        const offset = attrs[DocumentApp.Attribute.TEXT_OFFSET]; // SUPERSCRIPT/SUBSCRIPT
+        if (offset === DocumentApp.TextOffset.SUPERSCRIPT) chunk = `<sup>${chunk}</sup>`;
+        if (offset === DocumentApp.TextOffset.SUBSCRIPT) chunk = `<sub>${chunk}</sub>`;
+
+        // 色・背景色
+        const fgColor = attrs[DocumentApp.Attribute.FOREGROUND_COLOR];
+        const bgColor = attrs[DocumentApp.Attribute.BACKGROUND_COLOR];
+
+        let style = [];
+        if (fgColor && fgColor !== '#000000') style.push(`color: ${fgColor}`);
+        if (bgColor && bgColor !== '#ffffff') style.push(`background-color: ${bgColor}`);
+
+        if (style.length > 0) {
+            chunk = `<span style="${style.join('; ')}">${chunk}</span>`;
+        }
 
         html += chunk;
         last = end;
