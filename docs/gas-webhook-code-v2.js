@@ -515,12 +515,27 @@ function renderTable(table) {
         for (let c = 0; c < row.getNumCells(); c++) {
             const cell = row.getCell(c);
             const content = renderElement(cell); // 再帰的にセル内要素をレンダリング
-            // セル背景色などの属性も取れるが、とりあえずシンプルに
-            let style = 'padding: 8px; border: 1px solid #ddd;';
+
+            let style = 'padding: 5pt; border: 1px solid #000;';
+
+            // 背景色
             const bgColor = cell.getBackgroundColor();
-            if (bgColor) {
-                style += ` background-color: ${bgColor};`;
+            if (bgColor) style += ` background-color: ${bgColor};`;
+
+            // 垂直方向の配置
+            const vAlign = cell.getVerticalAlignment();
+            if (vAlign === DocumentApp.VerticalAlignment.TOP) style += ' vertical-align: top;';
+            else if (vAlign === DocumentApp.VerticalAlignment.CENTER) style += ' vertical-align: middle;';
+            else if (vAlign === DocumentApp.VerticalAlignment.BOTTOM) style += ' vertical-align: bottom;';
+
+            // 幅 (列ごとの幅を取得)
+            try {
+                const width = table.getColumnWidth(c);
+                if (width) style += ` width: ${width}pt;`;
+            } catch (e) {
+                // getColumnWidthはエラーになることがあるので無視
             }
+
             html += `<td style="${style}">${content}</td>`;
         }
         html += '</tr>';
@@ -539,11 +554,21 @@ function renderParagraph(p) {
     // アライメント
     const align = getAlignmentStyle(p.getAlignment());
 
-    // インデント (1段階=36pt程度と仮定)
+    // インデント
     const indentStart = p.getIndentStart();
     const indent = indentStart ? `padding-left: ${indentStart}pt;` : '';
 
-    const style = [align, indent].filter(Boolean).join(' ');
+    // 行間・段落間隔
+    const lineSpacing = p.getLineSpacing();
+    const spaceBefore = p.getSpacingBefore();
+    const spaceAfter = p.getSpacingAfter();
+
+    const spacing = [];
+    if (lineSpacing) spacing.push(`line-height: ${lineSpacing}`);
+    if (spaceBefore) spacing.push(`margin-top: ${spaceBefore}pt`);
+    if (spaceAfter) spacing.push(`margin-bottom: ${spaceAfter}pt`);
+
+    const style = [align, indent, ...spacing].filter(Boolean).join(' ');
     const styleAttr = style ? ` style="${style}"` : '';
 
     return inner.trim() ? `<p${styleAttr}>${inner}</p>` : '';
@@ -565,16 +590,23 @@ function renderElement(el) {
 function renderChild(child) {
     const type = child.getType();
 
+    if (type === DocumentApp.ElementType.PARAGRAPH) {
+        return renderParagraph(child.asParagraph());
+    }
+
     if (type === DocumentApp.ElementType.TEXT) {
         return renderText(child.asText());
     }
 
     if (type === DocumentApp.ElementType.INLINE_IMAGE) {
         try {
-            const blob = child.asInlineImage().getBlob();
+            const img = child.asInlineImage();
+            const blob = img.getBlob();
             const b64 = Utilities.base64Encode(blob.getBytes());
             const ct = blob.getContentType() || 'image/jpeg';
-            return `<img src="data:${ct};base64,${b64}" alt="" style="max-width:100%">`;
+            const w = img.getWidth();
+            const h = img.getHeight();
+            return `<img src="data:${ct};base64,${b64}" width="${w}" height="${h}" alt="" style="max-width:100%; height:auto">`;
         } catch (e) {
             return '';
         }
@@ -620,9 +652,15 @@ function renderText(textEl) {
         const fgColor = attrs[DocumentApp.Attribute.FOREGROUND_COLOR];
         const bgColor = attrs[DocumentApp.Attribute.BACKGROUND_COLOR];
 
+        // フォント
+        const fontSize = attrs[DocumentApp.Attribute.FONT_SIZE];
+        const fontFamily = attrs[DocumentApp.Attribute.FONT_FAMILY];
+
         let style = [];
         if (fgColor && fgColor !== '#000000') style.push(`color: ${fgColor}`);
         if (bgColor && bgColor !== '#ffffff') style.push(`background-color: ${bgColor}`);
+        if (fontSize) style.push(`font-size: ${fontSize}pt`);
+        if (fontFamily) style.push(`font-family: '${fontFamily}', sans-serif`);
 
         if (style.length > 0) {
             chunk = `<span style="${style.join('; ')}">${chunk}</span>`;
