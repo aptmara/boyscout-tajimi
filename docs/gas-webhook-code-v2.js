@@ -69,10 +69,10 @@ const CONFIG = {
         ACTIVITY: '/api/activities/webhook'
     },
 
-    // 画像制限（サーバー側 10MB 制限を考慮）
+    // 画像サイズ制限（サーバー側 10MB 制限を考慮）
     // Base64エンコードで約1.3倍になるため、元画像は8MB程度を上限とする
-    MAX_IMAGE_SIZE_MB: 8,
-    MAX_IMAGES_COUNT: 5
+    MAX_IMAGE_SIZE_MB: 8
+    // 画像数上限はForms側で設定されているためGASでは制限しない
 };
 
 // フォーム項目名（Googleフォームの質問タイトルと完全一致必須）
@@ -265,6 +265,7 @@ function buildSimplePayloadFromData(e, formData) {
 
 /**
  * Googleドキュメント連携ペイロード（FormDataから）
+ * 画像はcontentに埋め込まず、images配列に分離して送信
  */
 function buildDocPayloadFromData(e, formData) {
     const title = formData[FIELDS.DOC_TITLE] || formData[FIELDS.TITLE] || '';
@@ -279,16 +280,18 @@ function buildDocPayloadFromData(e, formData) {
         throw new Error(`無効なドキュメントURL: ${docUrl}`);
     }
 
-    // ドキュメントをHTML変換
-    const content = convertDocToHtml(docId);
+    // ドキュメントをHTML変換（画像は分離して取得）
+    const result = convertDocToHtmlWithImages(docId);
 
     // 隊: 複数選択の場合は正規化してカンマ区切り文字列に
     const unit = normalizeUnits(Array.isArray(unitRaw) ? unitRaw : [unitRaw]);
 
+    Logger.log(`[INFO] Doc変換完了: contentLen=${result.html.length}, imagesCount=${result.images.length}`);
+
     return {
         title: title,
-        content: content,
-        images: [],
+        content: result.html,
+        images: result.images,
         category: category,
         unit: unit,
         tags: tags ? tags.split(/[,、\s]+/).filter(Boolean) : []
@@ -307,11 +310,6 @@ function extractImagesFromData(fileIds) {
     const maxSize = CONFIG.MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
     for (const fileId of fileIds) {
-        if (images.length >= CONFIG.MAX_IMAGES_COUNT) {
-            Logger.log(`[WARN] 画像上限到達: ${CONFIG.MAX_IMAGES_COUNT}`);
-            break;
-        }
-
         try {
             const file = DriveApp.getFileById(fileId);
             const blob = file.getBlob();
@@ -404,14 +402,20 @@ function processInline(line) {
  * - 見出し (h2-h4)
  * - 段落
  * - リスト (ul/ol)
- * - インライン画像 (Base64埋め込み)
+ * - インライン画像 → images配列に分離（contentにはプレースホルダー挿入）
  * - テキスト装飾 (太字/斜体/リンク)
+ * 
+ * @param {string} docId - GoogleドキュメントID
+ * @returns {{html: string, images: Array<{data: string, contentType: string, filename: string}>}}
  */
-function convertDocToHtml(docId) {
+function convertDocToHtmlWithImages(docId) {
     const doc = DocumentApp.openById(docId);
     const body = doc.getBody();
     const html = [];
     const listStack = [];
+
+    // 画像コンテキスト: 関数間で共有するため配列で渡す
+    const imageContext = { images: [], maxSize: CONFIG.MAX_IMAGE_SIZE_MB * 1024 * 1024 };
 
     for (let i = 0; i < body.getNumChildren(); i++) {
         const child = body.getChild(i);
@@ -426,16 +430,15 @@ function convertDocToHtml(docId) {
             if (heading && heading !== DocumentApp.ParagraphHeading.NORMAL) {
                 const tag = getHeadingTag(heading);
                 const align = getAlignmentStyle(p.getAlignment());
-                const text = escHtml(p.getText()).trim();
 
                 // 見出しの中身もレンダリングして装飾を維持する
-                const content = renderElement(p);
+                const content = renderElementWithImages(p, imageContext);
                 if (content.trim()) {
                     const style = align ? ` style="${align}"` : '';
                     html.push(`<${tag}${style}>${content}</${tag}>`);
                 }
             } else {
-                const pHtml = renderParagraph(p);
+                const pHtml = renderParagraphWithImages(p, imageContext);
                 if (pHtml.trim()) html.push(pHtml);
             }
 
@@ -452,11 +455,11 @@ function convertDocToHtml(docId) {
                 html.push(`</${listStack.pop()}>`);
             }
 
-            html.push(`<li>${renderElement(li)}</li>`);
+            html.push(`<li>${renderElementWithImages(li, imageContext)}</li>`);
 
         } else if (type === DocumentApp.ElementType.TABLE) {
             closeAllLists(html, listStack);
-            html.push(renderTable(child.asTable()));
+            html.push(renderTableWithImages(child.asTable(), imageContext));
 
         } else if (type === DocumentApp.ElementType.HORIZONTAL_RULE) {
             closeAllLists(html, listStack);
@@ -464,14 +467,16 @@ function convertDocToHtml(docId) {
 
         } else {
             closeAllLists(html, listStack);
-            // その他の要素はスキップまたは簡易テキスト化
-            // const text = child.getText?.()?.trim();
-            // if (text) html.push(`<p>${escHtml(text)}</p>`);
         }
     }
 
     closeAllLists(html, listStack);
-    return html.join('\n');
+    return { html: html.join('\n'), images: imageContext.images };
+}
+
+// 旧API互換用ラッパー（テスト用途）
+function convertDocToHtml(docId) {
+    return convertDocToHtmlWithImages(docId).html;
 }
 
 function closeAllLists(html, stack) {
@@ -542,6 +547,131 @@ function renderTable(table) {
     }
     html += '</table>';
     return html;
+}
+
+// ============================================================================
+// 画像分離版レンダリング関数群
+// 画像はcontentに埋め込まずimageContext.imagesに蓄積し、contentにはプレースホルダを挿入
+// ============================================================================
+
+function renderTableWithImages(table, imageContext) {
+    let html = '<table style="border-collapse: collapse; width: 100%;" border="1">';
+    for (let r = 0; r < table.getNumRows(); r++) {
+        const row = table.getRow(r);
+        html += '<tr>';
+        for (let c = 0; c < row.getNumCells(); c++) {
+            const cell = row.getCell(c);
+            const content = renderElementWithImages(cell, imageContext);
+
+            let style = 'padding: 5pt; border: 1px solid #000;';
+
+            const bgColor = cell.getBackgroundColor();
+            if (bgColor) style += ` background-color: ${bgColor};`;
+
+            const vAlign = cell.getVerticalAlignment();
+            if (vAlign === DocumentApp.VerticalAlignment.TOP) style += ' vertical-align: top;';
+            else if (vAlign === DocumentApp.VerticalAlignment.CENTER) style += ' vertical-align: middle;';
+            else if (vAlign === DocumentApp.VerticalAlignment.BOTTOM) style += ' vertical-align: bottom;';
+
+            try {
+                const width = table.getColumnWidth(c);
+                if (width) style += ` width: ${width}pt;`;
+            } catch (e) { /* ignore */ }
+
+            html += `<td style="${style}">${content}</td>`;
+        }
+        html += '</tr>';
+    }
+    html += '</table>';
+    return html;
+}
+
+function renderParagraphWithImages(p, imageContext) {
+    const parts = [];
+    for (let i = 0; i < p.getNumChildren(); i++) {
+        parts.push(renderChildWithImages(p.getChild(i), imageContext));
+    }
+    const inner = parts.join('') || escHtml(p.getText());
+
+    const align = getAlignmentStyle(p.getAlignment());
+    const indentStart = p.getIndentStart();
+    const indent = indentStart ? `padding-left: ${indentStart}pt;` : '';
+
+    const lineSpacing = p.getLineSpacing();
+    const spaceBefore = p.getSpacingBefore();
+    const spaceAfter = p.getSpacingAfter();
+
+    const spacing = [];
+    if (lineSpacing) spacing.push(`line-height: ${lineSpacing}`);
+    if (spaceBefore) spacing.push(`margin-top: ${spaceBefore}pt`);
+    if (spaceAfter) spacing.push(`margin-bottom: ${spaceAfter}pt`);
+
+    const style = [align, indent, ...spacing].filter(Boolean).join(' ');
+    const styleAttr = style ? ` style="${style}"` : '';
+
+    return inner.trim() ? `<p${styleAttr}>${inner}</p>` : '';
+}
+
+function renderElementWithImages(el, imageContext) {
+    const parts = [];
+    if (el.getNumChildren) {
+        for (let i = 0; i < el.getNumChildren(); i++) {
+            parts.push(renderChildWithImages(el.getChild(i), imageContext));
+        }
+    } else if (el.getText) {
+        return escHtml(el.getText());
+    }
+    return parts.join('');
+}
+
+function renderChildWithImages(child, imageContext) {
+    const type = child.getType();
+
+    if (type === DocumentApp.ElementType.PARAGRAPH) {
+        return renderParagraphWithImages(child.asParagraph(), imageContext);
+    }
+
+    if (type === DocumentApp.ElementType.TEXT) {
+        return renderText(child.asText());
+    }
+
+    if (type === DocumentApp.ElementType.INLINE_IMAGE) {
+        try {
+            const img = child.asInlineImage();
+            const blob = img.getBlob();
+            const bytes = blob.getBytes();
+            const size = bytes.length;
+
+            // サイズ制限チェック（画像数は制限しない）
+            if (size > imageContext.maxSize) {
+                Logger.log(`[WARN] 画像サイズ超過: ${(size / 1024 / 1024).toFixed(1)}MB > ${CONFIG.MAX_IMAGE_SIZE_MB}MB`);
+                return ''; // 超過した画像はスキップ
+            }
+
+            const b64 = Utilities.base64Encode(bytes);
+            const ct = blob.getContentType() || 'image/jpeg';
+            const filename = `doc_image_${imageContext.images.length + 1}.${ct.split('/')[1] || 'jpg'}`;
+
+            // images配列に追加
+            imageContext.images.push({
+                data: b64,
+                contentType: ct,
+                filename: filename
+            });
+
+            Logger.log(`[INFO] 画像抽出: ${filename} (${(size / 1024).toFixed(0)}KB)`);
+
+            // contentにはプレースホルダーを挿入（サーバー側で画像URLに置換される）
+            const w = img.getWidth();
+            const h = img.getHeight();
+            return `<img data-image-index="${imageContext.images.length - 1}" width="${w}" height="${h}" alt="" style="max-width:100%; height:auto">`;
+        } catch (e) {
+            Logger.log(`[ERROR] 画像抽出失敗: ${e}`);
+            return '';
+        }
+    }
+
+    return escHtml(child.getText?.() || '');
 }
 
 function renderParagraph(p) {
@@ -643,10 +773,10 @@ function renderText(textEl) {
         if (attrs[DocumentApp.Attribute.UNDERLINE]) chunk = `<u>${chunk}</u>`;
         if (attrs[DocumentApp.Attribute.STRIKETHROUGH]) chunk = `<s>${chunk}</s>`;
 
-        // 上付き・下付き
-        const offset = attrs[DocumentApp.Attribute.TEXT_OFFSET]; // SUPERSCRIPT/SUBSCRIPT
-        if (offset === DocumentApp.TextOffset.SUPERSCRIPT) chunk = `<sup>${chunk}</sup>`;
-        if (offset === DocumentApp.TextOffset.SUBSCRIPT) chunk = `<sub>${chunk}</sub>`;
+        // 上付き・下付き (TextAlignment 列挙型を使用)
+        const verticalOffset = attrs[DocumentApp.Attribute.TEXT_OFFSET];
+        if (verticalOffset === DocumentApp.TextAlignment.SUPERSCRIPT) chunk = `<sup>${chunk}</sup>`;
+        if (verticalOffset === DocumentApp.TextAlignment.SUBSCRIPT) chunk = `<sub>${chunk}</sub>`;
 
         // 色・背景色
         const fgColor = attrs[DocumentApp.Attribute.FOREGROUND_COLOR];
@@ -873,4 +1003,3 @@ function debugMarkdown() {
     const md = '**太字** と _斜体_ と [リンク](https://example.com)\n\n新しい段落';
     Logger.log(convertMarkdownToHtml(md));
 }
-```

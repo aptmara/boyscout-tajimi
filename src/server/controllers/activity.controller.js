@@ -184,8 +184,23 @@ const activityWebhook = asyncHandler(async (req, res) => {
 
   const rawImages = Array.isArray(images) ? images : [];
 
-  // 画像をローカルにダウンロード
+  // 画像をローカルに保存（Base64→ファイル）
   const imgs = await processImages(rawImages);
+
+  // contentの画像プレースホルダーを実際の画像URLに置換
+  // GAS側: <img data-image-index="N" ...> → <img src="/uploads/images/xxx.webp" ...>
+  let processedContent = String(content);
+  processedContent = processedContent.replace(
+    /<img\s+data-image-index="(\d+)"([^>]*)>/gi,
+    (match, indexStr, rest) => {
+      const index = parseInt(indexStr, 10);
+      if (index >= 0 && index < imgs.length) {
+        return `<img src="${imgs[index]}"${rest}>`;
+      }
+      // インデックス範囲外の場合はプレースホルダーを削除
+      return '';
+    }
+  );
 
   const cat = (category && String(category).trim()) || '未分類';
   const uni = normalizeUnits(unit);
@@ -195,7 +210,7 @@ const activityWebhook = asyncHandler(async (req, res) => {
   await db.query(
     `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
      VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))`,
-    [String(title), String(content), JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
+    [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
   );
   return res.status(201).json({ ok: true });
 });
