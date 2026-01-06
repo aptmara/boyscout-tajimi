@@ -13,7 +13,7 @@
 
   const images = (Array.isArray(item.image_urls) ? item.image_urls : []).map(normalizeImageUrl).filter(Boolean);
   // Docs連携の場合: contentに<img>タグが含まれている → ヒーローギャラリーをスキップ
-  const hasInlineImages = item.content && /<img\s+src= /i.test(item.content); %>
+  const hasInlineImages = item.content && /<img\s+src=/i.test(item.content); %>
 
     <div class="max-w-5xl mx-auto px-4 py-8">
       <article class="bg-white p-6 md:p-10 rounded-xl shadow-lg">
