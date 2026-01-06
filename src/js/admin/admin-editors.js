@@ -176,7 +176,7 @@
         <div class="form-group"><label>カテゴリー</label><input type="text" id="act-category" class="input" placeholder="未分類"></div>
         <div class="form-group"><label>隊</label><select id="act-unit" class="select"><option value="">(指定なし)</option></select></div>
         <div class="form-group"><label>タグ（複数選択可）</label><select id="act-tags" class="select" multiple size="5"></select></div>
-        <div class="form-group"><label>活動日</label><input type="date" id="act-date" class="input">
+        <div class="form-group"><label>活動日</label><input type="date" id="act-date" class="input"></div>
         
         <div class="editor-actions full-width">
           <button type="button" id="act-cancel" class="btn-ghost">キャンセル</button>
