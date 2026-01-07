@@ -94,7 +94,7 @@ async function downloadImage(url) {
 
                 // Sharpストリームを作成 (リサイズ & WebP変換)
                 const transform = sharp()
-                    .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true }) // 長辺1280pxに収める
+                    .resize(1280, 720, { fit: 'inside', withoutEnlargement: true }) // 720pサイズに収める
                     .webp({ quality: 80 });
 
                 const fileStream = fs.createWriteStream(filepath);
@@ -151,7 +151,7 @@ async function saveBase64Image(img) {
 
         // Sharp で WebP変換・リサイズ
         await sharp(buffer)
-            .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+            .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
             .webp({ quality: 80 })
             .toFile(filepath);
 
