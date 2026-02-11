@@ -32,7 +32,27 @@ const getNewsById = asyncHandler(async (req, res) => {
     [req.params.id]
   );
   if (rows.length === 0) return res.status(404).json({ error: 'News not found' });
-  return res.json(rows[0]);
+
+  // SQLiteではJSON文字列として保存されているため、配列にパース
+  const item = rows[0];
+  if (db.useSqlite) {
+    if (typeof item.image_urls === 'string') {
+      try {
+        item.image_urls = JSON.parse(item.image_urls);
+      } catch {
+        item.image_urls = [];
+      }
+    }
+    if (typeof item.tags === 'string') {
+      try {
+        item.tags = JSON.parse(item.tags);
+      } catch {
+        item.tags = [];
+      }
+    }
+  }
+
+  return res.json(item);
 });
 
 const createNews = asyncHandler(async (req, res) => {

@@ -38,9 +38,31 @@ const getAllActivities = asyncHandler(async (req, res) => {
   }
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   params.push(lim, off);
-  // 一覧では軽量データのみ返す：content→summary、image_urls→thumbnail
-  const { rows } = await db.query(
-    `SELECT 
+
+  // SQLiteとPostgreSQLで異なるクエリを使用
+  let query;
+  let queryParams;
+  if (db.useSqlite) {
+    // SQLite用: JSON関数を使わずシンプルに取得
+    query = `SELECT 
+        id,
+        title,
+        SUBSTR(REPLACE(REPLACE(REPLACE(content, '<', ' '), '>', ' '), '  ', ' '), 1, 150) AS summary,
+        image_urls AS thumbnail,
+        category,
+        unit,
+        tags,
+        activity_date,
+        created_at,
+        display_date
+       FROM activities
+       ${whereSql}
+      ORDER BY display_date DESC
+      LIMIT ? OFFSET ?`;
+    queryParams = params;
+  } else {
+    // PostgreSQL用: JSONB関数を使用
+    query = `SELECT 
         id,
         title,
         LEFT(regexp_replace(content, '<[^>]*>', '', 'g'), 150) AS summary,
@@ -57,10 +79,36 @@ const getAllActivities = asyncHandler(async (req, res) => {
        FROM activities
        ${whereSql}
       ORDER BY display_date DESC
-      LIMIT $${params.length - 1} OFFSET $${params.length}`,
-    params
-  );
-  return res.json(rows);
+      LIMIT $${params.length - 1} OFFSET $${params.length}`;
+    queryParams = params;
+  }
+
+  const { rows } = await db.query(query, queryParams);
+
+  // SQLiteではJSON文字列として保存されているため、配列にパース
+  const items = rows.map(item => {
+    if (db.useSqlite) {
+      if (typeof item.tags === 'string') {
+        try {
+          item.tags = JSON.parse(item.tags);
+        } catch {
+          item.tags = [];
+        }
+      }
+      if (typeof item.thumbnail === 'string') {
+        try {
+          const parsed = JSON.parse(item.thumbnail);
+          // 最初の画像のみを配列として返す
+          item.thumbnail = Array.isArray(parsed) && parsed.length > 0 ? [parsed[0]] : [];
+        } catch {
+          item.thumbnail = [];
+        }
+      }
+    }
+    return item;
+  });
+
+  return res.json(items);
 });
 
 const getActivityById = asyncHandler(async (req, res) => {
@@ -71,7 +119,27 @@ const getActivityById = asyncHandler(async (req, res) => {
     [req.params.id]
   );
   if (rows.length === 0) return res.status(404).json({ error: 'Activity not found' });
-  res.json(rows[0]);
+
+  // SQLiteではJSON文字列として保存されているため、配列にパース
+  const item = rows[0];
+  if (db.useSqlite) {
+    if (typeof item.image_urls === 'string') {
+      try {
+        item.image_urls = JSON.parse(item.image_urls);
+      } catch {
+        item.image_urls = [];
+      }
+    }
+    if (typeof item.tags === 'string') {
+      try {
+        item.tags = JSON.parse(item.tags);
+      } catch {
+        item.tags = [];
+      }
+    }
+  }
+
+  res.json(item);
 });
 
 const createActivity = asyncHandler(async (req, res) => {
