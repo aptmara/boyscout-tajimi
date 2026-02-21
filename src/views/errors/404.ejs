@@ -1,61 +1,227 @@
-<!DOCTYPE html>
-<html lang="ja">
+<% locals.title='404 未確認エリア | ボーイスカウト多治見第一団' ; locals.seo={ robots: 'noindex, follow' }; %>
 
-<head>
-    <%- include('../partials/head') %>
-        <title>ページが見つかりません | ボーイスカウト多治見第一団</title>
-        <meta name="robots" content="noindex, follow">
-</head>
+    <!-- Interactive 404 Explorer Container -->
+    <div class="relative w-full overflow-hidden bg-slate-900 text-slate-200 flex flex-col items-center justify-center min-h-[max(calc(100vh-140px),600px)]"
+        id="error-404-container">
 
-<body class="bg-gray-50 flex flex-col min-h-screen text-gray-800 font-sans antialiased">
-    <%- include('../partials/header') %>
+        <!-- background illustration (trees, stars) -->
+        <div class="absolute inset-0 z-0 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950">
+            <!-- SVG Stars -->
+            <div class="stars-bg absolute inset-0 opacity-70"></div>
 
-        <main class="flex-grow flex items-center justify-center py-20 px-4">
-            <div class="max-w-xl w-full text-center">
-                <div class="mb-8 relative inline-block">
-                    <div class="text-9xl font-extrabold text-green-100 select-none">404</div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-32 h-32 text-green-600 animate-bounce" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                        </svg>
-                    </div>
+            <!-- Mountains & Trees Silhouette -->
+            <div
+                class="absolute bottom-0 w-full h-[50vh] pointer-events-none opacity-80 flex items-end justify-center overflow-hidden">
+                <svg class="w-full min-w-[1200px] h-full object-cover object-bottom drop-shadow-2xl"
+                    viewBox="0 0 1440 450" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Distant Mountains -->
+                    <path fill="#1e293b"
+                        d="M0,320 L120,200 L240,280 L360,160 L540,260 L680,140 L840,290 L1000,120 L1200,240 L1440,100 L1440,450 L0,450 Z" />
+                    <!-- Front Forest (Trees overlapping) -->
+                    <path fill="#020617" d="M0,450 
+                   L0,350 L20,290 L40,350 L50,310 L70,360 L90,250 L120,340 
+                   L140,280 L170,370 L190,320 L220,390 L250,230 L280,360 
+                   L310,290 L340,380 L370,260 L410,390 L440,210 L480,370 
+                   L510,310 L540,380 L570,270 L610,390 L640,220 L680,360 
+                   L710,290 L740,380 L770,240 L810,390 L850,200 L890,360 
+                   L920,280 L950,380 L980,250 L1020,380 L1060,210 L1100,380 
+                   L1130,300 L1160,390 L1190,260 L1230,380 L1270,180 L1310,360 
+                   L1340,290 L1370,390 L1400,270 L1420,340 L1440,280 
+                   L1440,450 Z" />
+                    <!-- Tent shape -->
+                    <path fill="#0f172a" d="M1150,420 L1190,350 L1230,420 Z" />
+                    <!-- Glowing Tent Entrance -->
+                    <path fill="#fbbf24" d="M1180,420 L1190,380 L1200,420 Z"
+                        class="opacity-90 drop-shadow-[0_0_15px_rgba(251,191,36,0.9)]" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- The text content -->
+        <div
+            class="relative z-20 text-center px-4 max-w-3xl mx-auto mt-0 py-16 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+            <h1
+                class="text-8xl md:text-9xl font-black text-green-500 mb-6 tracking-tighter flex justify-center items-center gap-2 md:gap-6 animate-fade-in-up">
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-green-700 select-none">4</span>
+                <div class="relative group">
+                    <svg class="w-24 h-24 md:w-32 md:h-32 compass-spin text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] transition-transform duration-500 group-hover:scale-110"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <!-- Outer Compass Ring -->
+                        <circle cx="12" cy="12" r="10" stroke-width="2" class="text-slate-400"></circle>
+                        <!-- Compass Needle -->
+                        <polygon points="12 4 15 12 12 20 9 12" fill="currentColor"></polygon>
+                        <circle cx="12" cy="12" r="2" fill="#020617"></circle>
+                        <!-- Map Directions N S E W -->
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 2v2M12 20v2M2 12h2m18 0h2" class="text-slate-500"></path>
+                    </svg>
                 </div>
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-green-700 select-none">4</span>
+            </h1>
 
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    ページが見つかりません
-                </h1>
+            <div class="bg-slate-800/80 backdrop-blur-md p-8 rounded-3xl border border-slate-600/50 shadow-2xl">
+                <h2 class="text-2xl md:text-4xl font-bold mb-4 text-white tracking-wide">未確認のエリアに到達しました</h2>
 
-                <p class="text-lg text-gray-600 mb-8 leading-relaxed">
-                    お探しのページは削除されたか、URLが間違っている可能性があります。<br class="hidden sm:inline">
-                    キャンプ場への地図を確認するように、URLをもう一度確認してみてください。
+                <p class="text-base md:text-lg text-white mb-8 leading-relaxed font-medium">
+                    マップに載っていない道へ迷い込んでしまったようです。<br class="hidden md:inline">
+                    周囲は暗くなっています。コンパスを頼りにベースキャンプへ戻りましょう。
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="/"
-                        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-full shadow-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 hover:-translate-y-0.5">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-300 bg-green-600 rounded-full hover:bg-green-500 hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+                        <span
+                            class="absolute inset-0 w-full h-full -mt-1 rounded-full opacity-20 bg-gradient-to-b from-transparent via-transparent to-black pointer-events-none"></span>
+                        <svg class="w-6 h-6 mr-3 transition-transform group-hover:-translate-x-1" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                            </path>
+                                d="M3 12h18M3 12l6-6m-6 6l6 6"></path>
                         </svg>
-                        トップページへ戻る
+                        ベースキャンプへ戻る
                     </a>
                     <a href="/contact"
-                        class="inline-flex items-center justify-center px-6 py-3 border-2 border-green-600 text-base font-bold rounded-full text-green-700 bg-transparent hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 hover:-translate-y-0.5">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-300 border-2 border-slate-400 rounded-full hover:bg-slate-700 hover:text-white hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+                        <svg class="w-6 h-6 mr-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
                             </path>
                         </svg>
-                        お問い合わせ
+                        救援を要請する
                     </a>
                 </div>
             </div>
-        </main>
+        </div>
 
-        <%- include('../partials/footer') %>
-</body>
+        <!-- Flashlight overlay -->
+        <div id="flashlight"
+            class="pointer-events-none absolute inset-0 z-10 transition-opacity duration-1000 opacity-0 hidden md:block"
+            style="background: radial-gradient(circle at 50% 50%, transparent 150px, rgba(2, 6, 23, 0.96) 400px);">
+        </div>
+    </div>
+    </div>
 
-</html>
+    <style>
+        /* CSS Animations for 404 */
+        .compass-spin {
+            animation: spin-compass 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            transform-origin: center;
+        }
+
+        @keyframes spin-compass {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            15% {
+                transform: rotate(25deg);
+            }
+
+            30% {
+                transform: rotate(-15deg);
+            }
+
+            45% {
+                transform: rotate(10deg);
+            }
+
+            60% {
+                transform: rotate(-5deg);
+            }
+
+            75% {
+                transform: rotate(2deg);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fade-in-up 1s ease-out forwards;
+        }
+
+        @keyframes fade-in-up {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Simple starry background using radial gradients */
+        .stars-bg {
+            background-image:
+                radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 80px 70px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 150px 160px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
+                radial-gradient(2.5px 2.5px at 190px 40px, #ffffff, rgba(0, 0, 0, 0)),
+                radial-gradient(1.5px 1.5px at 230px 180px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 280px 120px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 320px 50px, #ffffff, rgba(0, 0, 0, 0)),
+                radial-gradient(1.5px 1.5px at 380px 190px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 450px 80px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                radial-gradient(1.5px 1.5px at 500px 150px, #ffffff, rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 600px 30px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
+                radial-gradient(2.5px 2.5px at 700px 110px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0));
+            background-repeat: repeat;
+            background-size: 800px 400px;
+            animation: twinkle 6s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const flashlight = document.getElementById('flashlight');
+            const container = document.getElementById('error-404-container');
+
+            // Only enable flashlight on non-touch devices and when prefers-reduced-motion is not set
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (window.matchMedia('(pointer: fine)').matches && !prefersReducedMotion) {
+                // Show flashlight with slight delay to let user see full scene first
+                setTimeout(() => {
+                    flashlight.classList.remove('opacity-0');
+                }, 800);
+
+                let isMoving = false;
+
+                container.addEventListener('mousemove', (e) => {
+                    if (!isMoving) {
+                        window.requestAnimationFrame(() => {
+                            const rect = container.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+
+                            flashlight.style.background = `radial-gradient(circle at ${x}px ${y}px, transparent 150px, rgba(2, 6, 23, 0.96) 500px)`;
+                            isMoving = false;
+                        });
+                        isMoving = true;
+                    }
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    // reset to center smoothly
+                    flashlight.style.background = `radial-gradient(circle at 50% 50%, transparent 150px, rgba(2, 6, 23, 0.96) 500px)`;
+                });
+            }
+        });
+    </script>
