@@ -124,14 +124,19 @@ if (db.useSqlite) {
   });
 }
 
-const sessionSecret = resolveSessionSecret(process.env);
-if (!process.env.SESSION_SECRET) {
+const sessionSecretInfo = resolveSessionSecret(process.env, {
+  secretFilePath: path.join(projectRoot, 'sessions', '.session-secret'),
+});
+if (sessionSecretInfo.source === 'generated') {
   console.warn('[Security] SESSION_SECRET is not set. Using an ephemeral development secret.');
+}
+if (sessionSecretInfo.source === 'file') {
+  console.warn('[Security] SESSION_SECRET is not set. Using the persistent server-side session secret file.');
 }
 
 const sessionMiddleware = session({
   store: sessionStore,
-  secret: sessionSecret,
+  secret: sessionSecretInfo.secret,
   resave: false,
   saveUninitialized: false,
   cookie: {

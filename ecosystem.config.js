@@ -19,14 +19,10 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        INITIAL_ADMIN_USERNAME: 'admin',
-        INITIAL_ADMIN_PASSWORD: 'password123'
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 3000,
-        INITIAL_ADMIN_USERNAME: 'admin',
-        INITIAL_ADMIN_PASSWORD: 'password123'
       },
       // ログ設定
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',

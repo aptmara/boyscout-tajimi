@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 function isApiPath(value) {
   return typeof value === 'string' && (value === '/api' || value.startsWith('/api/'));
@@ -11,17 +13,55 @@ function isApiRequest(req) {
     || isApiPath(req?.url);
 }
 
-function resolveSessionSecret(env = process.env) {
+function ensurePersistentSessionSecret(secretFilePath) {
+  if (typeof secretFilePath !== 'string' || !secretFilePath.trim()) {
+    throw new Error('secretFilePath is required');
+  }
+
+  const normalizedPath = path.resolve(secretFilePath);
+  if (fs.existsSync(normalizedPath)) {
+    const existingSecret = fs.readFileSync(normalizedPath, 'utf8').trim();
+    if (existingSecret) {
+      return existingSecret;
+    }
+  }
+
+  fs.mkdirSync(path.dirname(normalizedPath), { recursive: true });
+  const generatedSecret = crypto.randomBytes(32).toString('hex');
+  fs.writeFileSync(normalizedPath, `${generatedSecret}\n`, { encoding: 'utf8', mode: 0o600 });
+  try {
+    fs.chmodSync(normalizedPath, 0o600);
+  } catch {
+    // Ignore chmod failures on platforms that do not support POSIX permissions.
+  }
+  return generatedSecret;
+}
+
+function resolveSessionSecret(env = process.env, options = {}) {
   const secret = typeof env?.SESSION_SECRET === 'string'
     ? env.SESSION_SECRET.trim()
     : '';
-  if (secret) return secret;
-
-  if (env?.NODE_ENV === 'production') {
-    throw new Error('SESSION_SECRET must be set in production');
+  if (secret) {
+    return { secret, source: 'env' };
   }
 
-  return crypto.randomBytes(32).toString('hex');
+  if (env?.NODE_ENV === 'production') {
+    const secretFilePath = typeof options?.secretFilePath === 'string'
+      ? options.secretFilePath.trim()
+      : '';
+    if (!secretFilePath) {
+      throw new Error('SESSION_SECRET or secretFilePath must be set in production');
+    }
+    return {
+      secret: ensurePersistentSessionSecret(secretFilePath),
+      source: 'file',
+    };
+  }
+
+  return {
+    secret: crypto.randomBytes(32).toString('hex'),
+    source: 'generated',
+  };
 }
 
 function extractGoogleMapsEmbedUrl(value) {
