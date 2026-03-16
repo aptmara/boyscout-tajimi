@@ -119,7 +119,7 @@ module.exports = {
         'contact_email': { group: 'CONTACT', type: 'text', label: 'メールアドレス' },
         'contact_person_name': { group: 'CONTACT', type: 'text', label: '担当者名' },
         'contact_secondary_phone': { group: 'CONTACT', type: 'text', label: '問い合わせ用電話番号（担当者直通など）' },
-        'contact_map_embed_html': { group: 'CONTACT', type: 'textarea', label: 'Google Maps埋め込みHTML（iframeタグ）' },
+        'contact_map_embed_html': { group: 'CONTACT', type: 'textarea', label: 'Google Maps埋め込みHTML（iframeタグ）', public: false },
 
         // LEADERS（各隊リーダー名）
         'leader_beaver': { group: 'BEAVER', type: 'text', label: 'ビーバー隊隊長名' },

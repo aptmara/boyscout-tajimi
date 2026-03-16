@@ -2,9 +2,19 @@ const db = require('../database.js');
 const SITE_CONFIG = require('../utils/siteConfigKeys.js');
 const fs = require('fs');
 const path = require('path');
+const {
+  buildGoogleMapsEmbedHtml,
+  extractGoogleMapsEmbedUrl,
+} = require('../utils/security-utils');
 
 const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
+
+const PUBLIC_SETTING_KEYS = Object.entries(SITE_CONFIG.KEYS)
+  .filter(([, config]) => config.public !== false)
+  .map(([key]) => key);
+const PUBLIC_SETTING_KEY_SET = new Set(PUBLIC_SETTING_KEYS);
+const PUBLIC_SETTING_QUERY_KEYS = Array.from(new Set([...PUBLIC_SETTING_KEYS, 'contact_map_embed_html']));
 
 // 全設定を取得し、グループごとに構造化して返す（管理画面用）
 const getSettings = asyncHandler(async (req, res) => {
@@ -61,19 +71,24 @@ const getSettings = asyncHandler(async (req, res) => {
 // 今回は既存実装を維持しつつ、定義ファイルにあるキーは全て公開しても良いか判断が必要。
 // 一旦既存のリストを維持します。
 const getPublicSettings = asyncHandler(async (req, res) => {
-  // 定義ファイルにある画像URLなどは全て公開して問題ないはず
-  const publicKeys = Object.keys(SITE_CONFIG.KEYS);
+  if (PUBLIC_SETTING_QUERY_KEYS.length === 0) return res.json({});
 
-  if (publicKeys.length === 0) return res.json({});
-
-  const placeholders = publicKeys.map((_, i) => `$${i + 1}`).join(',');
+  const placeholders = PUBLIC_SETTING_QUERY_KEYS.map((_, i) => `$${i + 1}`).join(',');
   const { rows } = await db.query(
     `SELECT key, value FROM site_settings WHERE key IN (${placeholders})`,
-    publicKeys
+    PUBLIC_SETTING_QUERY_KEYS
   );
 
   const obj = {};
-  for (const r of rows) obj[r.key] = r.value ?? '';
+  for (const r of rows) {
+    if (r.key === 'contact_map_embed_html') {
+      const embedUrl = extractGoogleMapsEmbedUrl(r.value);
+      if (embedUrl) obj.contact_map_embed_url = embedUrl;
+      continue;
+    }
+    if (!PUBLIC_SETTING_KEY_SET.has(r.key)) continue;
+    obj[r.key] = r.value ?? '';
+  }
 
   // 画像がない場合のプレースホルダー処理などはフロントエンドで行う
   return res.status(200).json(obj);
@@ -109,7 +124,10 @@ const updateSettings = asyncHandler(async (req, res) => {
         continue;
       }
 
-      const val = (value === null || value === undefined) ? '' : String(value);
+      const rawValue = (value === null || value === undefined) ? '' : String(value);
+      const val = key === 'contact_map_embed_html'
+        ? buildGoogleMapsEmbedHtml(rawValue)
+        : rawValue;
 
       await client.query(
         `INSERT INTO site_settings (key, value, updated_at) VALUES ($1, $2, NOW())

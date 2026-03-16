@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { isApiRequest } = require('../utils/security-utils');
 
 /**
  * 基本認証ミドルウェア
@@ -6,10 +7,10 @@ const crypto = require('crypto');
  */
 const authMiddleware = (req, res, next) => {
   if (req.session && req.session.user) return next();
-  if (req.path.startsWith('/api/')) {
+  if (isApiRequest(req)) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  return res.redirect('/admin/login.html');
+  return res.redirect('/admin/login');
 };
 
 /**
@@ -19,7 +20,7 @@ const authMiddleware = (req, res, next) => {
 const adminOnlyMiddleware = (req, res, next) => {
   const role = req.session?.user?.role || 'editor';
   if (role !== 'admin') {
-    if (req.path.startsWith('/api/')) {
+    if (isApiRequest(req)) {
       return res.status(403).json({ error: 'Admin access required', message: 'この操作は管理者のみ実行できます。' });
     }
     return res.redirect('/admin?error=forbidden');

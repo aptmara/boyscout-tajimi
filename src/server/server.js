@@ -13,8 +13,6 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
-const bcrypt = require('bcrypt');
 const expressLayouts = require('express-ejs-layouts');
 const compression = require('compression'); // Frontend Optimization
 
@@ -25,23 +23,46 @@ const csurf = require('csurf');
 
 const db = require('./database.js');
 const { logSecretFingerprint } = require('./utils/logSecretFingerprint');
-const { sendMail } = require('./utils/mailer');
+const { resolveSessionSecret } = require('./utils/security-utils');
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.disable('x-powered-by');
 app.use(compression()); // Enable Gzip compression
 app.set('trust proxy', 1);
 
 // === Security Middleware ===
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  hsts: isProduction ? {
+    maxAge: 15552000,
+    includeSubDomains: true,
+  } : false,
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin',
+  },
+}));
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=(), payment=()');
+  next();
+});
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://www.googletagmanager.com"],
+      scriptSrcAttr: ["'none'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "https://placehold.co", "https://drive.google.com", "https://*.googleusercontent.com"], // Allow all HTTPS images to prevent broken user content
+      imgSrc: ["'self'", "data:", "blob:", "https:", "https://placehold.co", "https://drive.google.com", "https://*.googleusercontent.com", "https://www.google-analytics.com"], // Allow all HTTPS images to prevent broken user content
       frameSrc: ["'self'", "https://www.google.com", "https://docs.google.com"], // For Google Maps & Forms
-      connectSrc: ["'self'", "https://unpkg.com", "https://*.googleapis.com"], // Sometimes needed for fetching resources
+      connectSrc: ["'self'", "https://unpkg.com", "https://*.googleapis.com", "https://www.google-analytics.com"], // Sometimes needed for fetching resources
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
   })
@@ -77,11 +98,12 @@ app.use(express.static(path.join(projectRoot, 'src', 'js')));
 app.use(express.static(path.join(projectRoot, 'src', 'assets')));
 
 // フロントエンドはルート直下の task.txt を直接取得するため、明示的に送信する
-app.get('/task.txt', (req, res, next) => {
+app.get('/task.txt', (req, res) => {
   const taskFilePath = path.join(projectRoot, 'task.txt');
-  res.sendFile(taskFilePath, (err) => {
-    if (err) next(err);
-  });
+  if (!fs.existsSync(taskFilePath)) {
+    return res.status(404).type('text/plain').send('Not Found');
+  }
+  return res.sendFile(taskFilePath);
 });
 
 // ------------------------------
@@ -102,14 +124,20 @@ if (db.useSqlite) {
   });
 }
 
+const sessionSecret = resolveSessionSecret(process.env);
+if (!process.env.SESSION_SECRET) {
+  console.warn('[Security] SESSION_SECRET is not set. Using an ephemeral development secret.');
+}
+
 const sessionMiddleware = session({
   store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'a-bad-secret-key',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 1000 * 60 * 60 * 24, // 1 day
   },
 });
@@ -229,15 +257,21 @@ app.get('/admin/login', csrfProtection, (req, res) => {
     csrfToken: req.csrfToken()
   });
 });
-// その他のアドミン関連静的ファイル (JS, CSS等)
-app.use('/admin', express.static(path.join(projectRoot, 'src', 'views', 'admin')));
-
-
 
 // ================================================================
 // Settings Middleware (All Views)
 // ================================================================
 const { loadSiteSettings } = require('./middleware/siteConfig.middleware.js');
+function attachContactViewCsrf(req, res, next) {
+  const needsCsrfToken = req.path === '/contact' || req.path === '/contact.html';
+  if (!needsCsrfToken) return next();
+
+  return csrfProtection(req, res, (err) => {
+    if (err) return next(err);
+    res.locals.csrfToken = req.csrfToken();
+    return next();
+  });
+}
 
 // ================================================================
 // Sitemap Route (SEO)
@@ -250,11 +284,8 @@ app.use('/', loadSiteSettings, sitemapRoutes);
 // View Routes (SSR Pages)
 // ================================================================
 const viewRoutes = require('./routes/view.routes.js');
-// Viewルートにのみ設定読み込みミドルウェアとCSRF保護を適用
-app.use('/', loadSiteSettings, csrfProtection, (req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-}, viewRoutes);
+// Public view routes should stay cacheable; only pages with forms receive CSRF tokens.
+app.use('/', loadSiteSettings, attachContactViewCsrf, viewRoutes);
 
 // ================================================================
 // 404 Handling (Must be before Global Error Handler)

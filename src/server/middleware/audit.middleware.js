@@ -40,12 +40,12 @@ async function logAudit({ action, username, ipAddress, details = '', status = 's
 
 /**
  * パスワード再認証ミドルウェア
- * リクエストボディまたはクエリパラメータから password を取得して検証
+ * リクエストボディから password を取得して検証
  */
 const bcrypt = require('bcrypt');
 
 async function requirePasswordReauth(req, res, next) {
-    const password = req.body?.password || req.query?.password;
+    const password = req.body?.password;
 
     if (!password) {
         return res.status(401).json({

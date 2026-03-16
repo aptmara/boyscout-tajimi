@@ -1,47 +1,66 @@
-/**
- * Simple HTML Sanitizer
- * Removes dangerous tags and attributes to prevent basic XSS.
- * Intended for use where external libraries like 'sanitize-html' cannot be added.
- */
+const sanitizeHtmlLib = require('sanitize-html');
+
+const RICH_TEXT_OPTIONS = {
+    allowedTags: [
+        'a', 'blockquote', 'br', 'code', 'div', 'em', 'figcaption', 'figure',
+        'h2', 'h3', 'h4', 'hr', 'img', 'li', 'ol', 'p', 'pre', 'span',
+        'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'ul'
+    ],
+    allowedAttributes: {
+        a: ['href', 'name', 'target', 'rel'],
+        img: ['src', 'alt', 'title', 'width', 'height', 'loading', 'data-image-index'],
+        td: ['colspan', 'rowspan'],
+        th: ['colspan', 'rowspan'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemesByTag: {
+        img: ['http', 'https', 'data'],
+    },
+    disallowedTagsMode: 'discard',
+    enforceHtmlBoundary: true,
+    transformTags: {
+        a: (tagName, attribs) => {
+            const nextAttribs = { ...attribs };
+            if (nextAttribs.target === '_blank') {
+                nextAttribs.rel = 'noopener noreferrer';
+            } else {
+                delete nextAttribs.target;
+                delete nextAttribs.rel;
+            }
+            return {
+                tagName,
+                attribs: nextAttribs,
+            };
+        },
+    },
+};
 
 function sanitizeHtml(html) {
     if (!html) return '';
-    let clean = String(html);
-
-    // 1. Remove dangerous tags completely (content included)
-    // script, style, iframe, object, embed, applet
-    clean = clean.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
-    clean = clean.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, "");
-    clean = clean.replace(/<iframe\b[^>]*>([\s\S]*?)<\/iframe>/gim, "");
-    clean = clean.replace(/<object\b[^>]*>([\s\S]*?)<\/object>/gim, "");
-    clean = clean.replace(/<embed\b[^>]*>([\s\S]*?)<\/embed>/gim, "");
-    clean = clean.replace(/<applet\b[^>]*>([\s\S]*?)<\/applet>/gim, "");
-
-    // 2. Remove event handlers from all tags (e.g., onclick, onload, onerror)
-    // Matches on*="value" or on*='value' or on*=value
-    clean = clean.replace(/ on\w+=(".*?"|'.*?'|\S*)/gim, "");
-
-    // 3. Remove javascript: URIs in href or src
-    clean = clean.replace(/(href|src)=["']javascript:[^"']*["']/gim, '$1="#"');
-    clean = clean.replace(/(href|src)=javascript:[^ >]*/gim, '$1="#"');
-
-    return clean;
+    return sanitizeHtmlLib(String(html), RICH_TEXT_OPTIONS).trim();
 }
 
-/**
- * Sanitize common scalar fields in a payload
- */
+function sanitizePlainText(value) {
+    if (!value) return '';
+    return sanitizeHtmlLib(String(value), {
+        allowedTags: [],
+        allowedAttributes: {},
+    }).trim();
+}
+
 function sanitizePayload(payload, fields = ['title', 'content', 'category', 'unit']) {
     const sanitized = { ...payload };
     for (const field of fields) {
-        if (sanitized[field] && typeof sanitized[field] === 'string') {
-            sanitized[field] = sanitizeHtml(sanitized[field]);
-        }
+        if (!sanitized[field] || typeof sanitized[field] !== 'string') continue;
+        sanitized[field] = field === 'content'
+            ? sanitizeHtml(sanitized[field])
+            : sanitizePlainText(sanitized[field]);
     }
     return sanitized;
 }
 
 module.exports = {
     sanitizeHtml,
+    sanitizePlainText,
     sanitizePayload
 };

@@ -250,6 +250,32 @@ function updateFavicon(url) {
   });
 }
 
+function updateContactMapEmbed(mapEl, embedUrl) {
+  if (!mapEl || !embedUrl) return;
+
+  try {
+    const parsed = new URL(embedUrl);
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'www.google.com' || !parsed.pathname.startsWith('/maps/embed')) {
+      return;
+    }
+
+    const iframe = document.createElement('iframe');
+    iframe.src = parsed.toString();
+    iframe.width = '100%';
+    iframe.height = '100%';
+    iframe.style.border = '0';
+    iframe.style.position = 'absolute';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'no-referrer-when-downgrade';
+    iframe.allowFullscreen = true;
+    mapEl.replaceChildren(iframe);
+  } catch {
+    // Ignore invalid map embed URLs and keep the server-rendered default map.
+  }
+}
+
 /**
  * サイト共通設定をAPIから取得し、ページの該当箇所に反映させる
  */
@@ -339,8 +365,8 @@ async function applySiteSettings() {
       }
     });
     const mapEl = document.getElementById('contact-map-embed');
-    if (mapEl && settings.contact_map_embed_html) {
-      mapEl.innerHTML = settings.contact_map_embed_html;
+    if (mapEl && settings.contact_map_embed_url) {
+      updateContactMapEmbed(mapEl, settings.contact_map_embed_url);
     }
 
     // 5. トップページの画像差し替え

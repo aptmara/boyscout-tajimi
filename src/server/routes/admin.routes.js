@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, adminOnlyMiddleware } = require('../middleware/auth.middleware');
 const { downloadBackup, getSummary, getAuditLogs } = require('../controllers/admin.controller');
 const { requirePasswordReauth } = require('../middleware/audit.middleware');
 
-// 全てのエンドポイントで認証を要求
+// 全てのエンドポイントで認証と管理者権限を要求
 router.use(authMiddleware);
+router.use(adminOnlyMiddleware);
 
 // バックアップダウンロード（パスワード再認証必須）
 // POSTに変更してパスワードをBody経由で受け取る
