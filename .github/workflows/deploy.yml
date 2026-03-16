@@ -102,15 +102,21 @@ jobs:
               
               cd /var/www/boyscout-tajimi
               NPM_CI_FAILED=0
+              DEPS_CHANGED=0
               
               # Step 1: Git fetch
               echo ""
               echo "📦 [1/5] 最新コードを取得中..."
+              CURRENT_COMMIT=$(git rev-parse HEAD)
+              CURRENT_COMMIT_SHORT=$(git rev-parse --short HEAD)
               git fetch origin main
-              CURRENT_COMMIT=$(git rev-parse --short HEAD)
+              if ! git diff --quiet HEAD origin/main -- package.json package-lock.json yarn.lock; then
+                DEPS_CHANGED=1
+                echo "   ℹ️ 依存関係定義の変更を検出しました"
+              fi
               git reset --hard origin/main
               NEW_COMMIT=$(git rev-parse --short HEAD)
-              echo "   ✅ 更新完了: $CURRENT_COMMIT → $NEW_COMMIT"
+              echo "   ✅ 更新完了: $CURRENT_COMMIT_SHORT → $NEW_COMMIT"
               
               # Step 2: npm install
               echo ""
@@ -119,7 +125,15 @@ jobs:
                 echo "   ✅ npm ci 完了"
               else
                 NPM_CI_FAILED=1
-                echo "   ⚠️ npm ci に失敗しました。既存の node_modules で復旧を試行します。"
+                if [ "$DEPS_CHANGED" = "1" ]; then
+                  echo "   ❌ npm ci に失敗し、依存関係定義も変更されています。直前のコミットへロールバックします。"
+                  git reset --hard "$CURRENT_COMMIT"
+                  pm2 restart boyscout-tajimi --update-env
+                  sleep 3
+                  pm2 status boyscout-tajimi
+                  exit 1
+                fi
+                echo "   ⚠️ npm ci に失敗しましたが、依存関係定義は未変更のため既存の node_modules で継続します。"
               fi
               
               # Step 3: Build
@@ -166,7 +180,6 @@ jobs:
 
               if [ "$NPM_CI_FAILED" = "1" ]; then
                 echo "⚠️ 依存関係の再インストールに失敗しました。VPS 上の権限を修正してください。"
-                exit 1
               fi
               
               # 環境変数として出力（後続ステップで使用）
