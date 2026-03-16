@@ -101,6 +101,7 @@ jobs:
               echo "=========================================="
               
               cd /var/www/boyscout-tajimi
+              NPM_CI_FAILED=0
               
               # Step 1: Git fetch
               echo ""
@@ -114,8 +115,12 @@ jobs:
               # Step 2: npm install
               echo ""
               echo "📦 [2/5] 依存関係をインストール中..."
-              npm ci --omit=dev
-              echo "   ✅ npm ci 完了"
+              if npm ci --omit=dev; then
+                echo "   ✅ npm ci 完了"
+              else
+                NPM_CI_FAILED=1
+                echo "   ⚠️ npm ci に失敗しました。既存の node_modules で復旧を試行します。"
+              fi
               
               # Step 3: Build
               echo ""
@@ -158,6 +163,11 @@ jobs:
               echo "✅ デプロイ完了: $DEPLOY_TIME"
               echo "   コミット: $NEW_COMMIT"
               echo "=========================================="
+
+              if [ "$NPM_CI_FAILED" = "1" ]; then
+                echo "⚠️ 依存関係の再インストールに失敗しました。VPS 上の権限を修正してください。"
+                exit 1
+              fi
               
               # 環境変数として出力（後続ステップで使用）
               echo "DEPLOY_TIME=$DEPLOY_TIME" >> /tmp/deploy_env
