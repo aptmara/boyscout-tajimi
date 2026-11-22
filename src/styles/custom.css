@@ -416,6 +416,12 @@ header#main-header.scrolled {
   overflow-wrap: anywhere;
 }
 
+/* Word の段落は line-height:100% などを固定値で継承させるため、
+   段落より大きい文字の span が折り返すと行が重なる。span 自身の文字サイズで行の高さを確保する。 */
+.word-article span[style*="font-size"] {
+  line-height: 1.3;
+}
+
 .word-article img {
   display: inline-block;
   max-width: 100%;
