@@ -243,20 +243,15 @@ const deleteActivity = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-const { deleteImages, processImages } = require('../utils/imageDownloader');
-const { convertWordToHtml } = require('../utils/word-to-html');
-const { WordImportError, convertExcelToHtml, convertPdfToHtml } = require('../utils/document-import');
-
-// ファイル添付（Base64）のキーと変換関数
-const FILE_CONVERTERS = { docx: convertWordToHtml, xlsx: convertExcelToHtml, pdf: convertPdfToHtml };
+const { deleteImages } = require('../utils/imageDownloader');
+const { FILE_CONVERTERS, buildWebhookArticle } = require('../utils/webhook-content');
 
 const activityWebhook = asyncHandler(async (req, res) => {
   const safeBody = sanitizePayload(req.body || {});
-  const { title, content, images, category, unit, tags, activity_date } = safeBody;
+  const { title, content, category, unit, tags, activity_date } = safeBody;
   const fileKeys = Object.keys(FILE_CONVERTERS).filter((key) => Object.hasOwn(safeBody, key));
   if (fileKeys.length > 1) return res.status(400).json({ error: 'multiple_files' });
-  const fileKey = fileKeys[0];
-  const hasFile = Boolean(fileKey);
+  const hasFile = fileKeys.length === 1;
   if (!title || (!content && !hasFile)) return res.status(400).json({ error: 'invalid_payload' });
 
   const ad = activity_date ? new Date(activity_date) : null;
@@ -264,39 +259,9 @@ const activityWebhook = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'invalid_activity_date' });
   }
 
-  let articleContent = content;
-  let rawImages = Array.isArray(images) ? images : [];
-  if (hasFile) {
-    try {
-      const converted = await FILE_CONVERTERS[fileKey](safeBody[fileKey]);
-      articleContent = converted.content;
-      rawImages = converted.images;
-    } catch (error) {
-      if (!(error instanceof WordImportError)) throw error;
-      return res.status(error.status).json({ error: error.message });
-    }
-  }
-
-  const imgs = await processImages(rawImages);
-  if (hasFile && imgs.length !== rawImages.length) {
-    await deleteImages(imgs);
-    return res.status(422).json({ error: fileKey + '_image_save_failed' });
-  }
-
-  // contentの画像プレースホルダーを実際の画像URLに置換
-  // GAS側: <img data-image-index="N" ...> → <img src="/uploads/images/xxx.webp" ...>
-  let processedContent = String(articleContent);
-  processedContent = processedContent.replace(
-    /<img\s+data-image-index="(\d+)"([^>]*)>/gi,
-    (match, indexStr, rest) => {
-      const index = parseInt(indexStr, 10);
-      if (index >= 0 && index < imgs.length) {
-        return `<img src="${imgs[index]}"${rest}>`;
-      }
-      // インデックス範囲外の場合はプレースホルダーを削除
-      return '';
-    }
-  );
+  const article = await buildWebhookArticle(safeBody);
+  if (!article.ok) return res.status(article.status).json({ error: article.error });
+  const { content: processedContent, imgs } = article;
 
   const cat = (category && String(category).trim()) || '未分類';
   const uni = normalizeUnits(unit);

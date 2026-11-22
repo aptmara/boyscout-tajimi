@@ -85,6 +85,10 @@ const FIELDS = {
     UNIT: '隊',
     TAGS: 'タグ',
 
+    // 統合フォーム（ホームページ投稿フォーム）
+    POST_TYPE: '投稿の種類',
+    IMPORTANT: '重要なお知らせにする',
+
     // Activity専用
     ACTIVITY_DATE: '活動日',
     WORD_FILE: 'Wordファイル',
@@ -154,14 +158,20 @@ function handleFormSubmit(e, type) {
         const formData = getFormData(e.response);
         log('INFO', `受信: type=${type}, fields=[${Object.keys(formData).join(',')}]`);
 
+        // 統合フォーム: 「投稿の種類」がお知らせなら、ACTIVITYトリガーでもNEWSとして扱う
+        let postType = type;
+        if (type === 'ACTIVITY' && formData[FIELDS.POST_TYPE] === 'お知らせ') {
+            postType = 'NEWS';
+            log('INFO', '投稿の種類=お知らせ のため NEWS として送信');
+        }
+
         // ペイロード構築
         const isDocForm = !!formData[FIELDS.DOC_LINK];
         let payload;
 
-        // 添付ファイル（ACTIVITYのみ）: ファイルが入っている欄を採用する
-        const uploadKinds = type === 'ACTIVITY'
-            ? Object.keys(UPLOAD_KINDS).filter(kind => formData[UPLOAD_KINDS[kind].field]?.length)
-            : [];
+        // 添付ファイル（NEWS / ACTIVITY 共通）: ファイルが入っている欄を採用する
+        const uploadKinds = Object.keys(UPLOAD_KINDS)
+            .filter(kind => formData[UPLOAD_KINDS[kind].field]?.length);
         if (uploadKinds.length > 1) {
             throw new Error('Word・Excel・PDF のどれか1つだけ添付してください');
         }
@@ -175,7 +185,7 @@ function handleFormSubmit(e, type) {
         }
 
         // Activity専用: activity_date
-        if (type === 'ACTIVITY' || type === 'AUTO') {
+        if (postType === 'ACTIVITY' || postType === 'AUTO') {
             const dateStr = formData[FIELDS.ACTIVITY_DATE];
             if (dateStr) {
                 // サーバー側: new Date(activity_date) でパース
@@ -183,11 +193,18 @@ function handleFormSubmit(e, type) {
             }
         }
 
+        // 「重要なお知らせにする」(チェックボックス) → タグ「重要」を付与
+        const important = formData[FIELDS.IMPORTANT];
+        if (Array.isArray(important) && important.length > 0) {
+            payload.tags = Array.isArray(payload.tags) ? payload.tags : [];
+            if (!payload.tags.includes('重要')) payload.tags.push('重要');
+        }
+
         // エンドポイント決定
         let endpoint;
-        if (type === 'NEWS') {
+        if (postType === 'NEWS') {
             endpoint = CONFIG.ENDPOINTS.NEWS;
-        } else if (type === 'ACTIVITY') {
+        } else if (postType === 'ACTIVITY') {
             endpoint = CONFIG.ENDPOINTS.ACTIVITY;
         } else {
             // AUTO: activity_date有無で判定

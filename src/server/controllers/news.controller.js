@@ -143,42 +143,36 @@ const deleteNews = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-const { processImages } = require('../utils/imageDownloader');
+const { deleteImages } = require('../utils/imageDownloader');
+const { FILE_CONVERTERS, buildWebhookArticle } = require('../utils/webhook-content');
 
 const newsWebhook = asyncHandler(async (req, res) => {
   const safeBody = sanitizePayload(req.body || {});
-  const { title, content, images, category, unit, tags } = safeBody;
-  if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
+  const { title, content, category, unit, tags } = safeBody;
+  const fileKeys = Object.keys(FILE_CONVERTERS).filter((key) => Object.hasOwn(safeBody, key));
+  if (fileKeys.length > 1) return res.status(400).json({ error: 'multiple_files' });
+  const hasFile = fileKeys.length === 1;
+  if (!title || (!content && !hasFile)) return res.status(400).json({ error: 'invalid_payload' });
 
-  const rawImages = Array.isArray(images) ? images : [];
-
-  // 画像をローカルに保存（Base64→ファイル）
-  const imgs = await processImages(rawImages);
-
-  // contentの画像プレースホルダーを実際の画像URLに置換
-  // GAS側: <img data-image-index="N" ...> → <img src="/uploads/images/xxx.webp" ...>
-  let processedContent = String(content);
-  processedContent = processedContent.replace(
-    /<img\s+data-image-index="(\d+)"([^>]*)>/gi,
-    (match, indexStr, rest) => {
-      const index = parseInt(indexStr, 10);
-      if (index >= 0 && index < imgs.length) {
-        return `<img src="${imgs[index]}"${rest}>`;
-      }
-      // インデックス範囲外の場合はプレースホルダーを削除
-      return '';
-    }
-  );
+  // 画像をローカルに保存し、プレースホルダーを置換（添付ファイルがあれば変換も行う）
+  const article = await buildWebhookArticle(safeBody);
+  if (!article.ok) return res.status(article.status).json({ error: article.error });
+  const { content: processedContent, imgs } = article;
 
   const cat = (category && String(category).trim()) || '未分類';
   const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
 
-  await db.query(
-    `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
-     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)`,
-    [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
-  );
+  try {
+    await db.query(
+      `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)`,
+      [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
+    );
+  } catch (error) {
+    if (hasFile) await deleteImages(imgs);
+    throw error;
+  }
   return res.status(201).json({ ok: true });
 });
 
