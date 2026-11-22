@@ -41,29 +41,27 @@ jobs:
 
       - name: ❌ ビルド失敗通知 (Discord)
         if: failure()
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_URL: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          COMMIT_SHA="${{ github.sha }}"
-          COMMIT_SHORT="${COMMIT_SHA:0:7}"
-          ACTOR="${{ github.actor }}"
-          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"embeds\": [{
-                \"title\": \"❌ ビルド失敗\",
-                \"description\": \"**${{ env.APP_NAME }}** のビルドテストでエラーが発生しました。デプロイを中止します。\",
-                \"color\": 15158332,
-                \"fields\": [
-                  {\"name\": \"コミット\", \"value\": \"[\`${COMMIT_SHORT}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})\", \"inline\": true},
-                  {\"name\": \"実行者\", \"value\": \"${ACTOR}\", \"inline\": true},
-                  {\"name\": \"ログ\", \"value\": \"[Actions ログを確認](${RUN_URL})\", \"inline\": false}
-                ],
-                \"footer\": {\"text\": \"GitHub Actions - Build Check\"},
-                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-              }]
-            }" || true
+          # 外部から来る値（コミットメッセージなど）は env 経由で受け取り、jq で JSON にする
+          jq -n \
+            --arg title "❌ ビルド失敗" \
+            --arg description "**${APP_NAME}** のビルドテストでエラーが発生しました。デプロイを中止します。" \
+            --arg commit "[\`${COMMIT_SHA:0:7}\`](${COMMIT_URL})" \
+            --arg actor "$ACTOR" \
+            --arg extra_name "ログ" \
+            --arg extra "[Actions ログを確認](${RUN_URL})" \
+            --arg footer "GitHub Actions - Build Check" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color 15158332 \
+            '{embeds: [{title: $title, description: $description, color: $color, fields: [{name: "コミット", value: $commit, inline: true}, {name: "実行者", value: $actor, inline: true}, {name: $extra_name, value: $extra, inline: false}], footer: {text: $footer}, timestamp: $timestamp}]}' |
+            curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" --data-binary @- || true
 
   deploy:
     name: 🚀 Deploy to VPS
@@ -269,54 +267,51 @@ jobs:
 
       - name: ✅ 成功通知 (Discord)
         if: success()
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_URL: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          COMMIT_SHA="${{ github.sha }}"
-          COMMIT_SHORT="${COMMIT_SHA:0:7}"
-          ACTOR="${{ github.actor }}"
-          
-          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"embeds\": [{
-                \"title\": \"✅ デプロイ成功\",
-                \"description\": \"**${{ env.APP_NAME }}** が正常にデプロイされました\",
-                \"color\": 5763719,
-                \"fields\": [
-                  {\"name\": \"コミット\", \"value\": \"[\`${COMMIT_SHORT}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})\", \"inline\": true},
-                  {\"name\": \"実行者\", \"value\": \"${ACTOR}\", \"inline\": true},
-                  {\"name\": \"メッセージ\", \"value\": \"${COMMIT_MSG:0:100}\", \"inline\": false}
-                ],
-                \"footer\": {\"text\": \"GitHub Actions\"},
-                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-              }]
-            }" || true
+          # 外部から来る値（コミットメッセージなど）は env 経由で受け取り、jq で JSON にする
+          jq -n \
+            --arg title "✅ デプロイ成功" \
+            --arg description "**${APP_NAME}** が正常にデプロイされました" \
+            --arg commit "[\`${COMMIT_SHA:0:7}\`](${COMMIT_URL})" \
+            --arg actor "$ACTOR" \
+            --arg extra_name "メッセージ" \
+            --arg extra "${COMMIT_MSG:0:100}" \
+            --arg footer "GitHub Actions" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color 5763719 \
+            '{embeds: [{title: $title, description: $description, color: $color, fields: [{name: "コミット", value: $commit, inline: true}, {name: "実行者", value: $actor, inline: true}, {name: $extra_name, value: $extra, inline: false}], footer: {text: $footer}, timestamp: $timestamp}]}' |
+            curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" --data-binary @- || true
 
       - name: ❌ 失敗通知 (Discord)
         if: failure()
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_URL: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          COMMIT_SHA="${{ github.sha }}"
-          COMMIT_SHORT="${COMMIT_SHA:0:7}"
-          ACTOR="${{ github.actor }}"
-          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          curl -s -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"embeds\": [{
-                \"title\": \"❌ デプロイ失敗\",
-                \"description\": \"**${{ env.APP_NAME }}** のデプロイに失敗しました\",
-                \"color\": 15158332,
-                \"fields\": [
-                  {\"name\": \"コミット\", \"value\": \"[\`${COMMIT_SHORT}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})\", \"inline\": true},
-                  {\"name\": \"実行者\", \"value\": \"${ACTOR}\", \"inline\": true},
-                  {\"name\": \"ログ\", \"value\": \"[Actions ログを確認](${RUN_URL})\", \"inline\": false}
-                ],
-                \"footer\": {\"text\": \"GitHub Actions\"},
-                \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-              }]
-            }" || true
+          # 外部から来る値（コミットメッセージなど）は env 経由で受け取り、jq で JSON にする
+          jq -n \
+            --arg title "❌ デプロイ失敗" \
+            --arg description "**${APP_NAME}** のデプロイに失敗しました" \
+            --arg commit "[\`${COMMIT_SHA:0:7}\`](${COMMIT_URL})" \
+            --arg actor "$ACTOR" \
+            --arg extra_name "ログ" \
+            --arg extra "[Actions ログを確認](${RUN_URL})" \
+            --arg footer "GitHub Actions" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color 15158332 \
+            '{embeds: [{title: $title, description: $description, color: $color, fields: [{name: "コミット", value: $commit, inline: true}, {name: "実行者", value: $actor, inline: true}, {name: $extra_name, value: $extra, inline: false}], footer: {text: $footer}, timestamp: $timestamp}]}' |
+            curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" --data-binary @- || true
 
       - name: 🧹 クリーンアップ
         if: always()
