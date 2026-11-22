@@ -125,18 +125,107 @@ function sanitizeAttribute(tagName, attribute) {
   }
 }
 
-function sanitizeHtml(html) {
+const WORD_TAGS = {
+  b: 'strong', i: 'em', font: 'span', h1: 'h2', h5: 'h4', h6: 'h4',
+  u: 'u', s: 's', sub: 'sub', sup: 'sup', caption: 'caption', tfoot: 'tfoot',
+  col: 'col', colgroup: 'colgroup',
+};
+
+const WORD_COLOR = /^(?:#[a-f0-9]{3}(?:[a-f0-9]{3})?|[a-z]{3,20})$/i;
+const WORD_SIZE = /^(?:0|\d{1,4}(?:\.\d{1,2})?(?:px|pt|%|cm|mm|in))$/i;
+const WORD_PADDING = /^(?:0|\d{1,3}(?:\.\d{1,2})?(?:px|pt|%|cm|mm|in))(?:\s+(?:0|\d{1,3}(?:\.\d{1,2})?(?:px|pt|%|cm|mm|in))){0,3}$/i;
+const WORD_BORDER = /^(?:0|none|(?:\d{1,2}(?:\.\d{1,2})?(?:px|pt)\s+)?(?:solid|dotted|dashed|double)(?:\s+#[a-f0-9]{3}(?:[a-f0-9]{3})?)?)$/i;
+const WORD_STYLES = {
+  color: WORD_COLOR,
+  'background-color': WORD_COLOR,
+  'font-size': WORD_SIZE,
+  'font-family': /^[\p{L}\p{N} ,'"_.-]{1,120}$/u,
+  'font-weight': /^(?:normal|bold|[1-9]00)$/,
+  'font-style': /^(?:normal|italic|oblique)$/,
+  'text-decoration': /^(?:none|underline|line-through|underline line-through)$/,
+  'text-align': /^(?:left|right|center|justify)$/,
+  'vertical-align': /^(?:top|middle|bottom|baseline|sub|super)$/,
+  'line-height': /^(?:normal|\d(?:\.\d{1,2})?|\d{1,3}(?:\.\d{1,2})?(?:px|pt|%))$/,
+  width: WORD_SIZE,
+  height: WORD_SIZE,
+  'margin-top': WORD_SIZE,
+  'margin-bottom': WORD_SIZE,
+  'margin-left': WORD_SIZE,
+  'margin-right': WORD_SIZE,
+  'text-indent': WORD_SIZE,
+  padding: WORD_PADDING,
+  border: WORD_BORDER,
+  'border-top': WORD_BORDER,
+  'border-right': WORD_BORDER,
+  'border-bottom': WORD_BORDER,
+  'border-left': WORD_BORDER,
+  'border-collapse': /^(?:collapse|separate)$/,
+  'list-style-type': /^(?:disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman)$/,
+  float: /^(?:left|right|none)$/,
+};
+
+function wordStyles(tag, attributes, css) {
+  const styles = new Map();
+  const add = (property, value) => {
+    if (Object.hasOwn(WORD_STYLES, property) && WORD_STYLES[property].test(value)) {
+      styles.set(property, value);
+    }
+  };
+  const read = (declarations) => {
+    for (const declaration of declarations.split(';')) {
+      const delimiter = declaration.indexOf(':');
+      if (delimiter === -1) continue;
+      add(declaration.slice(0, delimiter).trim().toLowerCase(), declaration.slice(delimiter + 1).trim());
+    }
+  };
+
+  read(css.get(tag) || '');
+  for (const name of (attributes.class || '').toLowerCase().split(/\s+/)) {
+    read(css.get(tag + '.' + name) || '');
+  }
+  add('text-align', attributes.align || '');
+  add('vertical-align', attributes.valign || '');
+  add('background-color', attributes.bgcolor || '');
+  if (tag === 'img') add('float', attributes.align || '');
+  if (['table', 'td', 'th', 'col'].includes(tag)) {
+    const width = attributes.width || '';
+    add('width', /^\d{1,4}$/.test(width) ? width + 'px' : width);
+  }
+  if (tag === 'table') {
+    add('border-collapse', 'collapse');
+  }
+  if (tag === 'font') {
+    add('color', attributes.color || '');
+    add('font-family', attributes.face || '');
+    const sizes = ['8pt', '10pt', '12pt', '14pt', '18pt', '24pt', '36pt'];
+    add('font-size', sizes[Number(attributes.size) - 1] || '');
+  }
+
+  read(attributes.style || '');
+
+  if (tag === 'img') styles.delete('height');
+  return [...styles].map(([property, value]) => property + ':' + value).join(';');
+}
+
+function sanitizeHtml(html, { wordImage, wordCss } = {}) {
   if (!html) return '';
 
   const output = [];
   const blockedStack = [];
 
-  for (const token of tokenizeHtml(html)) {
+  const tokens = wordImage
+    ? String(html).match(/<!--[\s\S]*?-->|<\/?[a-z][^<>"']*(?:(?:"[^"]*"|'[^']*')[^<>"']*)*>|[^<]+|</gi) || []
+    : tokenizeHtml(html);
+
+  for (const token of tokens) {
+    if (wordImage && token.startsWith('<!--')) continue;
     const parsedTag = parseTag(token);
 
     if (!parsedTag) {
       if (blockedStack.length === 0) {
-        output.push(escapeHtml(token));
+        let text = escapeHtml(token);
+        if (wordImage) text = text.replace(/&amp;((?:#[\dxXa-fA-F]+|[a-zA-Z][a-zA-Z0-9]+);)/g, '&$1');
+        output.push(text);
       }
       continue;
     }
@@ -157,13 +246,16 @@ function sanitizeHtml(html) {
       continue;
     }
 
-    if (!ALLOWED_TAGS.has(parsedTag.tagName)) {
+    let tagName = parsedTag.tagName;
+    if (wordImage && Object.hasOwn(WORD_TAGS, tagName)) tagName = WORD_TAGS[tagName];
+    if (!ALLOWED_TAGS.has(tagName) && (!wordImage || !Object.hasOwn(WORD_TAGS, tagName))) {
       continue;
     }
 
     if (parsedTag.isClosing) {
-      if (!VOID_TAGS.has(parsedTag.tagName)) {
-        output.push(`</${parsedTag.tagName}>`);
+      if (!VOID_TAGS.has(tagName) && tagName !== 'col') {
+        output.push(`</${tagName}>`);
+        if (wordImage && tagName === 'table') output.push('</div>');
       }
       continue;
     }
@@ -171,24 +263,44 @@ function sanitizeHtml(html) {
     const sanitizedAttributes = [];
     let hasBlankTarget = false;
 
-    for (const attribute of getAttributes(parsedTag.rawAttributes)) {
+    const attributes = getAttributes(parsedTag.rawAttributes);
+    if (wordImage) {
+      const values = Object.fromEntries(attributes.map(({ name, value }) => [name, value]));
+      if (tagName === 'img') {
+        if (!values.src) continue;
+        sanitizedAttributes.push('data-image-index="' + wordImage(values.src) + '"');
+      }
+      const style = wordStyles(parsedTag.tagName, values, wordCss);
+      if (style) sanitizedAttributes.push('style="' + escapeAttribute(style) + '"');
+      if (tagName === 'ol' && /^\d{1,5}$/.test(values.start || '')) {
+        sanitizedAttributes.push('start="' + values.start + '"');
+      }
+    }
+
+    for (const attribute of attributes) {
+      if (wordImage && (attribute.name === 'src' || attribute.name === 'data-image-index')) continue;
+      if (wordImage && attribute.name === 'href') {
+        attribute.value = attribute.value.replace(/&amp;/gi, '&');
+        if (!/^(?:https?:\/\/|mailto:|#)/i.test(attribute.value)) continue;
+      }
       if (attribute.name === 'target' && attribute.value.trim() === '_blank') {
         hasBlankTarget = true;
       }
-      const sanitizedAttribute = sanitizeAttribute(parsedTag.tagName, attribute);
+      const sanitizedAttribute = sanitizeAttribute(tagName, attribute);
       if (sanitizedAttribute) {
         sanitizedAttributes.push(sanitizedAttribute);
       }
     }
 
-    if (parsedTag.tagName === 'a' && hasBlankTarget) {
+    if (tagName === 'a' && hasBlankTarget) {
       sanitizedAttributes.push('rel="noopener noreferrer"');
     }
 
+    if (wordImage && tagName === 'table') output.push('<div class="word-table">');
     output.push(
       sanitizedAttributes.length > 0
-        ? `<${parsedTag.tagName} ${sanitizedAttributes.join(' ')}>`
-        : `<${parsedTag.tagName}>`
+        ? `<${tagName} ${sanitizedAttributes.join(' ')}>`
+        : `<${tagName}>`
     );
   }
 

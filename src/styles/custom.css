@@ -411,6 +411,38 @@ header#main-header.scrolled {
 }
 
 /* 記事本文 */
+.word-article {
+  display: flow-root;
+  overflow-wrap: anywhere;
+}
+
+.word-article img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.word-article .word-table {
+  overflow-x: auto;
+  margin-block: 0.75rem;
+}
+
+.word-article td,
+.word-article th {
+  border: 1px solid #d1d5db;
+  padding: 0.25rem 0.5rem;
+}
+
+.word-article ul,
+.word-article ol {
+  padding-inline-start: 1.5em;
+}
+
+.word-article ul { list-style-type: disc; }
+.word-article ol { list-style-type: decimal; }
+.word-article a { text-decoration: underline; }
+
 .prose-custom h2 {
     font-size: 1.875rem;
     color: var(--text-color-heading);

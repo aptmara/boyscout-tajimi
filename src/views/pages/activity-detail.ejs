@@ -92,7 +92,7 @@
                   <% } %>
 
                     <!-- Content -->
-                    <div class="prose max-w-none prose-custom leading-relaxed">
+                    <div class="prose max-w-none <%= item.content?.startsWith('<div class="word-article">') ? 'leading-normal' : 'prose-custom leading-relaxed' %>">
                       <%- item.content %>
                     </div>
 

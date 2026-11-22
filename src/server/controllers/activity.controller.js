@@ -243,21 +243,42 @@ const deleteActivity = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-const { processImages } = require('../utils/imageDownloader');
+const { deleteImages, processImages } = require('../utils/imageDownloader');
+const { convertWordToHtml, WordImportError } = require('../utils/word-to-html');
 
 const activityWebhook = asyncHandler(async (req, res) => {
   const safeBody = sanitizePayload(req.body || {});
-  const { title, content, images, category, unit, tags, activity_date } = safeBody;
-  if (!title || !content) return res.status(400).json({ error: 'invalid_payload' });
+  const { title, content, images, category, unit, tags, activity_date, docx } = safeBody;
+  const hasWord = Object.hasOwn(safeBody, 'docx');
+  if (!title || (!content && !hasWord)) return res.status(400).json({ error: 'invalid_payload' });
 
-  const rawImages = Array.isArray(images) ? images : [];
+  const ad = activity_date ? new Date(activity_date) : null;
+  if (hasWord && ad && Number.isNaN(ad.getTime())) {
+    return res.status(400).json({ error: 'invalid_activity_date' });
+  }
 
-  // 画像をローカルに保存（Base64→ファイル）
+  let articleContent = content;
+  let rawImages = Array.isArray(images) ? images : [];
+  if (hasWord) {
+    try {
+      const converted = await convertWordToHtml(docx);
+      articleContent = converted.content;
+      rawImages = converted.images;
+    } catch (error) {
+      if (!(error instanceof WordImportError)) throw error;
+      return res.status(error.status).json({ error: error.message });
+    }
+  }
+
   const imgs = await processImages(rawImages);
+  if (hasWord && imgs.length !== rawImages.length) {
+    await deleteImages(imgs);
+    return res.status(422).json({ error: 'docx_image_save_failed' });
+  }
 
   // contentの画像プレースホルダーを実際の画像URLに置換
   // GAS側: <img data-image-index="N" ...> → <img src="/uploads/images/xxx.webp" ...>
-  let processedContent = String(content);
+  let processedContent = String(articleContent);
   processedContent = processedContent.replace(
     /<img\s+data-image-index="(\d+)"([^>]*)>/gi,
     (match, indexStr, rest) => {
@@ -273,13 +294,26 @@ const activityWebhook = asyncHandler(async (req, res) => {
   const cat = (category && String(category).trim()) || '未分類';
   const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
-  const ad = activity_date ? new Date(activity_date) : null;
-
-  await db.query(
-    `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
-     VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))`,
-    [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad]
-  );
+  const params = [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad];
+  try {
+    if (hasWord && db.useSqlite) {
+      params[6] = ad && ad.toISOString();
+      await db.query(
+        `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
+         VALUES($1, $2, $3, $4, $5, $6, $7, COALESCE($8, CURRENT_TIMESTAMP))`,
+        [...params, params[6]]
+      );
+    } else {
+      await db.query(
+        `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
+         VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))`,
+        params
+      );
+    }
+  } catch (error) {
+    if (hasWord) await deleteImages(imgs);
+    throw error;
+  }
   return res.status(201).json({ ok: true });
 });
 

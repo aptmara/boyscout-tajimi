@@ -87,6 +87,7 @@ const FIELDS = {
 
     // Activity専用
     ACTIVITY_DATE: '活動日',
+    WORD_FILE: 'Wordファイル',
 
     // Docs連携
     DOC_TITLE: '記事タイトル',
@@ -148,7 +149,10 @@ function handleFormSubmit(e, type) {
         const isDocForm = !!formData[FIELDS.DOC_LINK];
         let payload;
 
-        if (isDocForm) {
+        const wordFiles = type === 'ACTIVITY' ? formData[FIELDS.WORD_FILE] : null;
+        if (wordFiles?.length) {
+            payload = buildWordPayloadFromData(formData, wordFiles);
+        } else if (isDocForm) {
             payload = buildDocPayloadFromData(e, formData);
         } else {
             payload = buildSimplePayloadFromData(e, formData);
@@ -177,7 +181,7 @@ function handleFormSubmit(e, type) {
         }
 
         // 必須フィールド検証（サーバー側と同じ条件）
-        if (!payload.title || !payload.content) {
+        if (!payload.title || (!payload.content && !payload.docx)) {
             log('ERROR', `title または content が空: title="${payload.title}", contentLen=${(payload.content || '').length}`);
             return;
         }
@@ -260,6 +264,30 @@ function buildSimplePayloadFromData(e, formData) {
         category: category,
         unit: unit,
         tags: tags ? tags.split(/[,、\s]+/).filter(Boolean) : []
+    };
+}
+
+/**
+ * Word添付ペイロード（FormDataから）
+ */
+function buildWordPayloadFromData(formData, fileIds) {
+    if (fileIds.length !== 1) {
+        throw new Error('Wordファイルは1件だけ添付してください');
+    }
+
+    const file = DriveApp.getFileById(fileIds[0]);
+    if (!/\.docx$/i.test(file.getName()) || file.getSize() > 10 * 1024 * 1024) {
+        throw new Error('10 MB以内の .docx を添付してください');
+    }
+
+    const units = formData[FIELDS.UNIT] || [];
+    const tags = formData[FIELDS.TAGS] || '';
+    return {
+        title: formData[FIELDS.TITLE] || formData[FIELDS.DOC_TITLE] || '',
+        category: formData[FIELDS.CATEGORY] || null,
+        unit: normalizeUnits(Array.isArray(units) ? units : [units]),
+        tags: tags.split(/[,、\s]+/).filter(Boolean),
+        docx: Utilities.base64Encode(file.getBlob().getBytes())
     };
 }
 
