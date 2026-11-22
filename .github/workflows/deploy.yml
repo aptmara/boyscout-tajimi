@@ -125,15 +125,18 @@ jobs:
                     mv runtime "$WORD_RUNTIME"
                   )
                 fi
-                if [[ ! -x "$WORD_RUNTIME/bin/soffice" ]]; then
+                if [[ ! -f "$WORD_RUNTIME/deps/.ubuntu-writer-libraries" ]]; then
                   WORD_DEPS="$(mktemp -d "$(dirname "$WORD_RUNTIME")/word-deps.XXXXXX")"
                   trap 'rm -rf -- "${WORD_STAGE:-}" "$WORD_DEPS"' EXIT
                   mkdir -p "$WORD_DEPS"/{lists/partial,cache,debs}
                   APT_PATHS=(-o "Dir::State::lists=$WORD_DEPS/lists" -o "Dir::Cache=$WORD_DEPS/cache")
                   apt-get "${APT_PATHS[@]}" update
+                  WORD_PACKAGE_PLAN="$(apt-get "${APT_PATHS[@]}" --simulate --no-install-recommends install libreoffice-writer fonts-noto-cjk)"
+                  mapfile -t WORD_PACKAGES < <(printf '%s\n' "$WORD_PACKAGE_PLAN" |
+                    awk '$1 == "Inst" && $2 !~ /^(libreoffice|libuno|uno|ure|python3-uno)/ {print $2}')
                   (
                     cd "$WORD_DEPS/debs"
-                    apt-get "${APT_PATHS[@]}" download libxinerama1 libxrandr2 libx11-xcb1 libsm6 libice6 libxrender1 libxext6 libgl1 libglu1-mesa libxfixes3 libxdamage1 libxcursor1 libxi6 libxt6t64 fonts-noto-cjk
+                    apt-get "${APT_PATHS[@]}" download libcairo2 libxinerama1 libxrandr2 "${WORD_PACKAGES[@]}"
                     mkdir -p "$WORD_RUNTIME/deps"
                     for package in *.deb; do
                       dpkg-deb -x "$package" "$WORD_RUNTIME/deps"
@@ -146,8 +149,12 @@ jobs:
                     'export LD_LIBRARY_PATH="$runtime/deps/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"' \
                     'exec "$runtime/opt/libreoffice26.2/program/soffice" "$@"' > "$WORD_RUNTIME/bin/soffice"
                   chmod +x "$WORD_RUNTIME/bin/soffice"
+                  touch "$WORD_RUNTIME/deps/.ubuntu-writer-libraries"
                 fi
                 export PATH="$WORD_RUNTIME/bin:$PATH"
+                LD_LIBRARY_PATH="$WORD_RUNTIME/deps/usr/lib/x86_64-linux-gnu" \
+                  ldd "$WORD_PROGRAM/oosplash" "$WORD_PROGRAM/soffice.bin" "$WORD_PROGRAM/libmergedlo.so" |
+                  awk '/not found/ {print}'
               fi
               soffice --version
               
