@@ -103,6 +103,13 @@ jobs:
               cd /var/www/boyscout-tajimi
               NPM_CI_FAILED=0
               DEPS_CHANGED=0
+
+              # Word添付の変換に使うLibreOffice WriterをVPS上で確認
+              if ! command -v soffice >/dev/null; then
+                sudo -n apt-get update
+                sudo -n apt-get install -y --no-install-recommends libreoffice-writer fonts-noto-cjk
+              fi
+              soffice --version
               
               # Step 1: Git fetch
               echo ""
@@ -140,6 +147,7 @@ jobs:
               echo ""
               echo "🔨 [3/5] ビルド実行中..."
               npm run build
+              TEST_LIBREOFFICE=1 node --test test/word-import.test.js
               echo "   ✅ ビルド完了"
               
               # Step 4: PM2 restart
