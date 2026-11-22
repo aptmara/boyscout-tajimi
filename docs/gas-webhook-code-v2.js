@@ -88,10 +88,19 @@ const FIELDS = {
     // Activity専用
     ACTIVITY_DATE: '活動日',
     WORD_FILE: 'Wordファイル',
+    EXCEL_FILE: 'Excelファイル',
+    PDF_FILE: 'PDFファイル',
 
     // Docs連携
     DOC_TITLE: '記事タイトル',
     DOC_LINK: 'Googleドキュメントの共有リンク'
+};
+
+// 添付ファイルの種類（ペイロードのキー → フォームの質問・拡張子）
+const UPLOAD_KINDS = {
+    docx: { field: FIELDS.WORD_FILE, label: 'Word', pattern: /\.docx$/i },
+    xlsx: { field: FIELDS.EXCEL_FILE, label: 'Excel', pattern: /\.xlsx$/i },
+    pdf: { field: FIELDS.PDF_FILE, label: 'PDF', pattern: /\.pdf$/i }
 };
 
 // ============================================================================
@@ -149,9 +158,16 @@ function handleFormSubmit(e, type) {
         const isDocForm = !!formData[FIELDS.DOC_LINK];
         let payload;
 
-        const wordFiles = type === 'ACTIVITY' ? formData[FIELDS.WORD_FILE] : null;
-        if (wordFiles?.length) {
-            payload = buildWordPayloadFromData(formData, wordFiles);
+        // 添付ファイル（ACTIVITYのみ）: ファイルが入っている欄を採用する
+        const uploadKinds = type === 'ACTIVITY'
+            ? Object.keys(UPLOAD_KINDS).filter(kind => formData[UPLOAD_KINDS[kind].field]?.length)
+            : [];
+        if (uploadKinds.length > 1) {
+            throw new Error('Word・Excel・PDF のどれか1つだけ添付してください');
+        }
+        const uploadKind = uploadKinds[0];
+        if (uploadKind) {
+            payload = buildFilePayloadFromData(formData, uploadKind);
         } else if (isDocForm) {
             payload = buildDocPayloadFromData(e, formData);
         } else {
@@ -181,7 +197,7 @@ function handleFormSubmit(e, type) {
         }
 
         // 必須フィールド検証（サーバー側と同じ条件）
-        if (!payload.title || (!payload.content && !payload.docx)) {
+        if (!payload.title || (!payload.content && !payload.docx && !payload.xlsx && !payload.pdf)) {
             log('ERROR', `title または content が空: title="${payload.title}", contentLen=${(payload.content || '').length}`);
             return;
         }
@@ -268,27 +284,31 @@ function buildSimplePayloadFromData(e, formData) {
 }
 
 /**
- * Word添付ペイロード（FormDataから）
+ * ファイル添付ペイロード（FormDataから）
+ * kind: 'docx' | 'xlsx' | 'pdf'（ペイロードのキーにもなる）
  */
-function buildWordPayloadFromData(formData, fileIds) {
+function buildFilePayloadFromData(formData, kind) {
+    const upload = UPLOAD_KINDS[kind];
+    const fileIds = formData[upload.field];
     if (fileIds.length !== 1) {
-        throw new Error('Wordファイルは1件だけ添付してください');
+        throw new Error(upload.label + 'ファイルは1件だけ添付してください');
     }
 
     const file = DriveApp.getFileById(fileIds[0]);
-    if (!/\.docx$/i.test(file.getName()) || file.getSize() > 10 * 1024 * 1024) {
-        throw new Error('10 MB以内の .docx を添付してください');
+    if (!upload.pattern.test(file.getName()) || file.getSize() > 10 * 1024 * 1024) {
+        throw new Error('10 MB以内の .' + kind + ' を添付してください');
     }
 
     const units = formData[FIELDS.UNIT] || [];
     const tags = formData[FIELDS.TAGS] || '';
-    return {
+    const payload = {
         title: formData[FIELDS.TITLE] || formData[FIELDS.DOC_TITLE] || '',
         category: formData[FIELDS.CATEGORY] || null,
         unit: normalizeUnits(Array.isArray(units) ? units : [units]),
-        tags: tags.split(/[,、\s]+/).filter(Boolean),
-        docx: Utilities.base64Encode(file.getBlob().getBytes())
+        tags: tags.split(/[,、\s]+/).filter(Boolean)
     };
+    payload[kind] = Utilities.base64Encode(file.getBlob().getBytes());
+    return payload;
 }
 
 /**

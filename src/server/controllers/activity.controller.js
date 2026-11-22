@@ -244,24 +244,31 @@ const deleteActivity = asyncHandler(async (req, res) => {
 });
 
 const { deleteImages, processImages } = require('../utils/imageDownloader');
-const { convertWordToHtml, WordImportError } = require('../utils/word-to-html');
+const { convertWordToHtml } = require('../utils/word-to-html');
+const { WordImportError, convertExcelToHtml, convertPdfToHtml } = require('../utils/document-import');
+
+// ファイル添付（Base64）のキーと変換関数
+const FILE_CONVERTERS = { docx: convertWordToHtml, xlsx: convertExcelToHtml, pdf: convertPdfToHtml };
 
 const activityWebhook = asyncHandler(async (req, res) => {
   const safeBody = sanitizePayload(req.body || {});
-  const { title, content, images, category, unit, tags, activity_date, docx } = safeBody;
-  const hasWord = Object.hasOwn(safeBody, 'docx');
-  if (!title || (!content && !hasWord)) return res.status(400).json({ error: 'invalid_payload' });
+  const { title, content, images, category, unit, tags, activity_date } = safeBody;
+  const fileKeys = Object.keys(FILE_CONVERTERS).filter((key) => Object.hasOwn(safeBody, key));
+  if (fileKeys.length > 1) return res.status(400).json({ error: 'multiple_files' });
+  const fileKey = fileKeys[0];
+  const hasFile = Boolean(fileKey);
+  if (!title || (!content && !hasFile)) return res.status(400).json({ error: 'invalid_payload' });
 
   const ad = activity_date ? new Date(activity_date) : null;
-  if (hasWord && ad && Number.isNaN(ad.getTime())) {
+  if (hasFile && ad && Number.isNaN(ad.getTime())) {
     return res.status(400).json({ error: 'invalid_activity_date' });
   }
 
   let articleContent = content;
   let rawImages = Array.isArray(images) ? images : [];
-  if (hasWord) {
+  if (hasFile) {
     try {
-      const converted = await convertWordToHtml(docx);
+      const converted = await FILE_CONVERTERS[fileKey](safeBody[fileKey]);
       articleContent = converted.content;
       rawImages = converted.images;
     } catch (error) {
@@ -271,9 +278,9 @@ const activityWebhook = asyncHandler(async (req, res) => {
   }
 
   const imgs = await processImages(rawImages);
-  if (hasWord && imgs.length !== rawImages.length) {
+  if (hasFile && imgs.length !== rawImages.length) {
     await deleteImages(imgs);
-    return res.status(422).json({ error: 'docx_image_save_failed' });
+    return res.status(422).json({ error: fileKey + '_image_save_failed' });
   }
 
   // contentの画像プレースホルダーを実際の画像URLに置換
@@ -296,7 +303,7 @@ const activityWebhook = asyncHandler(async (req, res) => {
   const tgs = normalizeTags(tags);
   const params = [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad];
   try {
-    if (hasWord && db.useSqlite) {
+    if (hasFile && db.useSqlite) {
       params[6] = ad && ad.toISOString();
       await db.query(
         `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
@@ -311,7 +318,7 @@ const activityWebhook = asyncHandler(async (req, res) => {
       );
     }
   } catch (error) {
-    if (hasWord) await deleteImages(imgs);
+    if (hasFile) await deleteImages(imgs);
     throw error;
   }
   return res.status(201).json({ ok: true });

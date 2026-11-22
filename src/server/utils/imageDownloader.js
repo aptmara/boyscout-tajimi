@@ -149,10 +149,13 @@ async function saveBase64Image(img) {
         const filepath = path.join(UPLOAD_DIR, filename);
         const relativePath = `/uploads/webhook/${filename}`;
 
-        // Sharp で WebP変換・リサイズ
+        // Sharp で WebP変換・リサイズ（PDFのページ画像は文字が読める解像度を保つ）
+        const isPdfPage = img.kind === 'pdf-page';
         await sharp(buffer)
-            .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: 60 })
+            .resize(isPdfPage
+                ? { width: 1400, withoutEnlargement: true }
+                : { width: 1280, height: 720, fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: isPdfPage ? 80 : 60 })
             .toFile(filepath);
 
         console.log(`[ImageDownload] Saved base64 (WebP): ${relativePath}`);

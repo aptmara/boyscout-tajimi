@@ -104,34 +104,41 @@ jobs:
               NPM_CI_FAILED=0
               DEPS_CHANGED=0
 
-              # システムにない場合は、公式配布版をdeployユーザー内に配置する
-              if ! command -v soffice >/dev/null; then
-                WORD_RUNTIME="$HOME/.local/share/boyscout-tajimi/libreoffice-26.2.7"
-                WORD_PROGRAM="$WORD_RUNTIME/opt/libreoffice26.2/program"
-                if [[ ! -x "$WORD_PROGRAM/soffice" ]]; then
-                  mkdir -p "$(dirname "$WORD_RUNTIME")"
-                  WORD_STAGE="$(mktemp -d "$(dirname "$WORD_RUNTIME")/word-install.XXXXXX")"
-                  trap 'rm -rf -- "$WORD_STAGE"' EXIT
-                  WORD_ARCHIVE="LibreOffice_26.2.7_Linux_x86-64_deb.tar.gz"
-                  curl -fsSL --max-time 180 "https://download.documentfoundation.org/libreoffice/stable/26.2.7/deb/x86_64/$WORD_ARCHIVE" -o "$WORD_STAGE/$WORD_ARCHIVE"
-                  (
-                    cd "$WORD_STAGE"
-                    echo "8cd04a88396a9230264ff784ec89cc090cbfd0960c192483ba2b80fa53939416  $WORD_ARCHIVE" | sha256sum -c -
-                    tar -xzf "$WORD_ARCHIVE"
-                    mkdir runtime
-                    for package in LibreOffice_*/DEBS/*.deb; do
-                      dpkg-deb -x "$package" runtime
-                    done
-                    mv runtime "$WORD_RUNTIME"
-                  )
-                fi
-                if [[ ! -f "$WORD_RUNTIME/deps/.ubuntu-writer-libraries" ]]; then
+              # システムにない場合は、LibreOffice(公式配布版)とpoppler(Ubuntuのdeb)をdeployユーザー内に配置する
+              WORD_RUNTIME="$HOME/.local/share/boyscout-tajimi/libreoffice-26.2.7"
+              WORD_PROGRAM="$WORD_RUNTIME/opt/libreoffice26.2/program"
+              NEED_SOFFICE=0
+              NEED_POPPLER=0
+              command -v soffice >/dev/null || NEED_SOFFICE=1
+              command -v pdftoppm >/dev/null || NEED_POPPLER=1
+              if [[ "$NEED_SOFFICE" = 1 || "$NEED_POPPLER" = 1 ]]; then
+                mkdir -p "$(dirname "$WORD_RUNTIME")"
+              fi
+              if [[ "$NEED_SOFFICE" = 1 && ! -x "$WORD_PROGRAM/soffice" ]]; then
+                WORD_STAGE="$(mktemp -d "$(dirname "$WORD_RUNTIME")/word-install.XXXXXX")"
+                trap 'rm -rf -- "$WORD_STAGE"' EXIT
+                WORD_ARCHIVE="LibreOffice_26.2.7_Linux_x86-64_deb.tar.gz"
+                curl -fsSL --max-time 180 "https://download.documentfoundation.org/libreoffice/stable/26.2.7/deb/x86_64/$WORD_ARCHIVE" -o "$WORD_STAGE/$WORD_ARCHIVE"
+                (
+                  cd "$WORD_STAGE"
+                  echo "8cd04a88396a9230264ff784ec89cc090cbfd0960c192483ba2b80fa53939416  $WORD_ARCHIVE" | sha256sum -c -
+                  tar -xzf "$WORD_ARCHIVE"
+                  mkdir runtime
+                  for package in LibreOffice_*/DEBS/*.deb; do
+                    dpkg-deb -x "$package" runtime
+                  done
+                  mkdir -p "$WORD_RUNTIME"
+                  cp -a runtime/. "$WORD_RUNTIME/"
+                )
+              fi
+              if [[ "$NEED_SOFFICE" = 1 || "$NEED_POPPLER" = 1 ]]; then
+                if [[ ! -f "$WORD_RUNTIME/deps/.ubuntu-office-libraries" ]]; then
                   WORD_DEPS="$(mktemp -d "$(dirname "$WORD_RUNTIME")/word-deps.XXXXXX")"
                   trap 'rm -rf -- "${WORD_STAGE:-}" "$WORD_DEPS"' EXIT
                   mkdir -p "$WORD_DEPS"/{lists/partial,cache,debs}
                   APT_PATHS=(-o "Dir::State::lists=$WORD_DEPS/lists" -o "Dir::Cache=$WORD_DEPS/cache")
                   apt-get "${APT_PATHS[@]}" update
-                  WORD_PACKAGE_PLAN="$(apt-get "${APT_PATHS[@]}" --simulate --no-install-recommends install libreoffice-writer fonts-noto-cjk)"
+                  WORD_PACKAGE_PLAN="$(apt-get "${APT_PATHS[@]}" --simulate --no-install-recommends install libreoffice-writer libreoffice-calc poppler-utils fonts-noto-cjk)"
                   mapfile -t WORD_PACKAGES < <(printf '%s\n' "$WORD_PACKAGE_PLAN" |
                     awk '$1 == "Inst" && $2 !~ /^(libreoffice|libuno|uno|ure|python3-uno)/ {print $2}')
                   (
@@ -144,19 +151,35 @@ jobs:
                   )
                   mkdir -p "$WORD_RUNTIME/bin" "$HOME/.local/share/fonts"
                   ln -sfn "$WORD_RUNTIME/deps/usr/share/fonts/opentype/noto" "$HOME/.local/share/fonts/boyscout-word"
+                  touch "$WORD_RUNTIME/deps/.ubuntu-office-libraries"
+                fi
+                # ラッパーは毎回作り直す（マーカーに依存しない）
+                mkdir -p "$WORD_RUNTIME/bin"
+                if [[ "$NEED_SOFFICE" = 1 ]]; then
                   printf '%s\n' '#!/bin/sh' \
                     'runtime="$(CDPATH="" cd -- "$(dirname -- "$0")/.." && pwd)"' \
                     'export LD_LIBRARY_PATH="$runtime/deps/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"' \
                     'exec "$runtime/opt/libreoffice26.2/program/soffice" "$@"' > "$WORD_RUNTIME/bin/soffice"
                   chmod +x "$WORD_RUNTIME/bin/soffice"
-                  touch "$WORD_RUNTIME/deps/.ubuntu-writer-libraries"
+                fi
+                if [[ "$NEED_POPPLER" = 1 ]]; then
+                  for tool in pdftoppm pdftotext pdfinfo; do
+                    printf '%s\n' '#!/bin/sh' \
+                      'runtime="$(CDPATH="" cd -- "$(dirname -- "$0")/.." && pwd)"' \
+                      'export LD_LIBRARY_PATH="$runtime/deps/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"' \
+                      "exec \"\$runtime/deps/usr/bin/$tool\" \"\$@\"" > "$WORD_RUNTIME/bin/$tool"
+                    chmod +x "$WORD_RUNTIME/bin/$tool"
+                  done
                 fi
                 export PATH="$WORD_RUNTIME/bin:$PATH"
+              fi
+              if [[ "$NEED_SOFFICE" = 1 ]]; then
                 LD_LIBRARY_PATH="$WORD_RUNTIME/deps/usr/lib/x86_64-linux-gnu" \
                   ldd "$WORD_PROGRAM/oosplash" "$WORD_PROGRAM/soffice.bin" "$WORD_PROGRAM/libmergedlo.so" |
                   awk '/not found/ {print}'
               fi
               soffice --version
+              pdftoppm -v
               
               # Step 1: Git fetch
               echo ""
@@ -194,7 +217,7 @@ jobs:
               echo ""
               echo "🔨 [3/5] ビルド実行中..."
               npm run build
-              TEST_LIBREOFFICE=1 node --test test/word-import.test.js
+              TEST_LIBREOFFICE=1 node --test test/word-import.test.js test/document-import.test.js
               echo "   ✅ ビルド完了"
               
               # Step 4: PM2 restart

@@ -328,6 +328,7 @@ function sanitizePayload(payload, fields = ['title', 'content', 'category', 'uni
 }
 
 module.exports = {
+  escapeHtml,
   sanitizeHtml,
   sanitizePlainText,
   sanitizePayload,

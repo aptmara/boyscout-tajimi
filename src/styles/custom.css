@@ -443,6 +443,61 @@ header#main-header.scrolled {
 .word-article ol { list-style-type: decimal; }
 .word-article a { text-decoration: underline; }
 
+/* Excel取り込み: 表を読みやすく */
+.word-article .excel-article h3 {
+  margin-block: 1.5rem 0.5rem;
+  font-weight: 700;
+}
+
+.word-article .excel-article table {
+  font-size: 0.9rem;
+}
+
+.word-article .excel-article td {
+  white-space: nowrap;
+}
+
+/* PDF取り込み: ページ画像とテキスト */
+.word-article .pdf-article .pdf-page {
+  display: block;
+  margin-block: 1rem;
+}
+
+.word-article .pdf-article .pdf-page img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
+}
+
+.word-article .pdf-article .pdf-text {
+  margin-block: 1.5rem;
+}
+
+.word-article .pdf-article .pdf-text summary {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.word-article .pdf-article .pdf-text summary:hover {
+  background-color: #f3f4f6;
+}
+
+.word-article .pdf-article .pdf-text section {
+  margin-top: 1rem;
+}
+
+.word-article .pdf-article .pdf-text h4 {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
 .prose-custom h2 {
     font-size: 1.875rem;
     color: var(--text-color-heading);
