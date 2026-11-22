@@ -104,10 +104,28 @@ jobs:
               NPM_CI_FAILED=0
               DEPS_CHANGED=0
 
-              # Word添付の変換に使うLibreOffice WriterをVPS上で確認
+              # システムにない場合は、公式配布版をdeployユーザー内に配置する
               if ! command -v soffice >/dev/null; then
-                sudo -n apt-get update
-                sudo -n apt-get install -y --no-install-recommends libreoffice-writer fonts-noto-cjk
+                WORD_RUNTIME="$HOME/.local/share/boyscout-tajimi/libreoffice-26.2.7"
+                WORD_PROGRAM="$WORD_RUNTIME/opt/libreoffice26.2/program"
+                if [[ ! -x "$WORD_PROGRAM/soffice" ]]; then
+                  mkdir -p "$(dirname "$WORD_RUNTIME")"
+                  WORD_STAGE="$(mktemp -d "$(dirname "$WORD_RUNTIME")/word-install.XXXXXX")"
+                  trap 'rm -rf -- "$WORD_STAGE"' EXIT
+                  WORD_ARCHIVE="LibreOffice_26.2.7_Linux_x86-64_deb.tar.gz"
+                  curl -fsSL --max-time 180 "https://download.documentfoundation.org/libreoffice/stable/26.2.7/deb/x86_64/$WORD_ARCHIVE" -o "$WORD_STAGE/$WORD_ARCHIVE"
+                  (
+                    cd "$WORD_STAGE"
+                    echo "8cd04a88396a9230264ff784ec89cc090cbfd0960c192483ba2b80fa53939416  $WORD_ARCHIVE" | sha256sum -c -
+                    tar -xzf "$WORD_ARCHIVE"
+                    mkdir runtime
+                    for package in LibreOffice_*/DEBS/*.deb; do
+                      dpkg-deb -x "$package" runtime
+                    done
+                    mv runtime "$WORD_RUNTIME"
+                  )
+                fi
+                export PATH="$WORD_PROGRAM:$PATH"
               fi
               soffice --version
               
