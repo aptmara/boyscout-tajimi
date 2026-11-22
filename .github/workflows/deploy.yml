@@ -225,6 +225,8 @@ jobs:
                 echo "::endgroup::"
                 exit 1
               fi
+
+              node tools/verify-word-webhook.js
               
               DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
               echo ""
