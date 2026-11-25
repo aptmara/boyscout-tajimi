@@ -1,6 +1,7 @@
 const db = require('../database.js');
 const { normalizeSlug, normalizeTags, normalizeUnits } = require('../utils/formatters.js');
 const { sanitizePayload } = require('../utils/simple-sanitizer.js');
+const { getClientIP, withAuditTransaction } = require('../middleware/audit.middleware');
 
 const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -151,13 +152,25 @@ const createActivity = asyncHandler(async (req, res) => {
   const urls = Array.isArray(images) ? images : [];
   const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
-  const { rows } = await db.query(
-    `INSERT INTO activities(title, content, category, unit, tags, activity_date, image_urls, display_date)
-     VALUES($1, $2, $3, $4, $5:: jsonb, $6, $7:: jsonb, COALESCE($6, CURRENT_TIMESTAMP))
-     RETURNING id`,
-    [title, content, category, uni, JSON.stringify(tgs), activity_date, JSON.stringify(urls)]
-  );
-  res.status(201).json({ id: rows[0].id, message: 'Created' });
+  const created = await withAuditTransaction({
+    action: 'activity_created',
+    username: req.session?.user?.username || 'unknown',
+    ipAddress: getClientIP(req),
+    details: ({ id }) => JSON.stringify({ resource: 'activity', id, title })
+  }, async (query) => {
+    const sql = db.useSqlite
+      ? `INSERT INTO activities(title, content, category, unit, tags, activity_date, image_urls, display_date)
+         VALUES($1, $2, $3, $4, $5, $6, $7, COALESCE($6, CURRENT_TIMESTAMP))
+         RETURNING id`
+      : `INSERT INTO activities(title, content, category, unit, tags, activity_date, image_urls, display_date)
+         VALUES($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb, COALESCE($6, CURRENT_TIMESTAMP))
+         RETURNING id`;
+    const { rows } = await query(sql, [
+      title, content, category, uni, JSON.stringify(tgs), activity_date, JSON.stringify(urls)
+    ]);
+    return { id: rows[0].id };
+  });
+  res.status(201).json({ id: created.id, message: 'Created' });
 });
 
 const updateActivity = asyncHandler(async (req, res) => {
@@ -217,27 +230,37 @@ const updateActivity = asyncHandler(async (req, res) => {
 });
 
 const deleteActivity = asyncHandler(async (req, res) => {
-  // 削除前に画像URLを取得
-  const { rows } = await db.query(
-    `SELECT image_urls FROM activities WHERE id = $1`,
-    [req.params.id]
-  );
+  const deleted = await withAuditTransaction({
+    action: 'activity_deleted',
+    username: req.session?.user?.username || 'unknown',
+    ipAddress: getClientIP(req),
+    details: ({ item }) => JSON.stringify({ resource: 'activity', id: item.id, title: item.title })
+  }, async (query) => {
+    const selectSql = db.useSqlite
+      ? 'SELECT id, title, image_urls FROM activities WHERE id = $1'
+      : 'SELECT id, title, image_urls FROM activities WHERE id = $1 FOR UPDATE';
+    const { rows } = await query(selectSql, [req.params.id]);
+    if (rows.length === 0) return null;
 
-  const { rowCount } = await db.query(
-    `DELETE FROM activities WHERE id = $1`,
-    [req.params.id]
-  );
-  if (rowCount === 0) return res.status(404).json({ error: 'Activity not found' });
+    const { rowCount } = await query('DELETE FROM activities WHERE id = $1', [req.params.id]);
+    if (rowCount === 0) return null;
+    return { item: rows[0] };
+  });
+  if (!deleted) return res.status(404).json({ error: 'Activity not found' });
 
   // 関連画像を削除（バックグラウンド）
-  if (rows.length > 0 && rows[0].image_urls) {
-    const { deleteImages } = require('../utils/imageDownloader');
-    const imageUrls = Array.isArray(rows[0].image_urls)
-      ? rows[0].image_urls
-      : [];
-    deleteImages(imageUrls).catch(err =>
-      console.error('[DeleteActivity] Image cleanup failed:', err)
-    );
+  if (deleted.item.image_urls) {
+    let imageUrls = [];
+    if (Array.isArray(deleted.item.image_urls)) {
+      imageUrls = deleted.item.image_urls;
+    } else if (typeof deleted.item.image_urls === 'string') {
+      try {
+        imageUrls = JSON.parse(deleted.item.image_urls);
+      } catch {
+        imageUrls = [];
+      }
+    }
+    deleteImages(imageUrls).catch(err => console.error('[DeleteActivity] Image cleanup failed:', err));
   }
 
   res.status(204).send();
@@ -268,20 +291,23 @@ const activityWebhook = asyncHandler(async (req, res) => {
   const tgs = normalizeTags(tags);
   const params = [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs), ad];
   try {
-    if (hasFile && db.useSqlite) {
-      params[6] = ad && ad.toISOString();
-      await db.query(
-        `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
-         VALUES($1, $2, $3, $4, $5, $6, $7, COALESCE($8, CURRENT_TIMESTAMP))`,
-        [...params, params[6]]
-      );
-    } else {
-      await db.query(
-        `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
-         VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))`,
-        params
-      );
-    }
+    if (db.useSqlite) params[6] = ad && ad.toISOString();
+    await withAuditTransaction({
+      action: 'activity_created',
+      username: 'webhook',
+      ipAddress: getClientIP(req),
+      details: ({ id }) => JSON.stringify({ resource: 'activity', id, title: String(title) })
+    }, async (query) => {
+      const sql = db.useSqlite
+        ? `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
+           VALUES($1, $2, $3, $4, $5, $6, $7, COALESCE($7, CURRENT_TIMESTAMP))
+           RETURNING id`
+        : `INSERT INTO activities(title, content, image_urls, category, unit, tags, activity_date, display_date)
+           VALUES($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::timestamp, COALESCE($7::timestamp, CURRENT_TIMESTAMP))
+           RETURNING id`;
+      const { rows } = await query(sql, params);
+      return { id: rows[0].id };
+    });
   } catch (error) {
     if (hasFile) await deleteImages(imgs);
     throw error;

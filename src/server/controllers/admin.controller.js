@@ -154,9 +154,12 @@ const getSummary = async (req, res) => {
  */
 const getAuditLogs = async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const requestedLimit = Number.parseInt(req.query.limit, 10);
+    const limit = Number.isNaN(requestedLimit)
+      ? 50
+      : Math.max(1, Math.min(requestedLimit, 200));
     const { rows } = await db.query(
-      'SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1',
+      'SELECT id, action, username, ip_address, details, status, created_at FROM audit_logs ORDER BY created_at DESC, id DESC LIMIT $1',
       [limit]
     );
 

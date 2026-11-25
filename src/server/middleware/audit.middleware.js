@@ -9,10 +9,6 @@ const db = require('../database');
  * IPアドレス取得（プロキシ対応）
  */
 function getClientIP(req) {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-        return forwarded.split(',')[0].trim();
-    }
     return req.ip || req.connection?.remoteAddress || 'unknown';
 }
 
@@ -35,6 +31,45 @@ async function logAudit({ action, username, ipAddress, details = '', status = 's
     } catch (err) {
         // ログ記録失敗は致命的ではないが、コンソールには出力
         console.error('[Audit] Failed to log:', err.message, { action, username, ipAddress });
+    }
+}
+
+/**
+ * データ変更と監査ログを同一トランザクションで保存する。
+ * 監査ログを書き込めない場合は、データ変更もロールバックする。
+ */
+async function withAuditTransaction({ action, username, ipAddress, details = '', status = 'success' }, operation) {
+    const client = await db.getClient();
+    let transactionStarted = false;
+
+    try {
+        await client.query('BEGIN');
+        transactionStarted = true;
+
+        const result = await operation((...args) => client.query(...args));
+        if (result !== null) {
+            const auditDetails = typeof details === 'function' ? details(result) : details;
+            await client.query(
+                `INSERT INTO audit_logs (action, username, ip_address, details, status, created_at)
+                 VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+                [action, username, ipAddress, auditDetails, status]
+            );
+        }
+
+        await client.query('COMMIT');
+        transactionStarted = false;
+        return result;
+    } catch (err) {
+        if (transactionStarted) {
+            try {
+                await client.query('ROLLBACK');
+            } catch (rollbackError) {
+                console.error('[Audit] Transaction rollback failed:', rollbackError.message);
+            }
+        }
+        throw err;
+    } finally {
+        client.release();
     }
 }
 
@@ -106,5 +141,6 @@ async function requirePasswordReauth(req, res, next) {
 module.exports = {
     getClientIP,
     logAudit,
+    withAuditTransaction,
     requirePasswordReauth
 };

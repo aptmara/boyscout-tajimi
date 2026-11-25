@@ -2,6 +2,7 @@ const db = require('../database.js');
 const News = require('../models/news.model');
 const { normalizeSlug, normalizeTags, normalizeUnits } = require('../utils/formatters.js');
 const { sanitizePayload } = require('../utils/simple-sanitizer.js');
+const { getClientIP, withAuditTransaction } = require('../middleware/audit.middleware');
 
 // Utility to wrap async route handlers and catch errors
 const asyncHandler = (fn) => (req, res, next) =>
@@ -64,13 +65,26 @@ const createNews = asyncHandler(async (req, res) => {
   const urls = Array.isArray(images) ? images : [];
   const uni = normalizeUnits(unit);
   const tgs = normalizeTags(tags);
-  const { rows } = await db.query(
-    `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
-     VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)
-     RETURNING id`,
-    [title, content, JSON.stringify(urls), category, uni, JSON.stringify(tgs)]
-  );
-  res.status(201).json({ id: rows[0].id, message: 'Created' });
+  const created = await withAuditTransaction({
+    action: 'news_created',
+    username: req.session?.user?.username || 'unknown',
+    ipAddress: getClientIP(req),
+    details: ({ id }) => JSON.stringify({ resource: 'news', id, title })
+  }, async (query) => {
+    const sql = db.useSqlite
+      ? `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+         RETURNING id`
+      : `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+         VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)
+         RETURNING id`;
+    const { rows } = await query(
+      sql,
+      [title, content, JSON.stringify(urls), category, uni, JSON.stringify(tgs)]
+    );
+    return { id: rows[0].id };
+  });
+  res.status(201).json({ id: created.id, message: 'Created' });
 });
 
 const updateNews = asyncHandler(async (req, res) => {
@@ -117,24 +131,36 @@ const updateNews = asyncHandler(async (req, res) => {
 });
 
 const deleteNews = asyncHandler(async (req, res) => {
-  // 削除前に画像URLを取得
-  const { rows } = await db.query(
-    `SELECT image_urls FROM news WHERE id = $1`,
-    [req.params.id]
-  );
+  const deleted = await withAuditTransaction({
+    action: 'news_deleted',
+    username: req.session?.user?.username || 'unknown',
+    ipAddress: getClientIP(req),
+    details: ({ item }) => JSON.stringify({ resource: 'news', id: item.id, title: item.title })
+  }, async (query) => {
+    const selectSql = db.useSqlite
+      ? 'SELECT id, title, image_urls FROM news WHERE id = $1'
+      : 'SELECT id, title, image_urls FROM news WHERE id = $1 FOR UPDATE';
+    const { rows } = await query(selectSql, [req.params.id]);
+    if (rows.length === 0) return null;
 
-  const { rowCount } = await db.query(
-    `DELETE FROM news WHERE id = $1`,
-    [req.params.id]
-  );
-  if (rowCount === 0) return res.status(404).json({ error: 'News not found' });
+    const { rowCount } = await query('DELETE FROM news WHERE id = $1', [req.params.id]);
+    if (rowCount === 0) return null;
+    return { item: rows[0] };
+  });
+  if (!deleted) return res.status(404).json({ error: 'News not found' });
 
   // 関連画像を削除（バックグラウンド）
-  if (rows.length > 0 && rows[0].image_urls) {
-    const { deleteImages } = require('../utils/imageDownloader');
-    const imageUrls = Array.isArray(rows[0].image_urls)
-      ? rows[0].image_urls
-      : [];
+  if (deleted.item.image_urls) {
+    let imageUrls = [];
+    if (Array.isArray(deleted.item.image_urls)) {
+      imageUrls = deleted.item.image_urls;
+    } else if (typeof deleted.item.image_urls === 'string') {
+      try {
+        imageUrls = JSON.parse(deleted.item.image_urls);
+      } catch {
+        imageUrls = [];
+      }
+    }
     deleteImages(imageUrls).catch(err =>
       console.error('[DeleteNews] Image cleanup failed:', err)
     );
@@ -164,11 +190,25 @@ const newsWebhook = asyncHandler(async (req, res) => {
   const tgs = normalizeTags(tags);
 
   try {
-    await db.query(
-      `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
-       VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)`,
-      [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
-    );
+    await withAuditTransaction({
+      action: 'news_created',
+      username: 'webhook',
+      ipAddress: getClientIP(req),
+      details: ({ id }) => JSON.stringify({ resource: 'news', id, title: String(title) })
+    }, async (query) => {
+      const sql = db.useSqlite
+        ? `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+           RETURNING id`
+        : `INSERT INTO news (title, content, image_urls, category, unit, tags, display_date)
+           VALUES ($1, $2, $3::jsonb, $4, $5, $6::jsonb, CURRENT_TIMESTAMP)
+           RETURNING id`;
+      const { rows } = await query(
+        sql,
+        [String(title), processedContent, JSON.stringify(imgs), cat, uni || null, JSON.stringify(tgs)]
+      );
+      return { id: rows[0].id };
+    });
   } catch (error) {
     if (hasFile) await deleteImages(imgs);
     throw error;

@@ -967,12 +967,29 @@
         throw new Error('Failed to fetch audit logs');
       }
       const { logs } = await res.json();
+      const actionLabels = {
+        activity_created: '活動記録を追加',
+        activity_deleted: '活動記録を削除',
+        news_created: 'お知らせを追加',
+        news_deleted: 'お知らせを削除',
+      };
+      const formatDetails = (details) => {
+        if (!details) return '-';
+        try {
+          const data = JSON.parse(details);
+          const resource = data.resource === 'activity' ? '活動記録' : data.resource === 'news' ? 'お知らせ' : data.resource;
+          const target = [resource, data.id ? `#${data.id}` : '', data.title || ''].filter(Boolean).join(' ');
+          return utils.escapeHtml(target || details);
+        } catch {
+          return utils.escapeHtml(details);
+        }
+      };
 
       root.innerHTML = `
-      < div class="view-section" >
+      <div class="view-section">
         <div class="card">
           <div class="card-header">
-            <h2>セキュリティログ（直近100件）</h2>
+            <h2>操作ログ（直近100件）</h2>
           </div>
           <table class="data-table">
             <thead>
@@ -988,21 +1005,22 @@
             <tbody>
               ${logs.length === 0 ? '<tr><td colspan="6" style="text-align:center;">ログがありません</td></tr>' : logs.map(log => `
                   <tr>
-                    <td>${utils.formatDate(log.created_at)}</td>
-                    <td><code>${utils.escapeHtml(log.action)}</code></td>
+                    <td>${utils.escapeHtml(utils.formatDate(log.created_at))}</td>
+                    <td><code>${utils.escapeHtml(actionLabels[log.action] || log.action)}</code></td>
                     <td>${utils.escapeHtml(log.username || '-')}</td>
                     <td><code>${utils.escapeHtml(log.ip_address || '-')}</code></td>
-                    <td><span class="badge ${log.status === 'success' ? 'green' : 'red'}">${log.status}</span></td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${utils.escapeHtml(log.details || '')}">${utils.escapeHtml(log.details || '-')}</td>
+                    <td><span class="badge ${log.status === 'success' ? 'green' : 'red'}">${utils.escapeHtml(log.status || '-')}</span></td>
+                    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${utils.escapeHtml(log.details || '')}">${formatDetails(log.details)}</td>
                   </tr>
                 `).join('')}
             </tbody>
           </table>
         </div>
-        </div >
+        </div>
+      </div>
       `;
     } catch (e) {
-      root.innerHTML = `< div class="error-message" > ログの取得に失敗しました: ${utils.escapeHtml(e.message)}</div > `;
+      root.innerHTML = `<div class="error-message">ログの取得に失敗しました: ${utils.escapeHtml(e.message)}</div>`;
     }
   }
 
