@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>デザイン案 B｜番号で読み進める</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#fff;color:#26332b;font:16px/1.75:'Noto Sans JP',sans-serif}header{background:#166534;color:white}.nav{max-width:1100px;margin:auto;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}.brand{font:800 18px 'M PLUS Rounded 1c'}.nav small{color:#dcfce7}main{max-width:1100px;margin:auto;padding:70px 24px 82px}.intro{max-width:720px;margin-bottom:38px}.eyebrow{color:#15803d;letter-spacing:.13em;font-size:12px;font-weight:700}.intro h1{font:800 clamp(30px,4vw,42px)/1.3 'M PLUS Rounded 1c';margin:8px 0 10px;color:#173b28}.intro p{color:#647168;margin:0}.list{display:grid;gap:12px}.row{display:grid;grid-template-columns:56px minmax(0,1fr) 180px;gap:22px;align-items:center;padding:20px 22px;background:#f7f9f6;border-radius:18px}.number{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--pale);font:800 20px 'M PLUS Rounded 1c';color:var(--accent)}.row h2{font:700 22px 'M PLUS Rounded 1c';margin:0 0 6px}.row p{color:#59665d;margin:0;max-width:600px}.metric{text-align:center;color:#66736a;font-size:12px;background:var(--pale);border-radius:13px;padding:10px}.metric strong{display:block;color:var(--accent);font:800 24px 'M PLUS Rounded 1c'}.green{--accent:#15803d;--pale:#e9f3e9}.yellow{--accent:#9a6700;--pale:#fff2d1}.blue{--accent:#2563a6;--pale:#e8f1fb}.sub{margin:58px 0 18px;font:700 25px 'M PLUS Rounded 1c';color:#173b28}.history{display:grid;grid-template-columns:1fr 1fr;gap:16px}.history article{display:flex;align-items:center;gap:15px;padding:20px;background:#f7f9f6;border-radius:16px}.history-mark{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:14px;background:var(--pale);color:var(--accent);font-size:20px}.history h3{font:700 18px 'M PLUS Rounded 1c';margin:0 0 6px}.history p{margin:0;color:#647168}.alerts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.alert{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border-radius:14px;background:#eaf5ec;color:#166534}.alert.error{background:#fff0ee;color:#a7352e}.alert-mark{width:25px;height:25px;flex:none;display:grid;place-items:center;border-radius:50%;background:#fff;font-weight:800}.alert b{display:block}footer{background:#14532d;color:#ecfdf5;padding:25px;text-align:center;font-size:13px}footer span{color:#fde68a}@media(max-width:760px){main{padding:48px 18px}.row{grid-template-columns:48px 1fr;gap:12px;padding:18px}.number{width:44px;height:44px;font-size:17px}.metric{grid-column:2;text-align:left;display:flex;gap:8px;align-items:baseline;justify-content:flex-start;padding:7px 10px}.metric strong{font-size:20px}.history,.alerts{grid-template-columns:1fr}.nav small{font-size:11px}}
+  </style>
+</head>
+<body>
+  <header><div class="nav"><div class="brand">⚜ 多治見第一団</div><small>提案 B　番号で読み進める</small></div></header>
+  <main>
+    <section class="intro"><div class="eyebrow">OUR MISSION</div><h1>私たちのミッション</h1><p>細い区切り線を使わず、余白と淡い色面、番号の丸いマーカーで3つの理念を整理します。</p></section>
+    <section class="list" aria-label="ミッション">
+      <article class="row green"><div class="number">01</div><div><h2>人間的成長</h2><p>心身ともにたくましく、自律心と協調性を備え、社会に積極的に貢献できる人を育てます。</p></div><div class="metric"><strong>62年</strong>以上の歴史</div></article>
+      <article class="row yellow"><div class="number">02</div><div><h2>冒険と挑戦</h2><p>野外活動を主軸に、未知なるものへ挑戦する心、困難を乗り越える生きる力を育みます。</p></div><div class="metric"><strong>120+</strong>活動プログラム</div></article>
+      <article class="row blue"><div class="number">03</div><div><h2>友情と奉仕</h2><p>仲間との協力を通じて信頼関係を築き、地域社会への奉仕を通じて、他者を思いやる心を育てます。</p></div><div class="metric"><strong>80+</strong>名以上の仲間たち</div></article>
+    </section>
+    <h2 class="sub">団の歴史と規模</h2><section class="history"><article class="yellow"><div class="history-mark">◷</div><div><h3>発団からの歩み</h3><p>昭和39年（1964年）に発団。地域に根ざした活動を続けています。</p></div></article><article class="green"><div class="history-mark">♧</div><div><h3>現在の構成人数</h3><p>指導者・団委員、スカウトが一緒に活動しています。</p></div></article></section>
+    <h2 class="sub">状態メッセージの例</h2><p style="color:#647168;margin:0">成功・エラーは色面と記号で区別し、細い枠線をなくしています。</p><section class="alerts"><div class="alert"><span class="alert-mark">✓</span><div><b>送信できました</b>お問い合わせありがとうございます。</div></div><div class="alert error"><span class="alert-mark">!</span><div><b>送信に失敗しました</b>時間をおいて再度お試しください。</div></div></section>
+  </main>
+  <footer>ボーイスカウト多治見第一団　<span>Be Prepared</span></footer>
+</body>
+</html>
